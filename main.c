@@ -76,6 +76,9 @@ typedef struct {
 // Check it with GC.start
 static void play_data_destructor(mrb_state *mrb, void *p_) {
   play_data_s *pd = (play_data_s *)p_;
+
+  UnloadRenderTexture(pd->buffer_target);     // Unload texture
+
   mrb_free(mrb, pd);
 };
 
