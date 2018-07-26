@@ -1,0 +1,6 @@
+[submodule "mruby"]
+	path = mruby
+	url = https://github.com/mruby/mruby
+[submodule "raylib"]
+	path = raylib
+	url = https://github.com/raysan5/raylib
