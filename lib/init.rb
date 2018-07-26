@@ -2,7 +2,7 @@
 
 ENV={}
 
-gl = GameLoop.new
+gl = GameLoop.new("kit1zx")
 
 building = Model.new("resources/hqalt1.obj", "resources/hqalt1tex.png")
 

@@ -169,9 +169,15 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
   int screenWidth = 800;
   int screenHeight = 450;
 
+  mrb_value game_name = mrb_nil_value();
+
+  mrb_get_args(mrb, "o", &game_name);
+
+  char *c_game_name = RSTRING_PTR(game_name);
+
   SetConfigFlags(FLAG_MSAA_4X_HINT);
 
-  InitWindow(screenWidth, screenHeight, "kubemap");
+  InitWindow(screenWidth, screenHeight, c_game_name);
 
   play_data_s *p_data;
 
