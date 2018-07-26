@@ -11,6 +11,7 @@ sources = $(wildcard *.c)
 objects = $(patsubst %,$(build)/%, $(patsubst %.c,%.o, $(sources)))
 static_ruby_headers = $(patsubst %,$(build)/%, $(patsubst lib/%.rb,%.h, $(wildcard lib/*.rb)))
 .SECONDARY: $(static_ruby_headers) $(objects)
+.PHONY: $(mruby_static_lib) $(raylib_static_lib)
 objects += $(mruby_static_lib)
 objects += $(raylib_static_lib)
 
@@ -31,6 +32,7 @@ $(build)/test.yml: $(target) config.ru
 
 clean:
 	cd mruby && make clean
+	make PLATFORM=PLATFORM_DESKTOP clean
 	rm -R $(build)
 
 $(build):
@@ -40,7 +42,7 @@ $(build)/%.o: %.c $(static_ruby_headers) $(sources)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(mruby_static_lib): config/mruby.rb
-	cd mruby && make clean && MRUBY_CONFIG=../config/mruby.rb make
+	cd mruby && MRUBY_CONFIG=../config/mruby.rb make
 
 $(raylib_static_lib):
 	cd raylib/src && make PLATFORM=PLATFORM_DESKTOP
