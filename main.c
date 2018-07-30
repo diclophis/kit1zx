@@ -302,7 +302,6 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
       EndShaderMode();
 
     } else {
-
       BeginMode3D(p_data->camera);
 
       mrb_yield_argv(mrb, block, 1, &self);
