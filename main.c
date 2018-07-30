@@ -169,12 +169,10 @@ static mrb_value draw_model(mrb_state* mrb, mrb_value self)
 static mrb_value game_init(mrb_state* mrb, mrb_value self)
 {
   // Initialization
-  int screenWidth = 800;
-  int screenHeight = 450;
-
   mrb_value game_name = mrb_nil_value();
+  mrb_int screenWidth,screenHeight,screenFps;
 
-  mrb_get_args(mrb, "o", &game_name);
+  mrb_get_args(mrb, "oiii", &game_name, &screenWidth, &screenHeight, &screenFps);
 
   char *c_game_name = RSTRING_PTR(game_name);
 
@@ -205,7 +203,7 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
       mrb_obj_value(                           // with value hold in struct
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
 
-  SetTargetFPS(30);
+  SetTargetFPS(screenFps);
 
   return self;
 }
