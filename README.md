@@ -25,3 +25,5 @@ https://github.com/mruby/mruby/blob/master/include/mruby/data.h
 https://mrubybyexample.fazibear.me/
 
 http://ssrb.github.io/mega-structure/mega-structure.html
+
+https://github.com/after12am/eisenscript/tree/master/example
