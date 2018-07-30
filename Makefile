@@ -17,7 +17,7 @@ objects += $(raylib_static_lib)
 
 LDFLAGS=-lm -lpthread -ldl -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo $(shell (uname | grep -q Darwin || echo -static))
 
-CFLAGS=-std=c99 -Imruby/include -Iraylib/release/include -I$(build)
+CFLAGS=-std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
 
 $(shell mkdir -p $(build))
 
@@ -32,7 +32,7 @@ $(build)/test.yml: $(target) config.ru
 
 clean:
 	cd mruby && make clean
-	make PLATFORM=PLATFORM_DESKTOP clean
+	cd raylib && make PLATFORM=PLATFORM_DESKTOP clean
 	rm -R $(build)
 
 $(build):

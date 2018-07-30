@@ -19,6 +19,7 @@
 
 
 #include <raylib.h>
+#include <raymath.h>
 
 
 #include "init.h"
@@ -58,6 +59,7 @@ static void eval_static_libs(mrb_state* mrb, ...) {
 typedef struct {
   Camera camera;
   RenderTexture2D buffer_target;
+  Vector2 mousePosition;
 } play_data_s;
 
 
@@ -98,12 +100,36 @@ const struct mrb_data_type play_data_type = {"play_data", play_data_destructor};
 const struct mrb_data_type model_data_type = {"model_data", model_data_destructor};
 
 
+static mrb_value mousep(mrb_state* mrb, mrb_value self)
+{
+  mrb_value block;
+  mrb_get_args(mrb, "&", &block);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  mrb_value mousexy = mrb_ary_new(mrb);
+
+  mrb_ary_set(mrb, mousexy, 0, mrb_float_value(mrb, p_data->mousePosition.x));
+  mrb_ary_set(mrb, mousexy, 1, mrb_float_value(mrb, p_data->mousePosition.y));
+
+  return mrb_yield_argv(mrb, block, 2, &mousexy);
+}
+
+
 static mrb_value model_init(mrb_state* mrb, mrb_value self)
 {
   mrb_value model_obj = mrb_nil_value();
   mrb_value model_png = mrb_nil_value();
-
-  mrb_get_args(mrb, "oo", &model_obj, &model_png);
+  mrb_float scalef;
+  mrb_get_args(mrb, "oof", &model_obj, &model_png, &scalef);
 
   char *c_model_obj = RSTRING_PTR(model_obj);
   char *c_model_png = RSTRING_PTR(model_png);
@@ -121,9 +147,11 @@ static mrb_value model_init(mrb_state* mrb, mrb_value self)
   p_data->position.x = 0.0f;
   p_data->position.y = 0.0f;
   p_data->position.z = 0.0f;
+
   p_data->rotation.x = 0.0f;
   p_data->rotation.y = 1.0f;
   p_data->rotation.z = 0.0f; // Set model position
+  p_data->angle = 0.0;
   
   p_data->texture = LoadTexture(c_model_png); // Load model texture
   p_data->model.material.maps[MAP_DIFFUSE].texture = p_data->texture; // Set map diffuse texture
@@ -131,11 +159,9 @@ static mrb_value model_init(mrb_state* mrb, mrb_value self)
   //TODO?
   //p_data->model.material.shader = shader;
 
-  float scalef = 10.5f;
   p_data->scale.x = scalef;
   p_data->scale.y = scalef;
   p_data->scale.z = scalef;
-  p_data->angle = 0.0;
 
   mrb_iv_set(
       mrb, self, mrb_intern_lit(mrb, "@pointer"),
@@ -155,7 +181,7 @@ static mrb_value draw_model(mrb_state* mrb, mrb_value self)
 
   Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
   if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @camera");
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
   // Draw 3d model with texture
@@ -189,17 +215,19 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
   }
 
   // Define the camera to look into our 3d world
-  p_data->camera.position = (Vector3){ 8.0f, 8.0f, 8.0f };    // Camera position
-  p_data->camera.target = (Vector3){ 0.0f, 2.5f, 0.0f };      // Camera looking at point
+  p_data->camera.position = (Vector3){ 0.0f, 3.0f, -0.25f };    // Camera position
+  p_data->camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
   p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-  p_data->camera.fovy = 45.0f;                                // Camera field-of-view Y
-  p_data->camera.type = CAMERA_PERSPECTIVE;                   // Camera mode type
-  SetCameraMode(p_data->camera, CAMERA_ORBITAL);
+  p_data->camera.fovy = 33.0f;                                // Camera field-of-view Y
+  //p_data->camera.type = CAMERA_PERSPECTIVE;                   // Camera mode type
+  p_data->camera.type = CAMERA_ORTHOGRAPHIC;                   // Camera mode type
+  //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
+  //SetCameraMode(p_data->camera, CAMERA_THIRD_PERSON);
 
   p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
 
   mrb_iv_set(
-      mrb, self, mrb_intern_lit(mrb, "@camera"), // set @data
+      mrb, self, mrb_intern_lit(mrb, "@pointer"), // set @data
       mrb_obj_value(                           // with value hold in struct
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
 
@@ -222,12 +250,63 @@ static mrb_value deltap_model(mrb_state* mrb, mrb_value self)
 
   Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
   if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @camera");
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
   p_data->position.x = x;
   p_data->position.y = y;
   p_data->position.z = z;
+
+  return mrb_nil_value();
+}
+
+static mrb_value deltar_model(mrb_state* mrb, mrb_value self)
+{
+  mrb_float x,y,z,r;
+
+  mrb_get_args(mrb, "ffff", &x, &y, &z, &r);
+
+  model_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  p_data->rotation.x = x;
+  p_data->rotation.y = y;
+  p_data->rotation.z = z;
+  p_data->angle = r;
+
+  return mrb_nil_value();
+}
+
+static mrb_value yawpitchroll_model(mrb_state* mrb, mrb_value self)
+{
+  mrb_float yaw,pitch,roll;
+
+  mrb_get_args(mrb, "fff", &yaw, &pitch, &roll);
+
+  model_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  Matrix transform = MatrixIdentity();
+
+  transform = MatrixMultiply(transform, MatrixRotateZ(DEG2RAD*roll));
+  transform = MatrixMultiply(transform, MatrixRotateX(DEG2RAD*pitch));
+  transform = MatrixMultiply(transform, MatrixRotateY(DEG2RAD*yaw));
+
+  p_data->model.transform = transform;
 
   return mrb_nil_value();
 }
@@ -259,24 +338,30 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 
   play_data_s *p_data = NULL;
   mrb_value data_value;     // this IV holds the data
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@camera"));
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
 
   Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
   if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @camera");
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
   Shader shader = LoadShader("resources/shaders/glsl330/base.vs",
                              "resources/shaders/glsl330/pixelizer.fs");
+                             //"resources/shaders/glsl330/depth.fs");
+                             //"resources/shaders/glsl330/base.fs");
+
+  DisableCursor();
 
   // Main game loop
   while (!WindowShouldClose()) // Detect window close button or ESC key
   {
+    p_data->mousePosition = GetMousePosition();
+
     UpdateCamera(&p_data->camera);
 
     BeginDrawing();
 
-    ClearBackground(RAYWHITE);
+    ClearBackground(BLACK);
 
     if (IsKeyPressed(KEY_RIGHT)) {
 
@@ -284,7 +369,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 
       BeginMode3D(p_data->camera);
 
-      mrb_yield_argv(mrb, block, 1, &self);
+      mrb_yield_argv(mrb, block, 0, MRB_ARGS_NONE());
 
       EndMode3D();
 
@@ -304,7 +389,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
     } else {
       BeginMode3D(p_data->camera);
 
-      mrb_yield_argv(mrb, block, 1, &self);
+      mrb_yield_argv(mrb, block, 0, MRB_ARGS_NONE());
 
       EndMode3D();
     }
@@ -343,12 +428,15 @@ int main(int argc, char** argv) {
   struct RClass *game_class = mrb_define_class(mrb, "GameLoop", mrb->object_class);
   mrb_define_method(mrb, game_class, "initialize", game_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, game_class, "main_loop", main_loop, MRB_ARGS_BLOCK());
-  mrb_define_method(mrb, game_class, "draw_grid", draw_grid, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "draw_grid", draw_grid, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, game_class, "mousep", mousep, MRB_ARGS_BLOCK());
 
   struct RClass *model_class = mrb_define_class(mrb, "Model", mrb->object_class);
   mrb_define_method(mrb, model_class, "initialize", model_init, MRB_ARGS_REQ(2));
-  mrb_define_method(mrb, model_class, "draw", draw_model, MRB_ARGS_BLOCK());
-  mrb_define_method(mrb, model_class, "deltap", deltap_model, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, model_class, "draw", draw_model, MRB_ARGS_NONE());
+  mrb_define_method(mrb, model_class, "deltap", deltap_model, MRB_ARGS_REQ(3));
+  mrb_define_method(mrb, model_class, "deltar", deltar_model, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, model_class, "yawpitchroll", yawpitchroll_model, MRB_ARGS_REQ(3));
 
   eval_static_libs(mrb, init, NULL);
 
