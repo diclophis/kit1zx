@@ -25,6 +25,9 @@
 #include "init.h"
 
 
+#define FLT_MAX 3.40282347E+38F
+
+
 static void if_exception_error_and_exit(mrb_state* mrb, char *context) {
   // check for exception, only one can exist at any point in time
   if (mrb->exc) {
@@ -115,12 +118,33 @@ static mrb_value mousep(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
-  mrb_value mousexy = mrb_ary_new(mrb);
+  mrb_value mousexyz = mrb_ary_new(mrb);
 
-  mrb_ary_set(mrb, mousexy, 0, mrb_float_value(mrb, p_data->mousePosition.x));
-  mrb_ary_set(mrb, mousexy, 1, mrb_float_value(mrb, p_data->mousePosition.y));
+  RayHitInfo nearestHit;
+  char *hitObjectName = "None";
+  nearestHit.distance = FLT_MAX;
+  nearestHit.hit = false;
+  Color cursorColor = WHITE;
 
-  return mrb_yield_argv(mrb, block, 2, &mousexy);
+  Ray ray; // Picking ray
+
+  ray = GetMouseRay(p_data->mousePosition, p_data->camera);
+
+  // Check ray collision aginst ground plane
+  RayHitInfo groundHitInfo = GetCollisionRayGround(ray, 0.0f);
+
+  if ((groundHitInfo.hit) && (groundHitInfo.distance < nearestHit.distance))
+  {
+    nearestHit = groundHitInfo;
+
+    mrb_ary_set(mrb, mousexyz, 0, mrb_float_value(mrb, nearestHit.position.x));
+    mrb_ary_set(mrb, mousexyz, 1, mrb_float_value(mrb, nearestHit.position.y));
+    mrb_ary_set(mrb, mousexyz, 2, mrb_float_value(mrb, nearestHit.position.z));
+
+    return mrb_yield_argv(mrb, block, 3, &mousexyz);
+  } else {
+    return mrb_nil_value();
+  }
 }
 
 
@@ -215,12 +239,12 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
   }
 
   // Define the camera to look into our 3d world
-  p_data->camera.position = (Vector3){ 0.0f, 3.0f, -0.25f };    // Camera position
-  p_data->camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
+  p_data->camera.position = (Vector3){ 0.0f, 3.125f, -2.5f };    // Camera position
+  p_data->camera.target = (Vector3){ 0.0f, 0.0f, 0.01f };      // Camera looking at point
   p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-  p_data->camera.fovy = 33.0f;                                // Camera field-of-view Y
-  //p_data->camera.type = CAMERA_PERSPECTIVE;                   // Camera mode type
-  p_data->camera.type = CAMERA_ORTHOGRAPHIC;                   // Camera mode type
+  p_data->camera.fovy = 45.0f;                                // Camera field-of-view Y
+  p_data->camera.type = CAMERA_PERSPECTIVE;                   // Camera mode type
+  //p_data->camera.type = CAMERA_ORTHOGRAPHIC;                   // Camera mode type
   //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
   //SetCameraMode(p_data->camera, CAMERA_THIRD_PERSON);
 
@@ -350,7 +374,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
                              //"resources/shaders/glsl330/depth.fs");
                              //"resources/shaders/glsl330/base.fs");
 
-  DisableCursor();
+  //DisableCursor();
 
   // Main game loop
   while (!WindowShouldClose()) // Detect window close button or ESC key
