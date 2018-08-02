@@ -18,10 +18,10 @@ gl.main_loop { |gtdt|
   global_time = gtdt[0]
   delta_time = gtdt[1]
 
-  gl.draw_grid(100, 0.1)
+  #gl.draw_grid(100, 0.1)
 
-  tunnel_rotation += 10.0 * delta_time
-  tunnel_position += 50.0 * delta_time
+  tunnel_rotation += 50.0 * delta_time
+  tunnel_position += 100.0 * delta_time
   hq_position += 30.00 * delta_time
 
   if tunnel_position > 2000

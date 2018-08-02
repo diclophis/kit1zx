@@ -239,7 +239,7 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
   }
 
   // Define the camera to look into our 3d world
-  p_data->camera.position = (Vector3){ 0.0f, 10.125f, -2.5f };    // Camera position
+  p_data->camera.position = (Vector3){ 0.0f, 0.125f, -2.5f };    // Camera position
   p_data->camera.target = (Vector3){ 0.0f, 0.0f, 0.05f };      // Camera looking at point
   p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
   p_data->camera.fovy = 90.0f;                                // Camera field-of-view Y
@@ -398,8 +398,6 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
     mrb_yield_argv(mrb, block, 2, &gtdt);
 
     EndMode3D();
-
-    DrawFPS(10, 10);
 
     EndDrawing();
   }
