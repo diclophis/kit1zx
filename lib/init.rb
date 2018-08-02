@@ -20,9 +20,9 @@ gl.main_loop { |gtdt|
 
   gl.draw_grid(100, 0.1)
 
-  tunnel_rotation += 0.125
-  tunnel_position += 5.33
-  hq_position += 5.00
+  tunnel_rotation += 10.0 * delta_time
+  tunnel_position += 50.0 * delta_time
+  hq_position += 30.00 * delta_time
 
   if tunnel_position > 2000
     tunnel_position = -800
@@ -40,7 +40,7 @@ gl.main_loop { |gtdt|
 
   gl.mousep { |xyz|
     x,y,z = xyz
-    ndx = (last_x - x) * 100.0
+    ndx = (last_x - x) * 500.0
     player_one.yawpitchroll(0.0, 0.0, -(ndx))
     player_one.deltap(x, 0.0, z)
     last_x = x
