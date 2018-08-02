@@ -1,0 +1,7 @@
+build
+.git
+mruby/.git
+raylib/.git
+raylib/examples
+raylib/games
+raylib/release
