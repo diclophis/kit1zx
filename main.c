@@ -369,26 +369,21 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
-  Shader shader = LoadShader("resources/shaders/glsl330/base.vs",
-                             "resources/shaders/glsl330/pixelizer.fs");
-                             //"resources/shaders/glsl330/depth.fs");
-                             //"resources/shaders/glsl330/base.fs");
+  mrb_value gtdt = mrb_ary_new(mrb);
 
-  Shader bg_shader = LoadShader("resources/shaders/glsl330/base.vs",
-                                "resources/shaders/glsl330/bg.fs");
-
-  int timeUniform = GetShaderLocation(bg_shader, "time"); // Get shader uniform location
-
-  float time = 0.0;
+  double time;
+  float dt;
 
   //DisableCursor();
 
   // Main game loop
   while (!WindowShouldClose()) // Detect window close button or ESC key
   {
-    time += 0.1;
+    time = GetTime();
+    dt = GetFrameTime();
 
-    SetShaderValue(bg_shader, timeUniform, &time, 1);
+    mrb_ary_set(mrb, gtdt, 0, mrb_float_value(mrb, time));
+    mrb_ary_set(mrb, gtdt, 1, mrb_float_value(mrb, dt));
 
     p_data->mousePosition = GetMousePosition();
 
@@ -398,48 +393,11 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 
     ClearBackground(BLACK);
 
-    //if (IsKeyPressed(KEY_RIGHT)) {
+    BeginMode3D(p_data->camera);
 
-    //  BeginTextureMode(p_data->buffer_target); // Enable drawing to texture
+    mrb_yield_argv(mrb, block, 2, &gtdt);
 
-    //  BeginMode3D(p_data->camera);
-
-    //  mrb_yield_argv(mrb, block, 0, MRB_ARGS_NONE());
-
-    //  EndMode3D();
-
-    //  EndTextureMode();
-
-    //  BeginShaderMode(shader);
-
-    //  DrawTextureRec(
-    //                  p_data->buffer_target.texture, 
-    //                  (Rectangle){ 0, 0, p_data->buffer_target.texture.width, -p_data->buffer_target.texture.height },
-    //                  (Vector2){ 0, 0 },
-    //                  WHITE
-    //                );
-
-    //  EndShaderMode();
-
-    //} else {
-
-      //BeginShaderMode(bg_shader);
-      //DrawRectanglePro(
-      //                  (Rectangle){ 0, 0, p_data->buffer_target.texture.width, p_data->buffer_target.texture.height },
-      //                  //(Rectangle){ 0, 0, 256, 256 },
-      //                  (Vector2){ 0, 0 },
-      //                  0.0,
-      //                  WHITE
-      //                );
-      //EndShaderMode();
-
-      BeginMode3D(p_data->camera);
-
-      mrb_yield_argv(mrb, block, 0, MRB_ARGS_NONE());
-
-      EndMode3D();
-
-    //}
+    EndMode3D();
 
     DrawFPS(10, 10);
 
@@ -447,9 +405,6 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
   }
 
   CloseWindow(); // Close window and OpenGL context
-
-  UnloadShader(shader);
-  UnloadShader(bg_shader);
 
   fprintf(stderr, "After block\n");
 

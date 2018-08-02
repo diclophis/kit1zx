@@ -14,7 +14,10 @@ tunnel_position = -800
 
 last_x = 0.0
 
-gl.main_loop { |gt, dt|
+gl.main_loop { |gtdt|
+  global_time = gtdt[0]
+  delta_time = gtdt[1]
+
   gl.draw_grid(100, 0.1)
 
   tunnel_rotation += 0.125
