@@ -226,7 +226,7 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
 
   char *c_game_name = RSTRING_PTR(game_name);
 
-  SetConfigFlags(FLAG_MSAA_4X_HINT);
+  //SetConfigFlags(FLAG_MSAA_4X_HINT);
 
   InitWindow(screenWidth, screenHeight, c_game_name);
 
@@ -239,10 +239,10 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
   }
 
   // Define the camera to look into our 3d world
-  p_data->camera.position = (Vector3){ 0.0f, 3.125f, -2.5f };    // Camera position
-  p_data->camera.target = (Vector3){ 0.0f, 0.0f, 0.01f };      // Camera looking at point
+  p_data->camera.position = (Vector3){ 0.0f, 5.125f, -2.5f };    // Camera position
+  p_data->camera.target = (Vector3){ 0.0f, 0.0f, 0.05f };      // Camera looking at point
   p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-  p_data->camera.fovy = 45.0f;                                // Camera field-of-view Y
+  p_data->camera.fovy = 90.0f;                                // Camera field-of-view Y
   p_data->camera.type = CAMERA_PERSPECTIVE;                   // Camera mode type
   //p_data->camera.type = CAMERA_ORTHOGRAPHIC;                   // Camera mode type
   //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
@@ -374,11 +374,22 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
                              //"resources/shaders/glsl330/depth.fs");
                              //"resources/shaders/glsl330/base.fs");
 
+  Shader bg_shader = LoadShader("resources/shaders/glsl330/base.vs",
+                                "resources/shaders/glsl330/bg.fs");
+
+  int timeUniform = GetShaderLocation(bg_shader, "time"); // Get shader uniform location
+
+  float time = 0.0;
+
   //DisableCursor();
 
   // Main game loop
   while (!WindowShouldClose()) // Detect window close button or ESC key
   {
+    time += 0.1;
+
+    SetShaderValue(bg_shader, timeUniform, &time, 1);
+
     p_data->mousePosition = GetMousePosition();
 
     UpdateCamera(&p_data->camera);
@@ -387,9 +398,40 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 
     ClearBackground(BLACK);
 
-    if (IsKeyPressed(KEY_RIGHT)) {
+    //if (IsKeyPressed(KEY_RIGHT)) {
 
-      BeginTextureMode(p_data->buffer_target); // Enable drawing to texture
+    //  BeginTextureMode(p_data->buffer_target); // Enable drawing to texture
+
+    //  BeginMode3D(p_data->camera);
+
+    //  mrb_yield_argv(mrb, block, 0, MRB_ARGS_NONE());
+
+    //  EndMode3D();
+
+    //  EndTextureMode();
+
+    //  BeginShaderMode(shader);
+
+    //  DrawTextureRec(
+    //                  p_data->buffer_target.texture, 
+    //                  (Rectangle){ 0, 0, p_data->buffer_target.texture.width, -p_data->buffer_target.texture.height },
+    //                  (Vector2){ 0, 0 },
+    //                  WHITE
+    //                );
+
+    //  EndShaderMode();
+
+    //} else {
+
+      //BeginShaderMode(bg_shader);
+      //DrawRectanglePro(
+      //                  (Rectangle){ 0, 0, p_data->buffer_target.texture.width, p_data->buffer_target.texture.height },
+      //                  //(Rectangle){ 0, 0, 256, 256 },
+      //                  (Vector2){ 0, 0 },
+      //                  0.0,
+      //                  WHITE
+      //                );
+      //EndShaderMode();
 
       BeginMode3D(p_data->camera);
 
@@ -397,31 +439,17 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 
       EndMode3D();
 
-      EndTextureMode();
+    //}
 
-      BeginShaderMode(shader);
-
-      DrawTextureRec(
-                      p_data->buffer_target.texture, 
-                      (Rectangle){ 0, 0, p_data->buffer_target.texture.width, -p_data->buffer_target.texture.height },
-                      (Vector2){ 0, 0 },
-                      WHITE
-                    );
-
-      EndShaderMode();
-
-    } else {
-      BeginMode3D(p_data->camera);
-
-      mrb_yield_argv(mrb, block, 0, MRB_ARGS_NONE());
-
-      EndMode3D();
-    }
+    DrawFPS(10, 10);
 
     EndDrawing();
   }
 
   CloseWindow(); // Close window and OpenGL context
+
+  UnloadShader(shader);
+  UnloadShader(bg_shader);
 
   fprintf(stderr, "After block\n");
 

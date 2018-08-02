@@ -2,32 +2,33 @@
 
 ENV={}
 
-gl = GameLoop.new("kit1zx", 800, 450, 23)
+gl = GameLoop.new("kit1zx", 512, 512, 61)
 
 building = Model.new("resources/hqalt1.obj", "resources/hqalt1tex.png", 1333.0)
 tunnel = Model.new("resources/seqalt3.obj", "resources/seqtex.png", 1111.0)
-player_one = Model.new("resources/playerone001.obj", "resources/playerone.png", 0.125)
+player_one = Model.new("resources/playerone001.obj", "resources/playerone.png", 0.5)
 
 tr = 0.0
 tp = 0.0
-bp = -3333
+bp = -3456
+tp = -800
 
 lx = 0.0
 
-gl.main_loop {
+gl.main_loop { |gt, dt|
   #gl.draw_grid(100, 0.1)
 
   tr += 0.125
 
-  tp += 15.33
-  bp += 10.22
+  tp += 5.33
+  bp += 5.00
 
   if tp > 2000
-    tp = -3333
+    tp = -800
   end
 
   if bp > 1000
-    bp = -3333
+    bp = -3456
   end
 
   building.deltap(0.0, 0.0, -bp)
