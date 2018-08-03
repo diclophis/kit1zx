@@ -46,9 +46,9 @@ gl.main_loop { |gtdt|
 
   hq_position += 33.00 * delta_time
 
-  if tunnel_position > 1500
-    tunnel_position = -1500
-    tunnel_position_x = (rand * 500.0) - 250.0
+  if tunnel_position > 1000
+    tunnel_position = -1000
+    tunnel_position_x = (rand * 400.0) - 200.0
   end
 
   if hq_position > 1500
