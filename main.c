@@ -239,10 +239,10 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
   }
 
   // Define the camera to look into our 3d world
-  p_data->camera.position = (Vector3){ 0.0f, 0.125f, -2.5f };    // Camera position
+  p_data->camera.position = (Vector3){ 0.0f, 0.125f, -1000.5f };    // Camera position
   p_data->camera.target = (Vector3){ 0.0f, 0.0f, 0.05f };      // Camera looking at point
   p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-  p_data->camera.fovy = 90.0f;                                // Camera field-of-view Y
+  p_data->camera.fovy = 10.0f;                                // Camera field-of-view Y
   p_data->camera.type = CAMERA_PERSPECTIVE;                   // Camera mode type
   //p_data->camera.type = CAMERA_ORTHOGRAPHIC;                   // Camera mode type
   //SetCameraMode(p_data->camera, CAMERA_ORBITAL);

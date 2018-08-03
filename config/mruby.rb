@@ -10,7 +10,7 @@ MRuby::Build.new do |conf|
   conf.gem :core => "mruby-bin-mirb"
   conf.gem :core => "mruby-math"
   #conf.gem :core => "mruby-struct"
-  #conf.gem :core => "mruby-io"
+  conf.gem :core => "mruby-io"
   #conf.gem :core => "mruby-sprintf"
   #conf.gem :core => "mruby-string-ext"
 
