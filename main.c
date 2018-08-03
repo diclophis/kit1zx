@@ -226,7 +226,7 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
 
   char *c_game_name = RSTRING_PTR(game_name);
 
-  //SetConfigFlags(FLAG_MSAA_4X_HINT);
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
 
   InitWindow(screenWidth, screenHeight, c_game_name);
 
@@ -239,12 +239,12 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
   }
 
   // Define the camera to look into our 3d world
-  p_data->camera.position = (Vector3){ 0.0f, 500.125f, -1.5f };    // Camera position
-  p_data->camera.target = (Vector3){ 0.0f, 0.0f, 0.05f };      // Camera looking at point
+  p_data->camera.position = (Vector3){ 0.0f, 2000.0f, -1.0f };    // Camera position
+  p_data->camera.target = (Vector3){ 0.0f, 0.0f, 1.0f };      // Camera looking at point
   p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-  p_data->camera.fovy = 33.0f;                                // Camera field-of-view Y
-  p_data->camera.type = CAMERA_PERSPECTIVE;                   // Camera mode type
-  //p_data->camera.type = CAMERA_ORTHOGRAPHIC;                   // Camera mode type
+  p_data->camera.fovy = 359.0f;                                // Camera field-of-view Y
+  //p_data->camera.type = CAMERA_PERSPECTIVE;                   // Camera mode type
+  p_data->camera.type = CAMERA_ORTHOGRAPHIC;                   // Camera mode type
   //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
   //SetCameraMode(p_data->camera, CAMERA_THIRD_PERSON);
 
