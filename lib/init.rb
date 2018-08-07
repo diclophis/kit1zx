@@ -2,7 +2,7 @@
 
 ENV={}
 
-gl = GameLoop.new("kit1zx", 512, 512, 60)
+gl = GameLoop.new("kit1zx", 512, 512, 24)
 
 player_scale = 13.0
 
@@ -83,16 +83,6 @@ gl.main_loop { |gtdt|
     left_right_velocity = (dx * 1.0) / delta_time
     left_right_accel = (last_left_right_velocity - left_right_velocity) / delta_time
 
-    #if ((left_right_velocity > 0.0 && last_left_right_velocity > 0.0) ||
-    #    (left_right_velocity < 0.0 && last_left_right_velocity < 0.0))
-    #  time_at_vector += delta_time
-    #else
-    #  time_at_vector = 0.0
-    #end
-
-    #time_at_vector = 0.001
-    #accel_met = 0.001
-
     max_accel = (0.1 * player_scale)
     max_velocity = (0.9 * player_scale)
 
@@ -110,7 +100,6 @@ gl.main_loop { |gtdt|
 
     mx_roll = 45.0
 
-    #suggest_new_roll = ((((left_right_accel * 0.025) + (-left_right_velocity * (time_at_vector)))) * mx_roll)
     suggest_new_roll = ((left_right_velocity / max_velocity) * mx_roll)
 
     new_roll = last_roll - ((last_roll + suggest_new_roll) * delta_time * 9.0)
@@ -137,10 +126,7 @@ gl.main_loop { |gtdt|
     if new_roll > max_roll
       max_roll = new_roll
     end
-
-    #puts [left_right_accel, new_roll, min_roll, max_roll]
   }
-
 
   tunnel.draw
   player_one.draw
