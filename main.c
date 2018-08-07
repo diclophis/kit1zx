@@ -399,7 +399,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 
     EndMode3D();
 
-    DrawFPS(10, 10);
+    //DrawFPS(10, 10);
 
     EndDrawing();
   }
