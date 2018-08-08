@@ -321,7 +321,6 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not allocate @data");
   }
 
-
   p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
 
   mrb_iv_set(
@@ -385,8 +384,9 @@ static mrb_value deltar_model(mrb_state* mrb, mrb_value self)
 static mrb_value yawpitchroll_model(mrb_state* mrb, mrb_value self)
 {
   mrb_float yaw,pitch,roll;
+  mrb_float ox,oy,oz;
 
-  mrb_get_args(mrb, "fff", &yaw, &pitch, &roll);
+  mrb_get_args(mrb, "ffffff", &yaw, &pitch, &roll, &ox, &oy, &oz);
 
   model_data_s *p_data = NULL;
   mrb_value data_value; // this IV holds the data
@@ -400,6 +400,7 @@ static mrb_value yawpitchroll_model(mrb_state* mrb, mrb_value self)
 
   Matrix transform = MatrixIdentity();
 
+  transform = MatrixMultiply(transform, MatrixTranslate(ox, oy, oz));
   transform = MatrixMultiply(transform, MatrixRotateZ(DEG2RAD*roll));
   transform = MatrixMultiply(transform, MatrixRotateX(DEG2RAD*pitch));
   transform = MatrixMultiply(transform, MatrixRotateY(DEG2RAD*yaw));
@@ -508,12 +509,16 @@ static mrb_value lookat(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
+  // Camera mode type
   switch(type) {
     case 0:
-      //p_data->camera.type = CAMERA_PERSPECTIVE;                   // Camera mode type
-      p_data->camera.type = CAMERA_ORTHOGRAPHIC;                   // Camera mode type
+      p_data->camera.type = CAMERA_ORTHOGRAPHIC;
       //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
       //SetCameraMode(p_data->camera, CAMERA_THIRD_PERSON);
+      break;
+    case 1:
+      p_data->camera.type = CAMERA_PERSPECTIVE;
+      break;
   }
 
   // Define the camera to look into our 3d world
@@ -608,7 +613,7 @@ int main(int argc, char** argv) {
   mrb_define_method(mrb, model_class, "draw", draw_model, MRB_ARGS_NONE());
   mrb_define_method(mrb, model_class, "deltap", deltap_model, MRB_ARGS_REQ(3));
   mrb_define_method(mrb, model_class, "deltar", deltar_model, MRB_ARGS_REQ(4));
-  mrb_define_method(mrb, model_class, "yawpitchroll", yawpitchroll_model, MRB_ARGS_REQ(3));
+  mrb_define_method(mrb, model_class, "yawpitchroll", yawpitchroll_model, MRB_ARGS_REQ(6));
 
   struct RClass *cube_class = mrb_define_class(mrb, "Cube", model_class);
   mrb_define_method(mrb, cube_class, "initialize", cube_init, MRB_ARGS_REQ(4));
