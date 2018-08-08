@@ -22,6 +22,8 @@
 #include <raymath.h>
 
 
+#include "shmup.h"
+#include "chase.h"
 #include "init.h"
 
 
@@ -238,15 +240,6 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not allocate @data");
   }
 
-  // Define the camera to look into our 3d world
-  p_data->camera.position = (Vector3){ 0.0f, 2000.0f, -1.0f };    // Camera position
-  p_data->camera.target = (Vector3){ 0.0f, 0.0f, 1.0f };      // Camera looking at point
-  p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-  p_data->camera.fovy = 359.0f;                                // Camera field-of-view Y
-  //p_data->camera.type = CAMERA_PERSPECTIVE;                   // Camera mode type
-  p_data->camera.type = CAMERA_ORTHOGRAPHIC;                   // Camera mode type
-  //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
-  //SetCameraMode(p_data->camera, CAMERA_THIRD_PERSON);
 
   p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
 
@@ -412,6 +405,39 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 }
 
 
+static mrb_value lookat(mrb_state* mrb, mrb_value self)
+{
+  mrb_int type;
+  mrb_float px,py,pz,tx,ty,tz,fovy;
+
+  mrb_get_args(mrb, "ifffffff", &type, &px, &py, &pz, &tx, &ty, &tz, &fovy);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value;     // this IV holds the data
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  switch(type) {
+    case 0:
+      //p_data->camera.type = CAMERA_PERSPECTIVE;                   // Camera mode type
+      p_data->camera.type = CAMERA_ORTHOGRAPHIC;                   // Camera mode type
+      //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
+      //SetCameraMode(p_data->camera, CAMERA_THIRD_PERSON);
+  }
+
+  // Define the camera to look into our 3d world
+  p_data->camera.position = (Vector3){ px, py, pz };    // Camera position
+  p_data->camera.target = (Vector3){ tx, ty, tz };      // Camera looking at point
+
+  p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+  p_data->camera.fovy = fovy;                                 // Camera field-of-view Y
+}
+
+
 int main(int argc, char** argv) {
   mrb_state *mrb;
   mrb_value ret;
@@ -434,6 +460,7 @@ int main(int argc, char** argv) {
 
   struct RClass *game_class = mrb_define_class(mrb, "GameLoop", mrb->object_class);
   mrb_define_method(mrb, game_class, "initialize", game_init, MRB_ARGS_NONE());
+  mrb_define_method(mrb, game_class, "lookat", lookat, MRB_ARGS_REQ(8));
   mrb_define_method(mrb, game_class, "main_loop", main_loop, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "draw_grid", draw_grid, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, game_class, "mousep", mousep, MRB_ARGS_BLOCK());
@@ -445,7 +472,7 @@ int main(int argc, char** argv) {
   mrb_define_method(mrb, model_class, "deltar", deltar_model, MRB_ARGS_REQ(4));
   mrb_define_method(mrb, model_class, "yawpitchroll", yawpitchroll_model, MRB_ARGS_REQ(3));
 
-  eval_static_libs(mrb, init, NULL);
+  eval_static_libs(mrb, shmup, chase, init, NULL);
 
   mrb_close(mrb);
 
