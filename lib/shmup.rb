@@ -129,7 +129,5 @@ def shmup(gl)
 
     tunnel.draw
     player_one.draw
-
-    GC.start
   }
 end
