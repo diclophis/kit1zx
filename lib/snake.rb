@@ -5,28 +5,20 @@ def snake(gl)
 
   snake = Sphere.new(5.0, 10, 10, 1.0)
 
-  time_it_takes_to_move = 0.33
+  time_it_takes_to_move = 0.234
   time_into_current_move = 0.0
   player_position = [0.0, 0.0, 0.0]
   camera_desired_target = [0.0, 0.0, 0.0]
   camera_current_target = [10.0, 10.0, 10.0]
-  camera_speed = 3.33
+  camera_speed = 4.32
   move_vector = nil
-  last_vector = true
   
-  #move_cooldown_rate = time_it_takes_to_move
-  #move_cooldown = move_cooldown_rate
-
   gl.main_loop { |gtdt|
     global_time, delta_time = gtdt
 
     next unless delta_time > 0.0
 
     arrow_keys = gl.keyspressed(KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT)
-
-    #puts [move_cooldown, arrow_keys].inspect
-
-    #move_cooldown -= delta_time
 
     if !move_vector && arrow_keys[0]
       if arrow_keys[0] == KEY_UP
@@ -38,24 +30,6 @@ def snake(gl)
       elsif arrow_keys[0] == KEY_LEFT
         move_vector = [10.0, 0.0]
       end
-=begin
-      if rand > 0.5
-        if rand > 0.5
-          move_vector = [0.0, 10.0]
-        else
-          move_vector = [10.0, 0.0]
-        end
-      else
-        if rand > 0.5
-          move_vector = [0.0, -10.0]
-        else
-          move_vector = [-10.0, 0.0]
-        end
-      end
-=end
-      last_vector = !last_vector
-
-      #move_cooldown = move_cooldown_rate
     end
 
     next_player_positionx = player_position[0]
@@ -134,8 +108,8 @@ def snake(gl)
       gl.draw_grid(33, 10.0)
     }
 
-    gl.twod {
-      gl.draw_fps(10, 10)
-    }
+    #gl.twod {
+    #  gl.draw_fps(10, 10)
+    #}
   }
 end
