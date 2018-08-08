@@ -150,6 +150,38 @@ static mrb_value mousep(mrb_state* mrb, mrb_value self)
 }
 
 
+static mrb_value keyspressed(mrb_state* mrb, mrb_value self)
+{
+  mrb_int argc;
+  mrb_value *checkkeys;
+  mrb_get_args(mrb, "*", &checkkeys, &argc);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  mrb_value pressedkeys = mrb_ary_new(mrb);
+  int rc = 0;
+
+  for (int i=0; i<argc; i++) {
+    mrb_value key_to_check = checkkeys[i];
+
+    if (IsKeyDown(mrb_int(mrb, key_to_check))) {
+      mrb_ary_set(mrb, pressedkeys, rc, key_to_check);
+      rc++;
+    }
+  }
+
+  return pressedkeys;
+}
+
+
 static mrb_value model_init(mrb_state* mrb, mrb_value self)
 {
   mrb_value model_obj = mrb_nil_value();
@@ -605,6 +637,7 @@ int main(int argc, char** argv) {
   mrb_define_method(mrb, game_class, "draw_grid", draw_grid, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, game_class, "draw_fps", draw_fps, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, game_class, "mousep", mousep, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "keyspressed", keyspressed, MRB_ARGS_ANY());
   mrb_define_method(mrb, game_class, "main_loop", main_loop, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "threed", threed, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "twod", twod, MRB_ARGS_BLOCK());
