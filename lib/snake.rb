@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-def chase(gl)
+def snake(gl)
   gl.lookat(0, 0.0, 2000.0, -1.0, 0.0, 0.0, 1.0, 359.0)
 
   player = Cube.new(10.0, 10.0, 10.0, 1.0)
