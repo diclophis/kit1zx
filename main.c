@@ -23,7 +23,7 @@
 
 
 #include "shmup.h"
-#include "chase.h"
+#include "snake.h"
 #include "init.h"
 
 
@@ -197,9 +197,87 @@ static mrb_value model_init(mrb_state* mrb, mrb_value self)
   return self;
 }
 
+static mrb_value cube_init(mrb_state* mrb, mrb_value self)
+{
+  mrb_float w,h,l,scalef;
+  mrb_get_args(mrb, "ffff", &w, &h, &l, &scalef);
+
+  model_data_s *p_data;
+
+  p_data = malloc(sizeof(model_data_s));
+  memset(p_data, 0, sizeof(model_data_s));
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not allocate Cube");
+  }
+
+  p_data->model = LoadModelFromMesh(GenMeshCube(w, h, l));
+
+  p_data->position.x = 0.0f;
+  p_data->position.y = 0.0f;
+  p_data->position.z = 0.0f;
+
+  p_data->rotation.x = 0.0f;
+  p_data->rotation.y = 1.0f;
+  p_data->rotation.z = 0.0f; // Set model position
+  p_data->angle = 0.0;
+  
+  p_data->scale.x = scalef;
+  p_data->scale.y = scalef;
+  p_data->scale.z = scalef;
+
+  mrb_iv_set(
+      mrb, self, mrb_intern_lit(mrb, "@pointer"),
+      mrb_obj_value(
+          Data_Wrap_Struct(mrb, mrb->object_class, &model_data_type, p_data)));
+
+  return self;
+}
+
+
+static mrb_value sphere_init(mrb_state* mrb, mrb_value self)
+{
+  mrb_float ra,scalef;
+  mrb_int ri,sl;
+  mrb_get_args(mrb, "fiif", &ra, &ri, &sl, &scalef);
+
+  model_data_s *p_data;
+
+  p_data = malloc(sizeof(model_data_s));
+  memset(p_data, 0, sizeof(model_data_s));
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not allocate Sphere");
+  }
+
+  p_data->model = LoadModelFromMesh(GenMeshSphere(ra, ri, sl));
+
+  p_data->position.x = 0.0f;
+  p_data->position.y = 0.0f;
+  p_data->position.z = 0.0f;
+
+  p_data->rotation.x = 0.0f;
+  p_data->rotation.y = 1.0f;
+  p_data->rotation.z = 0.0f; // Set model position
+  p_data->angle = 0.0;
+  
+  p_data->scale.x = scalef;
+  p_data->scale.y = scalef;
+  p_data->scale.z = scalef;
+
+  mrb_iv_set(
+      mrb, self, mrb_intern_lit(mrb, "@pointer"),
+      mrb_obj_value(
+          Data_Wrap_Struct(mrb, mrb->object_class, &model_data_type, p_data)));
+
+  return self;
+}
+
 
 static mrb_value draw_model(mrb_state* mrb, mrb_value self)
 {
+  mrb_bool draw_wires;
+
+  mrb_get_args(mrb, "b", &draw_wires);
+
   model_data_s *p_data = NULL;
   mrb_value data_value; // this IV holds the data
 
@@ -212,7 +290,10 @@ static mrb_value draw_model(mrb_state* mrb, mrb_value self)
 
   // Draw 3d model with texture
   DrawModelEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, WHITE);
-  //DrawModelWiresEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, BLACK);   // Draw 3d model with texture
+
+  if (draw_wires) {
+    DrawModelWiresEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, BLACK);   // Draw 3d model with texture
+  }
 
   return mrb_nil_value();
 }
@@ -342,6 +423,18 @@ static mrb_value draw_grid(mrb_state* mrb, mrb_value self)
 }
 
 
+static mrb_value draw_fps(mrb_state* mrb, mrb_value self)
+{
+  mrb_int a,b;
+
+  mrb_get_args(mrb, "ii", &a, &b);
+
+  DrawFPS(a, b);
+
+  return mrb_nil_value();
+}
+
+
 //TODO: this
 //DrawGizmo(position);        // Draw gizmo
 
@@ -386,13 +479,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 
     ClearBackground(BLACK);
 
-    BeginMode3D(p_data->camera);
-
     mrb_yield_argv(mrb, block, 2, &gtdt);
-
-    EndMode3D();
-
-    //DrawFPS(10, 10);
 
     EndDrawing();
   }
@@ -438,6 +525,54 @@ static mrb_value lookat(mrb_state* mrb, mrb_value self)
 }
 
 
+static mrb_value threed(mrb_state* mrb, mrb_value self)
+{
+  mrb_value block;
+  mrb_get_args(mrb, "&", &block);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value;     // this IV holds the data
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  BeginMode3D(p_data->camera);
+
+  mrb_yield_argv(mrb, block, 0, NULL);
+
+  EndMode3D();
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value twod(mrb_state* mrb, mrb_value self)
+{
+  mrb_value block;
+  mrb_get_args(mrb, "&", &block);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value;     // this IV holds the data
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  //BeginMode2D(p_data->camera);
+
+  mrb_yield_argv(mrb, block, 0, NULL);
+
+  //EndMode2D();
+
+  return mrb_nil_value();
+}
+
+
 int main(int argc, char** argv) {
   mrb_state *mrb;
   mrb_value ret;
@@ -461,18 +596,27 @@ int main(int argc, char** argv) {
   struct RClass *game_class = mrb_define_class(mrb, "GameLoop", mrb->object_class);
   mrb_define_method(mrb, game_class, "initialize", game_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, game_class, "lookat", lookat, MRB_ARGS_REQ(8));
-  mrb_define_method(mrb, game_class, "main_loop", main_loop, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "draw_grid", draw_grid, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, game_class, "draw_fps", draw_fps, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, game_class, "mousep", mousep, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "main_loop", main_loop, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "threed", threed, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "twod", twod, MRB_ARGS_BLOCK());
 
   struct RClass *model_class = mrb_define_class(mrb, "Model", mrb->object_class);
-  mrb_define_method(mrb, model_class, "initialize", model_init, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, model_class, "initialize", model_init, MRB_ARGS_REQ(3));
   mrb_define_method(mrb, model_class, "draw", draw_model, MRB_ARGS_NONE());
   mrb_define_method(mrb, model_class, "deltap", deltap_model, MRB_ARGS_REQ(3));
   mrb_define_method(mrb, model_class, "deltar", deltar_model, MRB_ARGS_REQ(4));
   mrb_define_method(mrb, model_class, "yawpitchroll", yawpitchroll_model, MRB_ARGS_REQ(3));
 
-  eval_static_libs(mrb, shmup, chase, init, NULL);
+  struct RClass *cube_class = mrb_define_class(mrb, "Cube", model_class);
+  mrb_define_method(mrb, cube_class, "initialize", cube_init, MRB_ARGS_REQ(4));
+
+  struct RClass *sphere_class = mrb_define_class(mrb, "Sphere", model_class);
+  mrb_define_method(mrb, sphere_class, "initialize", sphere_init, MRB_ARGS_REQ(4));
+
+  eval_static_libs(mrb, shmup, snake, init, NULL);
 
   mrb_close(mrb);
 
