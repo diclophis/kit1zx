@@ -5,12 +5,16 @@ def snake(gl)
 
   snake = Sphere.new(5.0, 10, 10, 1.0)
 
-  time_it_takes_to_move = 1.33
+  time_it_takes_to_move = 0.33
   time_into_current_move = 0.0
   player_position = [0.0, 0.0, 0.0]
+  camera_desired_target = [0.0, 0.0, 0.0]
+  camera_current_target = [10.0, 10.0, 10.0]
+  camera_speed = 3.33
   move_vector = nil
+  last_vector = true
   
-  move_cooldown_rate = 2.66
+  move_cooldown_rate = 0.66
   move_cooldown = move_cooldown_rate
 
   gl.main_loop { |gtdt|
@@ -19,7 +23,22 @@ def snake(gl)
     move_cooldown -= delta_time
 
     if move_cooldown < 0.0 && !move_vector
-      move_vector = [10.0, 0.0]
+      if rand > 0.5
+        if rand > 0.5
+          move_vector = [0.0, 10.0]
+        else
+          move_vector = [10.0, 0.0]
+        end
+      else
+        if rand > 0.5
+          move_vector = [0.0, -10.0]
+        else
+          move_vector = [-10.0, 0.0]
+        end
+      end
+
+      last_vector = !last_vector
+
       move_cooldown = move_cooldown_rate
     end
 
@@ -31,6 +50,9 @@ def snake(gl)
       next_player_positionx = player_position[0]
       next_player_positionz = player_position[2]
 
+      deltax = 0.0
+      deltaz = 0.0
+
       percent_there = 0.0
 
       if move_vector
@@ -40,11 +62,20 @@ def snake(gl)
           percent_there = 1.0
         end
 
-        next_player_positionx = player_position[0] + (move_vector[0] * percent_there)
-        next_player_positionz = player_position[2] + (move_vector[1] * percent_there)
+        deltax = (move_vector[0] * percent_there)
+        deltaz = (move_vector[1] * percent_there)
+
+        next_player_positionx = player_position[0] + deltax
+        next_player_positionz = player_position[2] + deltaz
       end
 
-      #puts [global_time, percent_there, time_into_current_move, time_it_takes_to_move].inspect
+      camera_desired_target = [next_player_positionx, 0.0, next_player_positionz]
+      cdistx = camera_desired_target[0] - camera_current_target[0]
+      cdisty = camera_desired_target[1] - camera_current_target[1]
+      cdistz = camera_desired_target[2] - camera_current_target[2]
+      camera_current_target[0] += (delta_time * camera_speed * cdistx)
+      camera_current_target[1] += (delta_time * camera_speed * cdisty)
+      camera_current_target[2] += (delta_time * camera_speed * cdistz)
 
       if percent_there == 1.0
         player_position[0] = next_player_positionx
@@ -55,22 +86,30 @@ def snake(gl)
 
       player.deltap(*player_position)
 
+      gx = 0.0
+      gz = 0.0
+
       if move_vector
         if move_vector[0] > 0
-          player.yawpitchroll(0.0, 0.0, percent_there * 90.0, 10.0, 5.0, 5.0)
+          player.yawpitchroll(0.0, 0.0, (percent_there * 90.0), -5.0, 5.0, 0.0)
         elsif move_vector[0] < 0
-          player.yawpitchroll(0.0, 0.0, percent_there * -90.0, 5.0, 5.0, 5.0)
+          player.yawpitchroll(0.0, 0.0, percent_there * -90.0, 5.0, 5.0, 0.0)
         elsif move_vector[1] > 0
+          player.yawpitchroll(0.0, (percent_there * -90.0), 0.0, 0.0, 5.0, -5.0)
         elsif move_vector[1] < 0
+          player.yawpitchroll(0.0, (percent_there * 90.0), 0.0, 0.0, 5.0, 5.0)
         end
       else
-        player.yawpitchroll(0.0, 0.0, 0.0, 5.0, 5.0, 5.0)
+        player.yawpitchroll(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
       end
 
       snake.deltap(50.0, 0.0, 50.0)
       snake.yawpitchroll(0.0, global_time * 100.0, global_time * -100.0, 0.0, 0.0, 0.0)
 
-      gl.lookat(1, -100.0, 50.0, -100.0, next_player_positionx, 0.0, next_player_positionz, 45.0)
+      gl.lookat(1, -100.0, 50.0, -99.0, camera_current_target[0], camera_current_target[1], camera_current_target[2], 33.0)
+      #gl.lookat(1, -100.0, 50.0, -99.0, next_player_positionx, 0.0, next_player_positionz, 33.0)
+      #gl.lookat(1, 0.0, 5.0, -99.0, next_player_positionx, 0.0, next_player_positionz, 33.0)
+      #gl.lookat(0, next_player_positionx, 0.0, -11.0, next_player_positionx, 0.0, next_player_positionz, 180.0)
 
       player.draw(true)
       snake.draw(true)

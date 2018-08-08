@@ -404,6 +404,7 @@ static mrb_value yawpitchroll_model(mrb_state* mrb, mrb_value self)
   transform = MatrixMultiply(transform, MatrixRotateZ(DEG2RAD*roll));
   transform = MatrixMultiply(transform, MatrixRotateX(DEG2RAD*pitch));
   transform = MatrixMultiply(transform, MatrixRotateY(DEG2RAD*yaw));
+  transform = MatrixMultiply(transform, MatrixTranslate(-ox, -oy, -oz));
 
   p_data->model.transform = transform;
 
