@@ -370,7 +370,9 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
       mrb_obj_value(                           // with value hold in struct
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
 
+#ifndef PLATFORM_WEB
   SetTargetFPS(screenFps);
+#endif
 
   return self;
 }
@@ -512,8 +514,6 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 
   mrb_get_args(mrb, "&", &global_block);
 
-  fprintf(stderr, "Before block\n");
-
   //play_data_s *p_data = NULL;
   //mrb_value data_value;     // this IV holds the data
   global_data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
@@ -534,8 +534,6 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 #endif
 
   CloseWindow(); // Close window and OpenGL context
-
-  fprintf(stderr, "After block\n");
 
   return mrb_nil_value();
 }
@@ -575,6 +573,8 @@ static mrb_value lookat(mrb_state* mrb, mrb_value self)
 
   p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
   p_data->camera.fovy = fovy;                                 // Camera field-of-view Y
+
+  return mrb_nil_value();
 }
 
 
