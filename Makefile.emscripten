@@ -21,7 +21,7 @@ objects += $(raylib_static_lib)
 #LDFLAGS=-lm -lpthread -ldl -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo $(shell (uname | grep -q Darwin || echo -static))
 LDFLAGS=-lm -lpthread -ldl $(shell (uname | grep -q Darwin || echo -static))
 
-CFLAGS=-DPLATFORM_WEB -Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=1 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
+CFLAGS=-DPLATFORM_WEB -Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=0 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
 
 CC=emcc
 
@@ -32,7 +32,7 @@ run: $(target) $(sources)
 	realpath $(target)
 
 $(target): $(objects) $(sources)
-	$(CC) -o $@ $(objects) $(LDFLAGS) -Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=1 --shell-file shell.html --preload-file resources -s TOTAL_MEMORY=167772160
+	$(CC) -o $@ $(objects) $(LDFLAGS) -g4 -Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=0 --shell-file shell.html --preload-file resources -s TOTAL_MEMORY=167772160
 
 $(build)/test.yml: $(target) config.ru
 	$(target) > $@

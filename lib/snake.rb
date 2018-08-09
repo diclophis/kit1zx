@@ -104,7 +104,7 @@ def snake(gl)
       snake.deltap(50.0, 0.0, 50.0)
       snake.yawpitchroll(0.0, global_time * 100.0, global_time * -100.0, 0.0, 0.0, 0.0)
 
-      player.draw(false)
+      player.draw(true)
       snake.draw(true)
 
       gl.draw_grid(33, size)

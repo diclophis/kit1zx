@@ -334,7 +334,7 @@ static mrb_value draw_model(mrb_state* mrb, mrb_value self)
   DrawModelEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, WHITE);
 
   if (draw_wires) {
-    DrawModelWiresEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, BLACK);   // Draw 3d model with texture
+    DrawModelWiresEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, BLUE);   // Draw 3d model with texture
   }
 
   return mrb_nil_value();
