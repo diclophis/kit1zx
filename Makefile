@@ -38,7 +38,7 @@ $(build)/test.yml: $(target) config.ru
 
 clean:
 	cd mruby && make clean
-	#cd raylib/src && make PLATFORM=PLATFORM_WEB clean
+	cd raylib/src && make PLATFORM=PLATFORM_WEB clean && mkdir -p ../release/libs/html5
 	rm -R $(build)
 
 $(build):
