@@ -3,10 +3,6 @@
 set -e
 set -x
 
-#TODO: move to lower step
-
-apt update && apt install -y bison
-
 ####
 
 cd /root/emsdk

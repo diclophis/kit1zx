@@ -28,7 +28,8 @@ CC=emcc
 $(shell mkdir -p $(build))
 
 run: $(target) $(sources)
-	$(target)
+	echo $(target)
+	realpath $(target)
 
 $(target): $(objects) $(sources)
 	$(CC) -o $@ $(objects) $(LDFLAGS) -Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=1 --shell-file shell.html --preload-file resources -s TOTAL_MEMORY=167772160

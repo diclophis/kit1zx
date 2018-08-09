@@ -33,3 +33,8 @@ http://ssrb.github.io/mega-structure/mega-structure.html
 https://github.com/after12am/eisenscript/tree/master/example
 
 http://www.raylib.com/cheatsheet/cheatsheet.html
+
+# docker 
+
+    docker build -f Dockerfile
+    docker run -p 8000:8000 kit1zx:latest ruby -run -ehttpd /var/tmp/kit1zx/build/kit1zx.html-build -p8000
