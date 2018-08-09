@@ -82,7 +82,7 @@ def snake(gl)
           gl.lookat(1, 0.0, 13.0, -99.0, next_player_positionx, 0.0, next_player_positionz, 33.0)
 
         when 2
-          gl.lookat(0, 0.0, 2000.0, 0.0, 0.0, 0.0, 1.0, 180.0)
+          gl.lookat(0, 0.0, 999.0, 0.0, 0.0, 0.0, 1.0, 180.0)
       end
 
       player.deltap(*player_position)
