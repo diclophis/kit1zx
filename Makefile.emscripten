@@ -21,7 +21,7 @@ objects += $(raylib_static_lib)
 #LDFLAGS=-lm -lpthread -ldl -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo $(shell (uname | grep -q Darwin || echo -static))
 LDFLAGS=-lm -lpthread -ldl $(shell (uname | grep -q Darwin || echo -static))
 
-CFLAGS=-Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=1 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
+CFLAGS=-DPLATFORM_WEB -Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=1 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
 
 CC=emcc
 

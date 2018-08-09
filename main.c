@@ -21,6 +21,9 @@
 #include <raylib.h>
 #include <raymath.h>
 
+#ifdef PLATFORM_WEB
+  #include <emscripten/emscripten.h>
+#endif
 
 #include "shmup.h"
 #include "snake.h"
@@ -28,6 +31,30 @@
 
 
 #define FLT_MAX 3.40282347E+38F
+
+
+typedef struct {
+  Camera camera;
+  RenderTexture2D buffer_target;
+  Vector2 mousePosition;
+} play_data_s;
+
+
+typedef struct {
+  float angle;
+  Vector3 position;
+  Vector3 rotation;
+  Vector3 scale;
+  Model model;
+  Texture2D texture;
+} model_data_s;
+
+
+//TODO???????
+static mrb_state *global_mrb;
+static play_data_s *global_p_data = NULL;
+static mrb_value global_data_value;     // this IV holds the data
+static mrb_value global_block;
 
 
 static void if_exception_error_and_exit(mrb_state* mrb, char *context) {
@@ -59,23 +86,6 @@ static void eval_static_libs(mrb_state* mrb, ...) {
 
   va_end(argp);
 }
-
-
-typedef struct {
-  Camera camera;
-  RenderTexture2D buffer_target;
-  Vector2 mousePosition;
-} play_data_s;
-
-
-typedef struct {
-  float angle;
-  Vector3 position;
-  Vector3 rotation;
-  Vector3 scale;
-  Model model;
-  Texture2D texture;
-} model_data_s;
 
 
 // Garbage collector handler, for play_data struct
@@ -469,54 +479,59 @@ static mrb_value draw_fps(mrb_state* mrb, mrb_value self)
 }
 
 
-//TODO: this
-//DrawGizmo(position);        // Draw gizmo
-
-
-static mrb_value main_loop(mrb_state* mrb, mrb_value self)
-{
-  mrb_value block;
-  mrb_get_args(mrb, "&", &block);
-
-  fprintf(stderr, "Before block\n");
-
-  play_data_s *p_data = NULL;
-  mrb_value data_value;     // this IV holds the data
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  mrb_value gtdt = mrb_ary_new(mrb);
+void UpdateDrawFrame(void) {
+  mrb_value gtdt = mrb_ary_new(global_mrb);
 
   double time;
   float dt;
 
-  //DisableCursor();
+  time = GetTime();
+  dt = GetFrameTime();
 
+  mrb_ary_set(global_mrb, gtdt, 0, mrb_float_value(global_mrb, time));
+  mrb_ary_set(global_mrb, gtdt, 1, mrb_float_value(global_mrb, dt));
+
+  global_p_data->mousePosition = GetMousePosition();
+
+  UpdateCamera(&global_p_data->camera);
+
+  BeginDrawing();
+
+  ClearBackground(BLACK);
+
+  mrb_yield_argv(global_mrb, global_block, 2, &gtdt);
+
+  EndDrawing();
+}
+
+
+static mrb_value main_loop(mrb_state* mrb, mrb_value self)
+{
+  //TODO: fix this hack???
+  global_mrb = mrb;
+
+  mrb_get_args(mrb, "&", &global_block);
+
+  fprintf(stderr, "Before block\n");
+
+  //play_data_s *p_data = NULL;
+  //mrb_value data_value;     // this IV holds the data
+  global_data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, global_data_value, &play_data_type, global_p_data);
+  if (!global_p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+#ifdef PLATFORM_WEB
+  emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
+#else
   // Main game loop
   while (!WindowShouldClose()) // Detect window close button or ESC key
   {
-    time = GetTime();
-    dt = GetFrameTime();
-
-    mrb_ary_set(mrb, gtdt, 0, mrb_float_value(mrb, time));
-    mrb_ary_set(mrb, gtdt, 1, mrb_float_value(mrb, dt));
-
-    p_data->mousePosition = GetMousePosition();
-
-    UpdateCamera(&p_data->camera);
-
-    BeginDrawing();
-
-    ClearBackground(BLACK);
-
-    mrb_yield_argv(mrb, block, 2, &gtdt);
-
-    EndDrawing();
+    UpdateDrawFrame();
   }
+#endif
 
   CloseWindow(); // Close window and OpenGL context
 

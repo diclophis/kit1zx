@@ -11,6 +11,6 @@ cd /root/emsdk
 
 cd /var/tmp/kit1zx
 
-make clean
+make -f Makefile.emscripten clean
 
-make
+make -f Makefile.emscripten
