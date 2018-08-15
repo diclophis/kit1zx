@@ -1,8 +1,5 @@
 # Makefile
 
-#SHELL := /bin/bash
-#export PATH := $(PATH):/root/emsdk:/root/emsdk/clang/e1.38.10_64bit:/root/emsdk/node/8.9.1_64bit/bin:/root/emsdk/emscripten/1.38.10
-
 product=kit1zx.html
 build=build/$(product)-build
 target=$(build)/$(product)
@@ -18,7 +15,6 @@ static_ruby_headers = $(patsubst %,$(build)/%, $(patsubst lib/%.rb,%.h, $(wildca
 objects += $(mruby_static_lib)
 objects += $(raylib_static_lib)
 
-#LDFLAGS=-lm -lpthread -ldl -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo $(shell (uname | grep -q Darwin || echo -static))
 LDFLAGS=-lm -lpthread -ldl $(shell (uname | grep -q Darwin || echo -static))
 
 CFLAGS=-DPLATFORM_WEB -Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=0 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)

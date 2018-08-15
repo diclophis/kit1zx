@@ -17,7 +17,7 @@ objects += $(raylib_static_lib)
 
 LDFLAGS=-lm -lpthread -ldl -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 
-CFLAGS=-std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
+CFLAGS=-Os -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
 
 $(shell mkdir -p $(build))
 
