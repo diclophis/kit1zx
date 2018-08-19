@@ -31,14 +31,14 @@ def shmup(gl)
   last_roll = 0.0
   time_at_vector = 0.0
 
-  gl.lookat(0, 0.0, 2000.0, -1.0, 0.0, 0.0, 1.0, 359.0)
-
   gl.main_loop { |gtdt|
     global_time, delta_time = gtdt
 
     next unless delta_time > 0.0
 
     gl.threed {
+      gl.lookat(1, 0.0, 200.0, -1.0, 0.0, 0.0, 1.0, 45.0)
+
       #gl.draw_grid(33, 10.0)
 
       tunnel_rotation += 17.0 * delta_time

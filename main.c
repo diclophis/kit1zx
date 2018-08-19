@@ -351,7 +351,7 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
 
   char *c_game_name = RSTRING_PTR(game_name);
 
-  SetConfigFlags(FLAG_MSAA_4X_HINT);
+  //SetConfigFlags(FLAG_MSAA_4X_HINT);
 
   InitWindow(screenWidth, screenHeight, c_game_name);
 
