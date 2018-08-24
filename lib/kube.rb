@@ -1,10 +1,15 @@
 #
 
-def pod(name)
+def pod(*args)
+  name, latest_condition, phase, container_readiness, container_states, age, exiting = *args
+
+  if $0
+    puts ("pod(") + ([name, latest_condition, phase, container_readiness, container_states, age, exiting].inspect) + (")")
+    return
+  end
 end
 
 if $0 # /usr/bin/ruby MRI ruby below
-  # stdlib
   require 'yajl'
   require 'date'
 
@@ -31,27 +36,22 @@ if $0 # /usr/bin/ruby MRI ruby below
         when "Pod"
           latest_condition = nil
           phase = nil
+          state_keys = nil
+          ready = nil
           if status = description["status"]
             phase = status["phase"]
             if conditions = status["conditions"]
-              latest_condition = conditions.sort_by { |a| a["lastTransitionTime"]}.last["type"]
+              latest_condition_in = conditions.sort_by { |a| a["lastTransitionTime"]}.last
+              latest_condition = latest_condition_in["type"]
             end
-            #{
-            #"conditions"=>[
-            #  {"lastProbeTime"=>nil, "lastTransitionTime"=>"2018-08-22T21:38:46Z", "status"=>"True", "type"=>"Initialized"},
-            #  {"lastProbeTime"=>nil, "lastTransitionTime"=>"2018-08-22T21:39:33Z", "status"=>"True", "type"=>"Ready"},
-            #  {"lastProbeTime"=>nil, "lastTransitionTime"=>"2018-08-22T21:38:46Z", "status"=>"True", "type"=>"PodScheduled"}
-            #],
-            #"containerStatuses"=>[
-            #  {"containerID"=>"docker://5b2971b59b53ef09341051eb2655bd19254d5cc374bd453dacfd653f317f6318", "image"=>"bitnami/redis:4.0.9", "imageID"=>"docker-pullable://bitnami/redis@sha256:1b56b1c2c5d737bd8029f2e2e80852c0c1ef342e36ca0940dd313d4d8a786311", "lastState"=>{}, "name"=>"redis-standalone", "ready"=>true, "restartCount"=>0, "state"=>{"running"=>{"startedAt"=>"2018-08-22T21:39:21Z"}
-            #}}],
-            #"hostIP"=>"10.191.100.183", "phase"=>"Running", "podIP"=>"100.120.0.22", "qosClass"=>"BestEffort", "startTime"=>"2018-08-22T21:38:46Z"}
-            #puts [kind, name, status].inspect
+
+            if status["containerStatuses"]
+              state_keys = status["containerStatuses"].map { |f| [f["name"], f["state"].keys.first] }.to_h
+              ready = status["containerStatuses"].map { |f| [f["name"], f["ready"]] }.to_h
+            end
           end
 
-          #puts [Time.now, deleted_at.to_time, meta_keys, description["metadata"]["deletionGracePeriodSeconds"]].inspect if deleted_at
-
-          puts (kind.downcase + "(") + ([name, latest_condition, phase, age, exiting].inspect) + (")")
+          pod(name, latest_condition, phase, ready, state_keys, age, exiting)
 
         when "Service"
           puts [kind].inspect
