@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 
 #include <mruby.h>
@@ -27,6 +29,7 @@
 
 #include "shmup.h"
 #include "snake.h"
+#include "kube.h"
 #include "init.h"
 
 
@@ -670,7 +673,15 @@ int main(int argc, char** argv) {
   struct RClass *sphere_class = mrb_define_class(mrb, "Sphere", model_class);
   mrb_define_method(mrb, sphere_class, "initialize", sphere_init, MRB_ARGS_REQ(4));
 
-  eval_static_libs(mrb, shmup, snake, init, NULL);
+  eval_static_libs(mrb, shmup, snake, kube, init, NULL);
+
+  FILE *fd = fopen("/dev/stdin", "r"); //fcntl(STDIN_FILENO,  F_DUPFD, 0);
+  mrbc_context *detective_file = mrbc_context_new(mrb);
+  mrbc_filename(mrb, detective_file, "STDIN");
+  ret = mrb_load_file_cxt(mrb, fd, detective_file);
+  mrbc_context_free(mrb, detective_file);
+  fclose(fd);
+  if_exception_error_and_exit(mrb, "Exception in .mirbrc\n");
 
   mrb_close(mrb);
 
