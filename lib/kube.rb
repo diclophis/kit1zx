@@ -1,5 +1,30 @@
 #
 
+def kube(gl)
+  size = 10.0
+  half_size = size / 2.0
+  cube = Cube.new(size, size, size, 1.0)
+
+  #snake = Sphere.new(half_size, 10, 10, 1.0)
+
+  gl.main_loop { |gtdt|
+
+    global_time, delta_time = gtdt
+
+    next unless delta_time > 0.0
+
+    gl.threed {
+      gl.lookat(0, 0.0, 999.0, 0.0, 0.0, 0.0, 1.0, 180.0)
+
+      gl.draw_grid(33, size)
+    }
+
+    gl.twod {
+      gl.draw_fps(10, 10)
+    }
+  }
+end
+
 def pod(*args)
   name, latest_condition, phase, container_readiness, container_states, age, exiting = *args
 
