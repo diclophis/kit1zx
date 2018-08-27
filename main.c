@@ -404,6 +404,31 @@ static mrb_value deltap_model(mrb_state* mrb, mrb_value self)
   return mrb_nil_value();
 }
 
+
+static mrb_value deltas_model(mrb_state* mrb, mrb_value self)
+{
+  mrb_float x,y,z;
+
+  mrb_get_args(mrb, "fff", &x, &y, &z);
+
+  model_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  p_data->scale.x = x;
+  p_data->scale.y = y;
+  p_data->scale.z = z;
+
+  return mrb_nil_value();
+}
+
+
 static mrb_value deltar_model(mrb_state* mrb, mrb_value self)
 {
   mrb_float x,y,z,r;
@@ -427,6 +452,7 @@ static mrb_value deltar_model(mrb_state* mrb, mrb_value self)
 
   return mrb_nil_value();
 }
+
 
 static mrb_value yawpitchroll_model(mrb_state* mrb, mrb_value self)
 {
@@ -454,6 +480,33 @@ static mrb_value yawpitchroll_model(mrb_state* mrb, mrb_value self)
   transform = MatrixMultiply(transform, MatrixTranslate(-ox, -oy, -oz));
 
   p_data->model.transform = transform;
+
+  return mrb_nil_value();
+}
+
+static mrb_value label_model(mrb_state* mrb, mrb_value self)
+{
+  mrb_value label_txt = mrb_nil_value();
+  mrb_get_args(mrb, "o", &label_txt);
+
+  char *c_label_txt = RSTRING_PTR(label_txt);
+
+  model_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  Vector3 cubePosition = p_data->position;
+
+  Vector2 cubeScreenPosition;
+  cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y + 2.5f, cubePosition.z}, global_p_data->camera);
+
+  DrawText(c_label_txt, cubeScreenPosition.x - MeasureText(c_label_txt, 10) / 2, cubeScreenPosition.y, 10, BLUE);
 
   return mrb_nil_value();
 }
@@ -665,7 +718,9 @@ int main(int argc, char** argv) {
   mrb_define_method(mrb, model_class, "draw", draw_model, MRB_ARGS_NONE());
   mrb_define_method(mrb, model_class, "deltap", deltap_model, MRB_ARGS_REQ(3));
   mrb_define_method(mrb, model_class, "deltar", deltar_model, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, model_class, "deltas", deltas_model, MRB_ARGS_REQ(3));
   mrb_define_method(mrb, model_class, "yawpitchroll", yawpitchroll_model, MRB_ARGS_REQ(6));
+  mrb_define_method(mrb, model_class, "label", label_model, MRB_ARGS_REQ(1));
 
   struct RClass *cube_class = mrb_define_class(mrb, "Cube", model_class);
   mrb_define_method(mrb, cube_class, "initialize", cube_init, MRB_ARGS_REQ(4));

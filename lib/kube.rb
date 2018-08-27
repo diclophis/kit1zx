@@ -8,12 +8,6 @@ if $0 # /usr/bin/ruby MRI ruby below
   class Kube
     def pod(*args)
       name, latest_condition, phase, container_readiness, container_states, age, exiting = *args
-
-      #if $0
-      #  puts ("pod(") + ([name, latest_condition, phase, container_readiness, container_states, age, exiting].inspect) + (")")
-      #  return
-      #end
-
       $stdout.write([name, latest_condition, phase, container_readiness, container_states, age, exiting].to_msgpack)
       $stdout.flush
     end
@@ -59,13 +53,9 @@ if $0 # /usr/bin/ruby MRI ruby below
 
         when "Service"
           puts [kind].inspect
-          #service_descriptions[name] = description
 
         when "Ingress"
           puts [kind, name].inspect
-          #ingress_name = name
-          #ingress_description = description
-          #spec_rules = ingress_description["spec"]["rules"]
 
       end
     end
@@ -81,8 +71,14 @@ if $0 # /usr/bin/ruby MRI ruby below
             parser << got_read
           end
         rescue IO::EAGAINWaitReadable => idle_spin_err
-          IO.select([io], nil, nil, 1.0)
-          retry
+          a,b,c = IO.select([io], nil, nil, 1.0)
+          begin
+            $stdout.write(nil.to_msgpack)
+            $stdout.flush
+            retry
+          rescue Errno::EPIPE
+            $stderr.write("output closed...")
+          end
         end
       rescue EOFError => eof_err
         retry
@@ -104,43 +100,21 @@ if $0 # /usr/bin/ruby MRI ruby below
     end
 
     def get_yaml
-      foo = IO.popen("kubectl get --include-uninitialized=true --watch=true --output=json pods")
+      foo = IO.popen("kubectl get --all-namespaces --include-uninitialized=true --watch=true --output=json pods")
     end
   end
 
   Kube.new.ingest!
 else
   def kube(gl)
-    #ps = UV::Process.new({
-    #  'file' => 'ruby',
-    #  'args' => ['lib/kube.rb']
-    #})
-
-    #ps.stdout_pipe = UV::Pipe.new false
-
-    #ps.spawn do |sig|
-    #  puts "exit #{sig}"
-    #end
-
-    #ps.stdout_pipe.read_start do |b|
-    #  puts b
-    #  puts :wtf
-    #end
-
-    #[1, 2, 3].to_msgpack
-    #up = MessagePack::Unpacker.new
-    #up = MessagePack::Unpacker.new
-
-    #unpacked = []
-    #unpacked_length # => 4 (length of packed_string)
-    #unpacked # => ['bye']
+    pods = {}
+    size = 20.0
+    half_size = size / 2.0
 
     left_over_bits = ""
 
     f = UV::Pipe.new
-    
-    f.open(0) #"/dev/stdin", UV::FS::O_RDONLY, UV::FS::S_IREAD)
-
+    f.open(0)
     f.read_start do |b|
       if b.is_a?(UVError)
         puts [b].inspect
@@ -149,32 +123,55 @@ else
         all_l = all_to_consider.length
 
         unpacked_length = MessagePack.unpack(all_to_consider) do |result|
-          name, latest_condition, phase, container_readiness, container_states, age, exiting = result
-
-          puts [name, latest_condition, phase, container_readiness, container_states, age, exiting].inspect
+          if result
+            name, latest_condition, phase, container_readiness, container_states, age, exiting = result
+            cube = nil
+            unless existing_pod = pods[name]
+              cube = Cube.new(size, size, size, 1.0)
+              cube.deltap((rand * 250.0) - 125.0, 0.0, (rand * 250.0) - 125.0)
+            else
+              cube = existing_pod[0]
+            end
+            existing_pod = [cube, latest_condition, phase, container_readiness, container_states, age, exiting]
+            pods[name] = existing_pod
+          end
         end
 
         left_over_bits = all_to_consider[unpacked_length, all_l]
-
-        #puts [unpacked_length, all_l].inspect
-        #puts [:wtf, unpacked].inspect
       end
     end
 
-    size = 10.0
-    half_size = size / 2.0
-    cube = Cube.new(size, size, size, 1.0)
     gl.main_loop { |gtdt|
       global_time, delta_time = gtdt
       next unless delta_time > 0.0
       gl.threed {
-        gl.lookat(0, 0.0, 999.0, 0.0, 0.0, 0.0, 1.0, 180.0)
+        gl.lookat(1, 300.0, 300.0, 300.0, 0.0, 0.0, 1.0, 60.0)
         gl.draw_grid(33, size)
+        pods.each { |key, val|
+          cube, latest_condition, phase, container_readiness, container_states, age, exiting = val
+          cube.draw(false)
+
+          if exiting
+            percent_exited = (exiting / 3.0)
+            if percent_exited > 0.5
+              percent_exited = 1.0
+            end
+
+            cube.deltas(1.0 - percent_exited, 1.0 - percent_exited, 1.0 - percent_exited)
+          end
+        }
       }
       gl.twod {
         gl.draw_fps(10, 10)
+        pods.each { |name, val|
+          cube, latest_condition, phase, container_readiness, container_states, age, exiting = val
+          cube.label(name) unless exiting
+        }
       }
       UV::run(UV::UV_RUN_NOWAIT)
     }
+
+    f.close
+    UV::run
   end
 end
