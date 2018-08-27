@@ -50,6 +50,8 @@ typedef struct {
   Vector3 scale;
   Model model;
   Texture2D texture;
+  Color color;
+  Color label_color;
 } model_data_s;
 
 
@@ -58,6 +60,7 @@ static mrb_state *global_mrb;
 static play_data_s *global_p_data = NULL;
 static mrb_value global_data_value;     // this IV holds the data
 static mrb_value global_block;
+static int counter = 0;
 
 
 static void if_exception_error_and_exit(mrb_state* mrb, char *context) {
@@ -270,6 +273,29 @@ static mrb_value cube_init(mrb_state* mrb, mrb_value self)
   p_data->scale.y = scalef;
   p_data->scale.z = scalef;
 
+  float colors = 255.0;
+  float freq = 128.0 / colors;
+
+  int r = (sin(freq * abs(counter) + 0.0) * (127.0) + 128.0);
+  int g = (sin(freq * abs(counter) + 1.0) * (127.0) + 128.0);
+  int b = (sin(freq * abs(counter) + 3.0) * (127.0) + 128.0);
+
+  counter++;
+
+  if (counter == colors) {
+    counter *= -1;
+  }
+
+  p_data->color.r = r;
+  p_data->color.g = g;
+  p_data->color.b = b;
+  p_data->color.a = 127;
+
+  p_data->label_color.r = r;
+  p_data->label_color.g = g;
+  p_data->label_color.b = b;
+  p_data->label_color.a = 255;
+
   mrb_iv_set(
       mrb, self, mrb_intern_lit(mrb, "@pointer"),
       mrb_obj_value(
@@ -334,7 +360,7 @@ static mrb_value draw_model(mrb_state* mrb, mrb_value self)
   }
 
   // Draw 3d model with texture
-  DrawModelEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, WHITE);
+  DrawModelEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, p_data->color);
 
   if (draw_wires) {
     DrawModelWiresEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, BLUE);   // Draw 3d model with texture
@@ -506,7 +532,7 @@ static mrb_value label_model(mrb_state* mrb, mrb_value self)
   Vector2 cubeScreenPosition;
   cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y + 2.5f, cubePosition.z}, global_p_data->camera);
 
-  DrawText(c_label_txt, cubeScreenPosition.x - MeasureText(c_label_txt, 10) / 2, cubeScreenPosition.y, 10, BLUE);
+  DrawText(c_label_txt, cubeScreenPosition.x - MeasureText(c_label_txt, 10) / 2, cubeScreenPosition.y, 10, p_data->label_color);
 
   return mrb_nil_value();
 }

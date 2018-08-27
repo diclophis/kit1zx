@@ -128,7 +128,7 @@ else
             cube = nil
             unless existing_pod = pods[name]
               cube = Cube.new(size, size, size, 1.0)
-              cube.deltap((rand * 250.0) - 125.0, 0.0, (rand * 250.0) - 125.0)
+              cube.deltap((rand * 300.0) - 150.0, 0.0, (rand * 300.0) - 150.0)
             else
               cube = existing_pod[0]
             end
@@ -144,8 +144,11 @@ else
     gl.main_loop { |gtdt|
       global_time, delta_time = gtdt
       next unless delta_time > 0.0
+      camera_x = Math.sin(global_time * 0.1) * 300.0
+      camera_y  = Math.cos(global_time * 0.1) * 300.0
+
       gl.threed {
-        gl.lookat(1, 300.0, 300.0, 300.0, 0.0, 0.0, 1.0, 60.0)
+        gl.lookat(1, camera_x, 300.0, camera_y, 0.0, 0.0, 1.0, 60.0)
         gl.draw_grid(33, size)
         pods.each { |key, val|
           cube, latest_condition, phase, container_readiness, container_states, age, exiting = val
@@ -158,6 +161,13 @@ else
             end
 
             cube.deltas(1.0 - percent_exited, 1.0 - percent_exited, 1.0 - percent_exited)
+          else
+            percent_started = (age / 5.0)
+            if percent_started > 1.0
+              percent_started = 1.0
+            end
+
+            cube.deltas(percent_started, percent_started, percent_started)
           end
         }
       }
