@@ -8,6 +8,7 @@ if $0 # /usr/bin/ruby MRI ruby below
   class Kube
     def pod(*args)
       name, latest_condition, phase, container_readiness, container_states, created_at, exit_at, grace_time = *args
+      sleep 0.1
       $stdout.write([name, latest_condition, phase, container_readiness, container_states, created_at, exit_at, grace_time].to_msgpack)
       $stdout.flush
     end
@@ -100,7 +101,7 @@ if $0 # /usr/bin/ruby MRI ruby below
     end
 
     def get_yaml
-      foo = IO.popen("kubectl get --include-uninitialized=true --watch=true --output=json pods")
+      foo = IO.popen("kubectl get --all-namespaces --include-uninitialized=true --watch=true --output=json pods")
     end
   end
 
@@ -131,7 +132,7 @@ else
             cube = nil
             unless existing_pod = pods[name]
               cube = Cube.new(size, size, size, 1.0)
-              cube.deltap((rand * 300.0) - 150.0, 0.0, (rand * 300.0) - 150.0)
+              cube.deltap((rand * 500.0) - 250.0, 0.0, (rand * 500.0) - 250.0)
             else
               cube = existing_pod[0]
             end
@@ -155,9 +156,9 @@ else
 
       mark_for_recycle = []
 
-      camera_x = Math.sin(global_time * 0.1) * 250.0
+      camera_x = Math.sin(global_time * 0.25) * 250.0
       camera_y = ((Math.cos(global_time * 0.5) * 30.0) + 100.0)
-      camera_z = Math.cos(global_time * 0.1) * 250.0
+      camera_z = Math.cos(global_time * 0.25) * 250.0
 
       gl.threed {
         #gl.lookat(0, camera_x, camera_y, camera_z, 0.0, 0.0, 1.0, 359.0)
