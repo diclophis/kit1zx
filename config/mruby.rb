@@ -20,6 +20,10 @@ MRuby::Build.new do |conf|
   #conf.gem :github => "iij/mruby-tempfile"
   #conf.gem :github => "iij/mruby-process"
 
+  conf.gem :github => "mattn/mruby-uv"
+  #conf.gem :github => "suzukaze/mruby-msgpack"
+  conf.gem :github => "Asmod4n/mruby-simplemsgpack"
+
   #conf.cc do |cc|
   #  cc.flags = [ENV['CFLAGS'], "-lm"].join(" ")
   #end

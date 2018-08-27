@@ -675,6 +675,7 @@ int main(int argc, char** argv) {
 
   eval_static_libs(mrb, shmup, snake, kube, init, NULL);
 
+/*
   FILE *fd = fopen("/dev/stdin", "r"); //fcntl(STDIN_FILENO,  F_DUPFD, 0);
   mrbc_context *detective_file = mrbc_context_new(mrb);
   mrbc_filename(mrb, detective_file, "STDIN");
@@ -682,6 +683,7 @@ int main(int argc, char** argv) {
   mrbc_context_free(mrb, detective_file);
   fclose(fd);
   if_exception_error_and_exit(mrb, "Exception in STDIN\n");
+*/
 
   mrb_close(mrb);
 
