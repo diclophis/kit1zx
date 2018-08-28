@@ -30,6 +30,7 @@
 #include "shmup.h"
 #include "snake.h"
 #include "kube.h"
+#include "box.h"
 #include "init.h"
 
 
@@ -754,7 +755,7 @@ int main(int argc, char** argv) {
   struct RClass *sphere_class = mrb_define_class(mrb, "Sphere", model_class);
   mrb_define_method(mrb, sphere_class, "initialize", sphere_init, MRB_ARGS_REQ(4));
 
-  eval_static_libs(mrb, shmup, snake, kube, init, NULL);
+  eval_static_libs(mrb, shmup, snake, box, kube, init, NULL);
 
 /*
   FILE *fd = fopen("/dev/stdin", "r"); //fcntl(STDIN_FILENO,  F_DUPFD, 0);
