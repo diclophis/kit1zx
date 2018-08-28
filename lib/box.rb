@@ -192,7 +192,8 @@ module EasyBoxPacker
       return {
         dimensions: final[:rotation],
         position: space[:position],
-        weight: item[:weight].to_f
+        weight: item[:weight].to_f,
+        index: item[:index]
       }
     end
 

@@ -401,7 +401,9 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
 
 #ifndef PLATFORM_WEB
+
   SetTargetFPS(screenFps);
+
 #endif
 
   return self;
@@ -531,9 +533,9 @@ static mrb_value label_model(mrb_state* mrb, mrb_value self)
   Vector3 cubePosition = p_data->position;
 
   Vector2 cubeScreenPosition;
-  cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y + 2.5f, cubePosition.z}, global_p_data->camera);
+  cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y + 0.5f, cubePosition.z}, global_p_data->camera);
 
-  DrawText(c_label_txt, cubeScreenPosition.x - MeasureText(c_label_txt, 10) / 2, cubeScreenPosition.y, 10, p_data->label_color);
+  DrawText(c_label_txt, cubeScreenPosition.x - MeasureText(c_label_txt, 10) / 2, cubeScreenPosition.y, 3, p_data->label_color);
 
   return mrb_nil_value();
 }
@@ -578,6 +580,8 @@ void UpdateDrawFrame(void) {
 
   global_p_data->mousePosition = GetMousePosition();
 
+  //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
+  //SetCameraMode(global_p_data->camera, CAMERA_FREE);
   UpdateCamera(&global_p_data->camera);
 
   BeginDrawing();
@@ -605,6 +609,8 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
   if (!global_p_data) {
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
+
+  SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
 
 #ifdef PLATFORM_WEB
   emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
@@ -647,6 +653,8 @@ static mrb_value lookat(mrb_state* mrb, mrb_value self)
       break;
     case 1:
       p_data->camera.type = CAMERA_PERSPECTIVE;
+      //SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
+      //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
       break;
   }
 
