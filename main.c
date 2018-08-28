@@ -274,8 +274,8 @@ static mrb_value cube_init(mrb_state* mrb, mrb_value self)
   p_data->scale.y = scalef;
   p_data->scale.z = scalef;
 
-  float colors = 255.0;
-  float freq = 128.0 / colors;
+  float colors = 64.0;
+  float freq = 32.0 / colors;
 
   int r = (sin(freq * abs(counter) + 0.0) * (127.0) + 128.0);
   int g = (sin(freq * abs(counter) + 1.0) * (127.0) + 128.0);
@@ -290,7 +290,7 @@ static mrb_value cube_init(mrb_state* mrb, mrb_value self)
   p_data->color.r = r;
   p_data->color.g = g;
   p_data->color.b = b;
-  p_data->color.a = 127;
+  p_data->color.a = 255;
 
   p_data->label_color.r = r;
   p_data->label_color.g = g;

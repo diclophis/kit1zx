@@ -7,6 +7,7 @@ if $0 # /usr/bin/ruby MRI ruby below
 
   class Kube
     def pod(*args)
+      sleep 0.1
       namespace, name, latest_condition, phase, container_readiness, container_states, created_at, exit_at, grace_time = *args
       $stdout.write([namespace, name, latest_condition, phase, container_readiness, container_states, created_at, exit_at, grace_time].to_msgpack)
       $stdout.flush
@@ -110,9 +111,6 @@ if $0 # /usr/bin/ruby MRI ruby below
   Kube.new.ingest!
 else
   def kube(gl)
-
-
-
     waiting_str = "waiting"
     terminating_str = "terminating"
 
@@ -155,8 +153,6 @@ else
 
             existing_pod = [cube, latest_condition, phase, container_readiness, container_states, created_at, exit_at, grace_time, up_and_running]
             pod_namespace[name] = existing_pod
-
-
           end
         end
 
@@ -177,11 +173,8 @@ else
         next 
       end
 
-
 if got_new_updates
   got_new_updates = false
-
-  puts :wtf
 
   offset = 0.0
   pod_namespaces.each { |namespace, pods|
@@ -198,7 +191,7 @@ if got_new_updates
     #  ]
 
     cont = EasyBoxPacker.pack(
-      { dimensions: [1000, 3, 3], weight_limit: 99999 }, items
+      { dimensions: [1000, 1, 2], weight_limit: 99999 }, items
     )
 
   #  {:packings=>[
@@ -220,8 +213,7 @@ if got_new_updates
       end
     }
 
-    #puts cont.inspect
-    offset += 3.1
+    offset += 1.1
   }
 end
 
