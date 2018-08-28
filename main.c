@@ -591,6 +591,8 @@ void UpdateDrawFrame(void) {
   mrb_yield_argv(global_mrb, global_block, 2, &gtdt);
 
   EndDrawing();
+
+  mrb_yield_argv(global_mrb, global_block, 0, NULL);
 }
 
 
@@ -626,6 +628,8 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 
   return mrb_nil_value();
 }
+
+
 
 
 static mrb_value lookat(mrb_state* mrb, mrb_value self)

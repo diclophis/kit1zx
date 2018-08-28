@@ -3,6 +3,7 @@ module EasyBoxPacker
     def pack(container, items)
       packings = []
       errors   = []
+
       # pack from biggest to smallest
       items.sort_by { |h| h[:dimensions].sort.reverse }.reverse.each do |item|
         # If the item is just too big for the container lets give up on this
@@ -28,8 +29,6 @@ module EasyBoxPacker
             next unless placement = place(item, space)
             # Add the item to the packing and
             # break up the surrounding spaces
-
-#{:placements=>[{:dimensions=>[1, 1, 4], :position=>[0, 0, 0], :weight=>7}], :weight=>7, :spaces=>[{:dimensions=>[19, 15, 13], :position=>[1, 0, 0]}, {:dimensions=>[1, 14, 13], :position=>[0, 1, 0]}, {:dimensions=>[1, 1, 9], :position=>[0, 0, 4]}]}
 
             packing[:placements] += [placement]
             packing[:weight] += item[:weight].to_f
@@ -118,13 +117,16 @@ module EasyBoxPacker
 
     def find_possible_container(possible_containers, invalid_containers, container, items, item_index, min_vol)
       return unless items[item_index]
+
       c_length, c_width, c_height = container.sort.reverse
       b_length, b_width, b_height = items[item_index].sort.reverse
+
       c_permutations = [
         [c_width,  c_height, c_length],
         [c_length, c_width,  c_height],
         [c_length, c_height, c_width]
       ]
+
       b_permutations = [
         [b_width,  b_height, b_length],
         [b_length, b_width,  b_height],
