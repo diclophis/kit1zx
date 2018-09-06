@@ -274,8 +274,8 @@ static mrb_value cube_init(mrb_state* mrb, mrb_value self)
   p_data->scale.y = scalef;
   p_data->scale.z = scalef;
 
-  float colors = 64.0;
-  float freq = 32.0 / colors;
+  float colors = 128.0;
+  float freq = 64.0 / colors;
 
   int r = (sin(freq * abs(counter) + 0.0) * (127.0) + 128.0);
   int g = (sin(freq * abs(counter) + 1.0) * (127.0) + 128.0);
@@ -291,6 +291,16 @@ static mrb_value cube_init(mrb_state* mrb, mrb_value self)
   p_data->color.g = g;
   p_data->color.b = b;
   p_data->color.a = 255;
+
+  r = (sin(freq * abs(counter) + 0.0) * (127.0) + 128.0);
+  g = (sin(freq * abs(counter) + 1.0) * (127.0) + 128.0);
+  b = (sin(freq * abs(counter) + 3.0) * (127.0) + 128.0);
+
+  counter++;
+
+  if (counter == colors) {
+    counter *= -1;
+  }
 
   p_data->label_color.r = r;
   p_data->label_color.g = g;
@@ -533,7 +543,7 @@ static mrb_value label_model(mrb_state* mrb, mrb_value self)
   Vector3 cubePosition = p_data->position;
 
   Vector2 cubeScreenPosition;
-  cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y + 0.5f, cubePosition.z}, global_p_data->camera);
+  cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y, cubePosition.z}, global_p_data->camera);
 
   DrawText(c_label_txt, cubeScreenPosition.x - MeasureText(c_label_txt, 10) / 2, cubeScreenPosition.y, 3, p_data->label_color);
 
@@ -584,15 +594,8 @@ void UpdateDrawFrame(void) {
   //SetCameraMode(global_p_data->camera, CAMERA_FREE);
   UpdateCamera(&global_p_data->camera);
 
-  BeginDrawing();
-
-  ClearBackground(BLACK);
-
   mrb_yield_argv(global_mrb, global_block, 2, &gtdt);
 
-  EndDrawing();
-
-  mrb_yield_argv(global_mrb, global_block, 0, NULL);
 }
 
 
@@ -697,6 +700,52 @@ static mrb_value threed(mrb_state* mrb, mrb_value self)
 }
 
 
+static mrb_value interim(mrb_state* mrb, mrb_value self)
+{
+  mrb_value block;
+  mrb_get_args(mrb, "&", &block);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value;     // this IV holds the data
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  mrb_yield_argv(mrb, block, 0, NULL);
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value drawmode(mrb_state* mrb, mrb_value self)
+{
+  mrb_value block;
+  mrb_get_args(mrb, "&", &block);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value;     // this IV holds the data
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  BeginDrawing();
+
+  ClearBackground(BLACK);
+
+  mrb_yield_argv(mrb, block, 0, NULL);
+
+  EndDrawing();
+
+  return mrb_nil_value();
+}
+
+
 static mrb_value twod(mrb_state* mrb, mrb_value self)
 {
   mrb_value block;
@@ -750,6 +799,8 @@ int main(int argc, char** argv) {
   mrb_define_method(mrb, game_class, "keyspressed", keyspressed, MRB_ARGS_ANY());
   mrb_define_method(mrb, game_class, "main_loop", main_loop, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "threed", threed, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "interim", interim, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "drawmode", drawmode, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "twod", twod, MRB_ARGS_BLOCK());
 
   struct RClass *model_class = mrb_define_class(mrb, "Model", mrb->object_class);

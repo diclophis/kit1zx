@@ -52,9 +52,11 @@ if $0 # /usr/bin/ruby MRI ruby below
             end
           end
 
-          10.times do |i|
-            pod(namespace, name + i.to_s, latest_condition, phase, ready, state_keys, created_at.to_time.to_i, exit_at, grace_time)
-          end
+          #10.times do |i|
+          #  pod(namespace, name + i.to_s, latest_condition, phase, ready, state_keys, created_at.to_time.to_i, exit_at, grace_time)
+          #end
+
+          pod(namespace, name, latest_condition, phase, ready, state_keys, created_at.to_time.to_i, exit_at, grace_time)
 
         when "Service"
           puts [kind].inspect
@@ -106,6 +108,7 @@ if $0 # /usr/bin/ruby MRI ruby below
 
     def get_yaml
       foo = IO.popen("kubectl get --all-namespaces --include-uninitialized=true --watch=true --output=json pods")
+      #foo = IO.popen("kubectl get --namespace=audit-logs-beta --include-uninitialized=true --watch=true --output=json pods")
       #foo = IO.popen("kubectl get --include-uninitialized=true --watch=true --output=json pods")
     end
   end
@@ -122,6 +125,8 @@ else
 
     got_new_updates = false
     left_over_bits = ""
+    mark_for_binpack = []
+    mark_for_recycle = []
 
     f = UV::Pipe.new
     f.open(0)
@@ -134,19 +139,17 @@ else
 
         unpacked_length = MessagePack.unpack(all_to_consider) do |result|
           if result
-            #got_new_updates = true
-
             namespace, name, latest_condition, phase, container_readiness, container_states, created_at, exit_at, grace_time = result
 
             pod_namespace = (pod_namespaces[namespace] ||= {})
 
             cube = nil
-            #unless existing_pod = pod_namespace[name]
-            #  cube = Cube.new(size * 0.99, size * 0.99, size * 0.99, 1.0)
-            #  #cube.deltap((rand * 500.0) - 250.0, 0.0, (rand * 500.0) - 250.0)
-            #else
-            #  cube = existing_pod[0]
-            #end
+            unless existing_pod = pod_namespace[name]
+              cube = Cube.new(size * 0.99, (1.0 * size) * 0.99, size * 0.99, 1.0)
+              mark_for_binpack << namespace
+            else
+              cube = existing_pod[0]
+            end
 
             up_and_running = (container_states && container_states.values.all? { |v| v != waiting_str && v != terminating_str })
 
@@ -159,77 +162,20 @@ else
       end
     end
 
-    gl.lookat(1, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 60.0)
-
+    gl.lookat(1, 0.0, 2.0, 0.0, 1.0, 1.0, 1.0, 60.0)
 
     gl.main_loop { |gtdt|
-      need_spawn_this_tick = true
-      if gtdt == nil
-        if got_new_updates
-          got_new_updates = false
+      global_time, delta_time = gtdt
 
-          offset = 0.0
-          pod_namespaces.each { |namespace, pods|
-            i = 0
-            items = pods.reject { |key, value|
-              value[0] == nil
-            }.collect { |key, value|
-              { dimensions: [1, 1, 1], weight: 1, index: key }
-            }
+      tnow = Time.now.to_i
 
-            cont = EasyBoxPacker.pack(
-              { dimensions: [pods.length + 1, 1, 1], weight_limit: pods.length + 1 }, items
-            )
-
-            cont[:packings][0][:placements].each { |dimposwk|
-              key = dimposwk[:index]
-              foundp = pods[key]
-              
-              if foundp && foundp[0]
-                foundp[0].deltap(dimposwk[:position][0], dimposwk[:position][1], dimposwk[:position][2] + offset)
-              end
-            }
-
-            offset += 1.1
-          }
-        end
-      else
-        global_time, delta_time = gtdt
-        unless delta_time > 0.0
-          next 
-        end
-
-        tnow = Time.now.to_i
-
-        mark_for_recycle = []
-
-        #camera_x = Math.sin(global_time * 0.25) * 3.0
-        #camera_y = ((Math.cos(global_time * 0.5) * 0.5) + 5.0)
-        #camera_z = Math.cos(global_time * 0.25) * 3.0
-
+      gl.drawmode {
         gl.threed {
-          #gl.lookat(0, camera_x, camera_y, camera_z, 0.0, 0.0, 1.0, 359.0)
-          #gl.lookat(1, camera_x, camera_y, camera_z, 5.0, 1.0, 5.0, 60.0)
           gl.draw_grid(33, size * 2.0)
 
           pod_namespaces.each { |namespace, pods|
             pods.each { |name, val|
               cube, latest_condition, phase, container_readiness, container_states, created_at, exit_at, grace_time, up_and_running = val
-              unless cube
-                if need_spawn_this_tick
-                  need_spawn_this_tick = false
-                  got_new_updates = true
-                  cube = Cube.new(size * 0.99, size * 0.99, size * 0.99, 1.0)
-                  pods[name][0] = cube
-                else
-                  next
-                end
-              end
-
-                  #  #cube.deltap((rand * 500.0) - 250.0, 0.0, (rand * 500.0) - 250.0)
-                  #else
-                  #  cube = existing_pod[0]
-                  #end
 
               cube.draw(false) if up_and_running
 
@@ -266,18 +212,56 @@ else
           pod_namespaces.each { |namespace, pods|
             pods.each { |name, val|
               cube, latest_condition, phase, container_readiness, container_states, created_at, exit_at, grace_time, up_and_running = val
-              #cube.label(name) unless exit_at
+              cube.label(name) unless exit_at
             }
           }
         }
+      }
 
+      gl.interim {
         UV::run(UV::UV_RUN_NOWAIT)
 
-        mark_for_recycle.each do |name|
-          puts [:delete, name].inspect
-          pods.delete(name)
-        end
-      end
+        ni = 0
+        pod_namespaces.each { |namespace, pods|
+          max_namespace_box = [pods.length + 1, 5, 5]
+
+          offset = ((max_namespace_box[1].to_f * ni.to_f) + 0.1)
+          ni += 1
+
+          mark_for_recycle.each do |name|
+            puts [:delete, name].inspect
+            pods.delete(name)
+            next
+          end
+
+          next unless mark_for_binpack.include?(namespace)
+
+          i = 0
+          items = pods.reject { |key, value|
+            value[0] == nil
+          }.collect { |key, value|
+            { dimensions: [1, 1, 1], weight: 1, index: key }
+          }.reverse
+
+          cont = EasyBoxPacker.pack(
+            { dimensions: max_namespace_box, weight_limit: pods.length + 1 }, items
+          )
+
+          if cont && cont[:packings] && cont[:packings][0] && cont[:packings][0][:placements]
+            cont[:packings] [0][:placements].each { |dimposwk|
+              key = dimposwk[:index]
+              foundp = pods[key]
+              
+              if foundp && foundp[0]
+                foundp[0].deltap(dimposwk[:position][0], dimposwk[:position][1], dimposwk[:position][2] + offset)
+              end
+            }
+          end
+        }
+
+        mark_for_binpack.clear
+        mark_for_recycle.clear
+      }
     }
 
     f.close
