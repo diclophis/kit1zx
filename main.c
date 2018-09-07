@@ -238,6 +238,11 @@ static mrb_value model_init(mrb_state* mrb, mrb_value self)
   p_data->scale.y = scalef;
   p_data->scale.z = scalef;
 
+  p_data->color.r = 255;
+  p_data->color.g = 255;
+  p_data->color.b = 255;
+  p_data->color.a = 255;
+
   mrb_iv_set(
       mrb, self, mrb_intern_lit(mrb, "@pointer"),
       mrb_obj_value(
@@ -615,7 +620,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
-  SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
+  //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
 
 #ifdef PLATFORM_WEB
   emscripten_set_main_loop(UpdateDrawFrame, 0, 1);

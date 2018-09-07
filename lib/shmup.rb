@@ -31,105 +31,112 @@ def shmup(gl)
   last_roll = 0.0
   time_at_vector = 0.0
 
+  gl.lookat(1, 0.0, 100.0, 0.0, 0.01, 1.0, 0.01, 60.0)
+  #gl.lookat(1, 0.0, 2.0, 0.0, 1.0, 1.0, 1.0, 60.0)
+
   gl.main_loop { |gtdt|
     global_time, delta_time = gtdt
 
-    next unless delta_time > 0.0
+    gl.drawmode {
+      gl.threed {
+        #gl.lookat(1, 0.0, 200.0, -1.0, 0.0, 0.0, 1.0, 45.0)
 
-    gl.threed {
-      gl.lookat(1, 0.0, 200.0, -1.0, 0.0, 0.0, 1.0, 45.0)
+        gl.draw_grid(33, 10.0)
 
-      #gl.draw_grid(33, 10.0)
+        tunnel_rotation += 17.0 * delta_time
+        tunnel_position += 500.0 * delta_time
 
-      tunnel_rotation += 17.0 * delta_time
-      tunnel_position += 500.0 * delta_time
-
-      if tunnel_position > 500
-        tunnel_position = -2500
-        tunnel_position_x = (rand * 300.0) - 150.0
-      end
-
-      hq_position += 33.00 * delta_time
-      if hq_position > 1000
-        hq_position = -1000
-      end
-
-      #hq.deltap(0.0, -1000.0, -hq_position - 2000.0)
-      #hq.yawpitchroll(0.0, tunnel_rotation * 0.025, tunnel_rotation * -0.35)
-      #hq.draw
-
-      hq.deltap(0.0, -1000.0, -hq_position + 0.0)
-      hq.yawpitchroll(0.0, tunnel_rotation * 0.05, tunnel_rotation * -1.05, 0.0, 0.0, 0.0)
-      hq.draw(false)
-
-      #hq.deltap(0.0, -1000.0, -hq_position + 2000.0)
-      #hq.yawpitchroll(0.0, tunnel_rotation * 0.25, tunnel_rotation * -0.05)
-      #hq.draw
-
-      tunnel.deltap(tunnel_position_x, -250.0, -tunnel_position)
-      tunnel.yawpitchroll(0.0, 0.0, tunnel_rotation, 0.0, 0.0, 0.0)
-
-      gl.mousep { |xyz|
-        x,y,z = xyz
-
-        x = Math.sin(global_time * 1.3) * 43.0 
-        #TODO: firing animation
-        # y = Math.cos((global_time * 0.5) + (rand * 0.5)) * 1.0
-        y = 0.0
-        z = Math.sin(global_time * 1.0) * 37.0
-
-        dx = (last_x - x)
-
-        left_right_velocity = (dx * 1.0) / delta_time
-        left_right_accel = (last_left_right_velocity - left_right_velocity) / delta_time
-
-        max_accel = (0.1 * player_scale)
-        max_velocity = (0.9 * player_scale)
-
-        if left_right_accel > max_accel
-          left_right_accel = max_accel
-        elsif left_right_accel < -max_accel
-          left_right_accel = -max_accel
+        if tunnel_position > 500
+          tunnel_position = -2500
+          tunnel_position_x = (rand * 300.0) - 150.0
         end
 
-        if left_right_velocity > max_velocity
-          left_right_velocity = max_velocity
-        elsif left_right_velocity < -max_velocity
-          left_right_velocity = -max_velocity
+        hq_position += 33.00 * delta_time
+        if hq_position > 1000
+          hq_position = -1000
         end
 
-        mx_roll = 45.0
+        #hq.deltap(0.0, -1000.0, -hq_position - 2000.0)
+        #hq.yawpitchroll(0.0, tunnel_rotation * 0.025, tunnel_rotation * -0.35)
+        #hq.draw
 
-        suggest_new_roll = ((left_right_velocity / max_velocity) * mx_roll)
+        hq.deltap(0.0, -100.0, -hq_position + 0.0)
+        hq.yawpitchroll(0.0, tunnel_rotation * 0.05, tunnel_rotation * -1.05, 0.0, 0.0, 0.0)
+        hq.draw(false)
 
-        new_roll = last_roll - ((last_roll + suggest_new_roll) * delta_time * 9.0)
+        #hq.deltap(0.0, -1000.0, -hq_position + 2000.0)
+        #hq.yawpitchroll(0.0, tunnel_rotation * 0.25, tunnel_rotation * -0.05)
+        #hq.draw
 
-        if new_roll > mx_roll
-          new_roll = mx_roll
-        elsif new_roll < -mx_roll
-          new_roll = -mx_roll
-        end
+        tunnel.deltap(tunnel_position_x, -25.0, -tunnel_position)
+        tunnel.yawpitchroll(0.0, 0.0, tunnel_rotation, 0.0, 0.0, 0.0)
 
-        player_one.yawpitchroll(0.0, 0.0, new_roll, 0.0, 0.0, 0.0)
+        gl.mousep { |xyz|
+          x,y,z = xyz
 
-        player_one.deltap(x, y, z)
+          x = Math.sin(global_time * 1.3) * 43.0 
+          #TODO: firing animation
+          # y = Math.cos((global_time * 0.5) + (rand * 0.5)) * 1.0
+          y = 0.0
+          z = Math.sin(global_time * 1.0) * 37.0
 
-        last_x = x
-        last_z = z
-        last_left_right_velocity = left_right_velocity
-        last_roll = new_roll
+          dx = (last_x - x)
 
-        if new_roll < min_roll
-          min_roll = new_roll
-        end
+          left_right_velocity = (dx * 1.0) / delta_time
+          left_right_accel = (last_left_right_velocity - left_right_velocity) / delta_time
 
-        if new_roll > max_roll
-          max_roll = new_roll
-        end
+          max_accel = (0.1 * player_scale)
+          max_velocity = (0.9 * player_scale)
+
+          if left_right_accel > max_accel
+            left_right_accel = max_accel
+          elsif left_right_accel < -max_accel
+            left_right_accel = -max_accel
+          end
+
+          if left_right_velocity > max_velocity
+            left_right_velocity = max_velocity
+          elsif left_right_velocity < -max_velocity
+            left_right_velocity = -max_velocity
+          end
+
+          mx_roll = 45.0
+
+          suggest_new_roll = ((left_right_velocity / max_velocity) * mx_roll)
+
+          new_roll = last_roll - ((last_roll + suggest_new_roll) * delta_time * 9.0)
+
+          if new_roll > mx_roll
+            new_roll = mx_roll
+          elsif new_roll < -mx_roll
+            new_roll = -mx_roll
+          end
+
+          player_one.yawpitchroll(0.0, 0.0, new_roll, 0.0, 0.0, 0.0)
+
+          player_one.deltap(x, y, z)
+
+          last_x = x
+          last_z = z
+          last_left_right_velocity = left_right_velocity
+          last_roll = new_roll
+
+          if new_roll < min_roll
+            min_roll = new_roll
+          end
+
+          if new_roll > max_roll
+            max_roll = new_roll
+          end
+        }
+
+        tunnel.draw(false)
+        player_one.draw(false)
       }
 
-      tunnel.draw(false)
-      player_one.draw(false)
+      gl.twod {
+        gl.draw_fps(10, 10)
+      }
     }
   }
 end
