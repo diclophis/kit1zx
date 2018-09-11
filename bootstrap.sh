@@ -11,6 +11,7 @@ apt-get update \
        python2.7 nodejs cmake \
        default-jre \
        bison \
+       automake build-essential libtool curl bison libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev xinit openbox \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 locale-gen --purge en_US.UTF-8 && /bin/echo -e  "LANG=$LANG\nLANGUAGE=$LANGUAGE\n" | tee /etc/default/locale \
@@ -19,3 +20,4 @@ locale-gen --purge en_US.UTF-8 && /bin/echo -e  "LANG=$LANG\nLANGUAGE=$LANGUAGE\
 
 update-alternatives --install /usr/bin/python python /usr/bin/python2.7 10
 
+gem install rack
