@@ -41,4 +41,4 @@ https://github.com/mruby/mruby/blob/master/mrbgems/mruby-enum-ext/mrbgem.rake
 # docker 
 
     docker build -f Dockerfile
-    docker run -p 8000:8000 kit1zx:latest ruby -run -ehttpd /var/tmp/kit1zx/build/kit1zx.html-build -p8000
+    docker run -p 8000:8000 kit1zx:latest rackup /var/tmp/kit1zx/config.ru -p8000 -o0.0.0.0

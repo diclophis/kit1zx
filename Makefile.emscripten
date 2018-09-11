@@ -1,5 +1,7 @@
 # Makefile
 
+map_base ?= http://localhost:8000/
+
 product=kit1zx.html
 build=build/$(product)-build
 target=$(build)/$(product)
@@ -28,7 +30,7 @@ run: $(target) $(sources)
 	realpath $(target)
 
 $(target): $(objects) $(sources)
-	$(CC) -o $@ $(objects) $(LDFLAGS) -g4 -Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=0 --shell-file shell.html --preload-file resources -s TOTAL_MEMORY=167772160
+	$(CC) -o $@ $(objects) $(LDFLAGS) -g4 -s USE_GLFW=3 -s ASSERTIONS=1 --source-map-base $(map_base) -s WASM=1 -s EMTERPRETIFY=0 --shell-file shell.html --preload-file resources -s TOTAL_MEMORY=167772160
 
 $(build)/test.yml: $(target) config.ru
 	$(target) > $@
