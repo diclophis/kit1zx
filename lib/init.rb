@@ -9,6 +9,6 @@ KEY_UP = 265
 
 $gl = GameLoop.new("kit1zx", 496, 230, 60)
 
-shmup($gl)
+#shmup($gl)
 #snake($gl)
-#kube($gl)
+kube($gl)

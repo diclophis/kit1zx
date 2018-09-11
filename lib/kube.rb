@@ -1,9 +1,9 @@
 #
 
 if $0 # /usr/bin/ruby MRI ruby below
-  require 'yajl'
-  require 'date'
-  require 'msgpack'
+  #require 'yajl'
+  #require 'date'
+  #require 'msgpack'
 
   class Kube
     def pod(*args)
@@ -67,6 +67,18 @@ if $0 # /usr/bin/ruby MRI ruby below
       end
     end
 
+    def handle_event_list(event)
+      items = event["items"]
+
+      if items
+        items.each do |item|
+          handle_descript(item)
+        end
+      else
+        handle_descript(event)
+      end
+    end
+
     def ingest!
       begin
         parser = Yajl::Parser.new
@@ -94,22 +106,10 @@ if $0 # /usr/bin/ruby MRI ruby below
       exit(0)
     end
 
-    def handle_event_list(event)
-      items = event["items"]
-
-      if items
-        items.each do |foo|
-          handle_descript(foo)
-        end
-      else
-        handle_descript(event)
-      end
-    end
-
     def get_yaml
-      foo = IO.popen("kubectl get --all-namespaces --include-uninitialized=true --watch=true --output=json pods")
-      #foo = IO.popen("kubectl get --namespace=audit-logs-beta --include-uninitialized=true --watch=true --output=json pods")
-      #foo = IO.popen("kubectl get --include-uninitialized=true --watch=true --output=json pods")
+      IO.popen("kubectl get --all-namespaces --include-uninitialized=true --watch=true --output=json pods")
+      #IO.popen("kubectl get --namespace=audit-logs-beta --include-uninitialized=true --watch=true --output=json pods")
+      #IO.popen("kubectl get --include-uninitialized=true --watch=true --output=json pods")
     end
   end
 

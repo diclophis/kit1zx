@@ -620,7 +620,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
-  //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
+  SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
 
 #ifdef PLATFORM_WEB
   emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
