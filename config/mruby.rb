@@ -5,7 +5,7 @@ MRuby::Build.new do |conf|
 
   enable_debug
 
-  conf.bins = ["mrbc", "mirb"]
+  #conf.bins = ["mrbc", "mirb"]
 
   conf.gem :core => "mruby-bin-mirb"
   conf.gem :core => "mruby-math"
