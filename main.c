@@ -841,3 +841,8 @@ int main(int argc, char** argv) {
 
   return 0;
 }
+
+
+size_t debug_print(char* buf, size_t n) {
+  fprintf(stderr, "debugging ... \n");
+}

@@ -19,7 +19,7 @@ objects += $(raylib_static_lib)
 
 LDFLAGS=-lm -lpthread -ldl $(shell (uname | grep -q Darwin || echo -static))
 
-CFLAGS=-DPLATFORM_WEB -Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=0 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
+CFLAGS=-DPLATFORM_WEB -Os -s EXPORTED_FUNCTIONS="['_debug_print']" -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=0 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
 
 CC=emcc
 
