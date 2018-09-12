@@ -504,18 +504,16 @@
         };
       };
 
-window.startConnection = function() {
+window.startConnection = function(port) {
       if (window["WebSocket"]) {
         var debug_print = Module.cwrap(
           'debug_print', 'number', ['number', 'number']
         );
 
-        conn = new WebSocket("ws://" + "zerozero.mavenlink.link:32105" + "/ws");
+        conn = new WebSocket("ws://" + "zerozero.mavenlink.link:" + port + "/ws");
 
 
         conn.onopen = function (event) {
-          console.log(event);
-
           window.onbeforeunload = function() {
             conn.onclose = function () {};
             conn.close();
@@ -527,11 +525,16 @@ window.startConnection = function() {
         };
 
         conn.onmessage = function (event) {
-          dataHeap = serializeMsgPack(event);
-          //Uint8Array
-          console.log(dataHeap, dataHeap.byteOffset, dataHeap.length);
-          debug_print(dataHeap.byteOffset, dataHeap.length);
-          //???? Module._free(dataHeap.byteOffset);
+          origData = serializeMsgPack(JSON.parse(event.data));
+
+          var nDataBytes = origData.length * origData.BYTES_PER_ELEMENT;
+          var dataPtr = Module._malloc(nDataBytes);
+          var dataHeap = new Uint8Array(Module.HEAPU8.buffer, dataPtr, nDataBytes);
+          dataHeap.set(origData);
+
+          debug_print(dataHeap.byteOffset, origData.length);
+
+          Module._free(dataHeap.byteOffset);
         };
       } else {
         console.log("Your browser does not support WebSockets.");

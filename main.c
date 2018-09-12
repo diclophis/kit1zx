@@ -75,7 +75,7 @@ size_t debug_print(const char* buf, size_t n) {
   //Data_Get_Struct(mrb, global_data_value, &play_data_type, global_p_data);
 
   mrb_value cstrlikebuf = mrb_str_new_cstr(global_mrb, buf);
-  mrb_funcall(global_mrb, global_gl, "debug_print", 1, cstrlikebuf);
+  mrb_funcall(global_mrb, global_gl, "debug_print", 2, cstrlikebuf, mrb_fixnum_value(n));
 
   return 0;
 }

@@ -1,8 +1,26 @@
 #!/usr/bin/env ruby
 
+$left_over_bits = ""
+
 class GameLoop
-  def debug_print(b)
-    puts b.inspect
+  def debug_print(b, c)
+    if c > 0
+      all_to_consider = $left_over_bits
+      
+      c.times { |i|
+        all_to_consider += b[i]
+      }
+
+      all_l = all_to_consider.length
+
+      unpacked_length = MessagePack.unpack(all_to_consider) do |result|
+        if result
+          puts result.inspect
+        end
+      end
+
+      $left_over_bits = all_to_consider[unpacked_length, all_l]
+    end
   end
 end
 
@@ -40,7 +58,17 @@ def snake(gl)
 #  client = Wslay::Event::Client.new wslay_callbacks
 
 
-
+  if false
+    f = UV::Pipe.new
+    f.open(0)
+    f.read_start do |b|
+      if b.is_a?(UVError)
+        puts [b].inspect
+      else
+        gl.debug_print(b, b.length)
+      end
+    end
+  end
 
   time_it_takes_to_move = 0.34
   time_into_current_move = 0.0
@@ -168,6 +196,10 @@ def snake(gl)
       gl.twod {
         gl.draw_fps(10, 10)
       }
+    }
+
+    gl.interim {
+      #UV::run(UV::UV_RUN_NOWAIT)
     }
   }
 end
