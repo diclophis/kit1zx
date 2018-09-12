@@ -19,7 +19,7 @@ objects += $(raylib_static_lib)
 
 LDFLAGS=-lm -lpthread -ldl $(shell (uname | grep -q Darwin || echo -static))
 
-CFLAGS=-DPLATFORM_WEB -Os -s EXPORTED_FUNCTIONS="['_debug_print']" -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=0 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
+CFLAGS=-DPLATFORM_WEB -Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=0 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
 
 CC=emcc
 
@@ -30,7 +30,7 @@ run: $(target) $(sources)
 	realpath $(target)
 
 $(target): $(objects) $(sources)
-	$(CC) -o $@ $(objects) $(LDFLAGS) -g4 -s USE_GLFW=3 -s ASSERTIONS=1 --source-map-base $(map_base) -s WASM=1 -s EMTERPRETIFY=0 --shell-file shell.html --preload-file resources -s TOTAL_MEMORY=167772160
+	$(CC) -o $@ $(objects) $(LDFLAGS) -g4 -s USE_GLFW=3 -s ASSERTIONS=1 -s EXPORTED_FUNCTIONS="['_main', '_debug_print']" -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' --source-map-base $(map_base) -s WASM=1 -s EMTERPRETIFY=0 --shell-file shell.html --preload-file resources -s TOTAL_MEMORY=167772160
 
 $(build)/test.yml: $(target) config.ru
 	$(target) > $@
@@ -47,10 +47,10 @@ $(build)/%.o: %.c $(static_ruby_headers) $(sources)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(mruby_static_lib): config/mruby.rb
-	cd mruby && MRUBY_CONFIG=../config/mruby.rb make
+	cd mruby && MRUBY_CONFIG=../config/mruby.rb make -j
 
 $(raylib_static_lib):
-	cd raylib/src && make PLATFORM=PLATFORM_WEB -B
+	cd raylib/src && make PLATFORM=PLATFORM_WEB -B -j
 
 $(mrbc): $(mruby_static_lib)
 

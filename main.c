@@ -61,7 +61,24 @@ static mrb_state *global_mrb;
 static play_data_s *global_p_data = NULL;
 static mrb_value global_data_value;     // this IV holds the data
 static mrb_value global_block;
+static mrb_value global_gl;
 static int counter = 0;
+
+
+#ifdef PLATFORM_WEB
+EMSCRIPTEN_KEEPALIVE
+#endif
+size_t debug_print(const char* buf, size_t n) {
+  //fprintf(stderr, "debugging %zu ... \n", n);
+  //snprintf(stderr, n, buf);
+  
+  //Data_Get_Struct(mrb, global_data_value, &play_data_type, global_p_data);
+
+  mrb_value cstrlikebuf = mrb_str_new_cstr(global_mrb, buf);
+  mrb_funcall(global_mrb, global_gl, "debug_print", 1, cstrlikebuf);
+
+  return 0;
+}
 
 
 static void if_exception_error_and_exit(mrb_state* mrb, char *context) {
@@ -421,6 +438,8 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
 
 #endif
 
+  global_gl = self;
+
   return self;
 }
 
@@ -620,7 +639,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
-  SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
+  //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
 
 #ifdef PLATFORM_WEB
   emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
@@ -840,9 +859,4 @@ int main(int argc, char** argv) {
   fprintf(stderr, "exiting ... \n");
 
   return 0;
-}
-
-
-size_t debug_print(char* buf, size_t n) {
-  fprintf(stderr, "debugging ... \n");
 }

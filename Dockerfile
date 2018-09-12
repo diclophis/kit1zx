@@ -14,6 +14,9 @@ RUN /var/tmp/bootstrap.sh
 COPY emscripten.sh /var/tmp/emscripten.sh
 RUN /var/tmp/emscripten.sh
 
+COPY emscripten-warmup.sh /var/tmp/emscripten-warmup.sh
+RUN /var/tmp/emscripten-warmup.sh
+
 COPY . /var/tmp/kit1zx
 
 COPY iterate.sh /var/tmp/iterate.sh

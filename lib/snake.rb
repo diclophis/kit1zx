@@ -1,7 +1,12 @@
 #!/usr/bin/env ruby
 
-def snake(gl)
+class GameLoop
+  def debug_print(b)
+    puts b.inspect
+  end
+end
 
+def snake(gl)
 
 #  wslay_callbacks = Wslay::Event::Callbacks.new
 #  
