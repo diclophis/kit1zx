@@ -34,7 +34,7 @@ def snake(gl)
 
   gl.prepare!
 
-  time_it_takes_to_move = 0.34
+  time_it_takes_to_move = 0.234
   time_into_current_move = 0.0
   player_position = [0.0, 0.0, 0.0]
   camera_desired_target = [0.0, 0.0, 0.0]
@@ -46,7 +46,7 @@ def snake(gl)
   half_size = size / 2.0
 
   player = Cube.new(size, size, size, 1.0)
-  snake = Sphere.new(half_size, 10, 10, 1.0)
+  snake = Sphere.new(half_size, 10, 10, 10.0)
 
   gl.main_loop { |gtdt|
     global_time, delta_time = gtdt
@@ -149,7 +149,7 @@ def snake(gl)
         end
 
         snake.deltap(50.0, 0.0, 50.0)
-        snake.yawpitchroll(0.0, global_time * 100.0, global_time * -100.0, 0.0, 0.0, 0.0)
+        snake.yawpitchroll(0.0, global_time * 10.0, global_time * -10.0, 0.0, 0.0, 0.0)
 
         player.draw(true)
 
