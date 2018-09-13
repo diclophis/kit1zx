@@ -10,20 +10,19 @@ mrbc=mruby/bin/mrbc
 sources = $(wildcard *.c)
 objects = $(patsubst %,$(build)/%, $(patsubst %.c,%.o, $(sources)))
 static_ruby_headers = $(patsubst %,$(build)/%, $(patsubst lib/%.rb,%.h, $(wildcard lib/*.rb)))
+static_ruby_headers += $(patsubst %,$(build)/%, $(patsubst lib/desktop/%.rb,%.h, $(wildcard lib/desktop/*.rb)))
 .SECONDARY: $(static_ruby_headers) $(objects)
-#.PHONY: $(mruby_static_lib) $(raylib_static_lib)
 objects += $(mruby_static_lib)
 objects += $(raylib_static_lib)
 
 LDFLAGS=-lm -lpthread -ldl -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 
-CFLAGS=-Os -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
+CFLAGS=-DPLATFORM_DESKTOP -Os -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
 
 $(shell mkdir -p $(build))
 
 run: $(target) $(sources)
 	echo $(target)
-	realpath $(target)
 
 $(target): $(objects) $(sources)
 	$(CC) $(CFLAGS) -o $@ $(objects) $(LDFLAGS)
@@ -49,6 +48,9 @@ $(raylib_static_lib):
 	cd raylib/src && make PLATFORM=PLATFORM_DESKTOP -B
 
 $(mrbc): $(mruby_static_lib)
+
+$(build)/%.h: lib/desktop/%.rb $(mrbc)
+	mruby/bin/mrbc -g -B $(patsubst $(build)/%.h,%, $@) -o $@ $<
 
 $(build)/%.h: lib/%.rb $(mrbc)
 	mruby/bin/mrbc -g -B $(patsubst $(build)/%.h,%, $@) -o $@ $<

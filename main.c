@@ -32,6 +32,11 @@
 #include "kube.h"
 #include "box.h"
 #include "init.h"
+#include "game_loop.h"
+
+#ifdef PLATFORM_DESKTOP
+#include "uv_io.h"
+#endif
 
 
 #define FLT_MAX 3.40282347E+38F
@@ -69,14 +74,8 @@ static int counter = 0;
 EMSCRIPTEN_KEEPALIVE
 #endif
 size_t debug_print(const char* buf, size_t n) {
-  //fprintf(stderr, "debugging %zu ... \n", n);
-  //snprintf(stderr, n, buf);
-  
-  //Data_Get_Struct(mrb, global_data_value, &play_data_type, global_p_data);
-
-  mrb_value cstrlikebuf = mrb_str_new_cstr(global_mrb, buf);
-  mrb_funcall(global_mrb, global_gl, "debug_print", 2, cstrlikebuf, mrb_fixnum_value(n));
-
+  mrb_value cstrlikebuf = mrb_str_new(global_mrb, buf, n);
+  mrb_funcall(global_mrb, global_gl, "feed_state!", 1, cstrlikebuf);
   return 0;
 }
 
@@ -414,7 +413,6 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
   char *c_game_name = RSTRING_PTR(game_name);
 
   //SetConfigFlags(FLAG_MSAA_4X_HINT);
-
   InitWindow(screenWidth, screenHeight, c_game_name);
 
   play_data_s *p_data;
@@ -431,6 +429,9 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
       mrb, self, mrb_intern_lit(mrb, "@pointer"), // set @data
       mrb_obj_value(                           // with value hold in struct
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
+
+  mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@left_over_bits"), mrb_str_new_cstr(mrb, ""));
+  mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@global_counter"), mrb_fixnum_value(0));
 
 #ifndef PLATFORM_WEB
 
@@ -600,7 +601,18 @@ static mrb_value draw_fps(mrb_state* mrb, mrb_value self)
 }
 
 
-void UpdateDrawFrame(void) {
+void UpdateDrawFrameVoid(void) {
+  mrb_funcall(global_mrb, global_gl, "update", 0, NULL);
+}
+
+
+static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
+#ifdef PLATFORM_DESKTOP
+  if (WindowShouldClose()) {
+    mrb_funcall(mrb, self, "spindown!", 0, NULL);
+  }
+#endif
+
   mrb_value gtdt = mrb_ary_new(global_mrb);
 
   double time;
@@ -619,7 +631,6 @@ void UpdateDrawFrame(void) {
   UpdateCamera(&global_p_data->camera);
 
   mrb_yield_argv(global_mrb, global_block, 2, &gtdt);
-
 }
 
 
@@ -642,13 +653,16 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
   //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
 
 #ifdef PLATFORM_WEB
-  emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
+  emscripten_set_main_loop(UpdateDrawFrameVoid, 0, 1);
 #else
   // Main game loop
-  while (!WindowShouldClose()) // Detect window close button or ESC key
-  {
-    UpdateDrawFrame();
-  }
+  //while (!WindowShouldClose()) // Detect window close button or ESC key
+  //{
+  //  UpdateDrawFrame();
+  //}
+
+  mrb_funcall(mrb, self, "spinlock!", 0, NULL);
+
 #endif
 
   CloseWindow(); // Close window and OpenGL context
@@ -826,6 +840,7 @@ int main(int argc, char** argv) {
   mrb_define_method(mrb, game_class, "interim", interim, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "drawmode", drawmode, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "twod", twod, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "update", UpdateDrawFrame, MRB_ARGS_NONE());
 
   struct RClass *model_class = mrb_define_class(mrb, "Model", mrb->object_class);
   mrb_define_method(mrb, model_class, "initialize", model_init, MRB_ARGS_REQ(3));
@@ -842,7 +857,15 @@ int main(int argc, char** argv) {
   struct RClass *sphere_class = mrb_define_class(mrb, "Sphere", model_class);
   mrb_define_method(mrb, sphere_class, "initialize", sphere_init, MRB_ARGS_REQ(4));
 
-  eval_static_libs(mrb, shmup, snake, box, kube, init, NULL);
+  eval_static_libs(mrb, shmup, snake, box, kube, NULL);
+
+  eval_static_libs(mrb, game_loop, NULL);
+
+#ifdef PLATFORM_DESKTOP
+  eval_static_libs(mrb, uv_io, NULL);
+#endif
+
+  eval_static_libs(mrb, init, NULL);
 
 /*
   FILE *fd = fopen("/dev/stdin", "r"); //fcntl(STDIN_FILENO,  F_DUPFD, 0);

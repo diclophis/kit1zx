@@ -1,31 +1,6 @@
 #!/usr/bin/env ruby
 
-$left_over_bits = ""
-
-class GameLoop
-  def debug_print(b, c)
-    if c > 0
-      all_to_consider = $left_over_bits
-      
-      c.times { |i|
-        all_to_consider += b[i]
-      }
-
-      all_l = all_to_consider.length
-
-      unpacked_length = MessagePack.unpack(all_to_consider) do |result|
-        if result
-          puts result.inspect
-        end
-      end
-
-      $left_over_bits = all_to_consider[unpacked_length, all_l]
-    end
-  end
-end
-
 def snake(gl)
-
 #  wslay_callbacks = Wslay::Event::Callbacks.new
 #  
 #  wslay_callbacks.recv_callback do |buf, len|
@@ -57,20 +32,9 @@ def snake(gl)
 #  
 #  client = Wslay::Event::Client.new wslay_callbacks
 
+  gl.prepare!
 
-  if false
-    f = UV::Pipe.new
-    f.open(0)
-    f.read_start do |b|
-      if b.is_a?(UVError)
-        puts [b].inspect
-      else
-        gl.debug_print(b, b.length)
-      end
-    end
-  end
-
-  time_it_takes_to_move = 0.34
+  time_it_takes_to_move = 0.234
   time_into_current_move = 0.0
   player_position = [0.0, 0.0, 0.0]
   camera_desired_target = [0.0, 0.0, 0.0]
@@ -82,7 +46,7 @@ def snake(gl)
   half_size = size / 2.0
 
   player = Cube.new(size, size, size, 1.0)
-  snake = Sphere.new(half_size, 10, 10, 1.0)
+  snake = Sphere.new(half_size, 10, 10, 10.0)
 
   gl.main_loop { |gtdt|
     global_time, delta_time = gtdt
@@ -185,9 +149,10 @@ def snake(gl)
         end
 
         snake.deltap(50.0, 0.0, 50.0)
-        snake.yawpitchroll(0.0, global_time * 100.0, global_time * -100.0, 0.0, 0.0, 0.0)
+        snake.yawpitchroll(0.0, global_time * 10.0, global_time * -10.0, 0.0, 0.0, 0.0)
 
         player.draw(true)
+
         snake.draw(true)
 
         gl.draw_grid(33, size)
@@ -195,11 +160,8 @@ def snake(gl)
 
       gl.twod {
         gl.draw_fps(10, 10)
+        player.label(gl.global_count.to_s)
       }
-    }
-
-    gl.interim {
-      #UV::run(UV::UV_RUN_NOWAIT)
     }
   }
 end

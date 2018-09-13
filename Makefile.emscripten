@@ -7,21 +7,18 @@ build=build/$(product)-build
 target=$(build)/$(product)
 mruby_static_lib=mruby/build/emscripten/lib/libmruby.a
 raylib_static_lib=raylib/release/libs/html5/libraylib.bc
-mrbc=mruby/bin/mrbc
+mrbc=mruby/build/host/bin/mrbc
 
 sources = $(wildcard *.c)
 objects = $(patsubst %,$(build)/%, $(patsubst %.c,%.o, $(sources)))
 static_ruby_headers = $(patsubst %,$(build)/%, $(patsubst lib/%.rb,%.h, $(wildcard lib/*.rb)))
 .SECONDARY: $(static_ruby_headers) $(objects)
-.PHONY: $(mruby_static_lib) $(raylib_static_lib)
 objects += $(mruby_static_lib)
 objects += $(raylib_static_lib)
 
 LDFLAGS=-lm -lpthread -ldl $(shell (uname | grep -q Darwin || echo -static))
 
-CFLAGS=-DPLATFORM_WEB -Os -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=0 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
-
-CC=emcc
+CFLAGS=-DPLATFORM_WEB -O0 -s USE_GLFW=3 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1 -s WASM=1 -s EMTERPRETIFY=0 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
 
 $(shell mkdir -p $(build))
 
@@ -29,14 +26,13 @@ run: $(target) $(sources)
 	echo $(target)
 	realpath $(target)
 
-$(target): $(objects) $(sources)
-	$(CC) -o $@ $(objects) $(LDFLAGS) -g4 -s USE_GLFW=3 -s ASSERTIONS=1 -s EXPORTED_FUNCTIONS="['_main', '_debug_print']" -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' --source-map-base $(map_base) -s WASM=1 -s EMTERPRETIFY=0 --shell-file shell.html --preload-file resources -s TOTAL_MEMORY=167772160
+$(target): shell.html $(objects) $(sources)
+	$(CC) -o $@ $(objects) $(LDFLAGS) -g4 -O0 -s NO_EXIT_RUNTIME=0 -s USE_GLFW=3 -s EXPORTED_FUNCTIONS="['_main', '_debug_print']" -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' --source-map-base $(map_base) -s WASM=1 -s EMTERPRETIFY=0 --shell-file shell.html --preload-file resources -s TOTAL_MEMORY=167772160
 
 $(build)/test.yml: $(target) config.ru
 	$(target) > $@
 
 clean:
-	cd mruby && make clean
 	cd raylib/src && make PLATFORM=PLATFORM_WEB clean && mkdir -p ../release/libs/html5
 	rm -R $(build)
 
@@ -46,13 +42,14 @@ $(build):
 $(build)/%.o: %.c $(static_ruby_headers) $(sources)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(mruby_static_lib): config/mruby.rb
-	cd mruby && MRUBY_CONFIG=../config/mruby.rb make -j
+#$(mruby_static_lib): config/mruby.rb
+#	#cd mruby && MRUBY_CONFIG=../config/mruby.rb make -j
+#	echo cd mruby && MRUBY_CONFIG=../config/emscripten.rb make
 
 $(raylib_static_lib):
-	cd raylib/src && make PLATFORM=PLATFORM_WEB -B -j
+	cd raylib/src && make PLATFORM=PLATFORM_WEB -B
 
-$(mrbc): $(mruby_static_lib)
+#$(mrbc): $(mruby_static_lib)
 
-$(build)/%.h: lib/%.rb $(mrbc)
-	mruby/bin/mrbc -g -B $(patsubst $(build)/%.h,%, $@) -o $@ $<
+$(build)/%.h: lib/%.rb #$(mrbc)
+	$(mrbc) -g -B $(patsubst $(build)/%.h,%, $@) -o $@ $<

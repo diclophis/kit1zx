@@ -17,7 +17,13 @@ RUN /var/tmp/emscripten.sh
 COPY emscripten-warmup.sh /var/tmp/emscripten-warmup.sh
 RUN /var/tmp/emscripten-warmup.sh
 
-COPY . /var/tmp/kit1zx
+COPY config /var/tmp/kit1zx/config
+COPY mruby /var/tmp/kit1zx/mruby
+RUN cd /var/tmp/kit1zx/mruby && rm -Rf build && make clean && MRUBY_CONFIG=../config/emscripten.rb make
 
-COPY iterate.sh /var/tmp/iterate.sh
-RUN /var/tmp/iterate.sh
+COPY raylib /var/tmp/kit1zx/raylib
+COPY resources /var/tmp/kit1zx/resources
+COPY lib /var/tmp/kit1zx/lib
+COPY Makefile.emscripten main.c config.ru iterate.sh lib shell.html /var/tmp/kit1zx/
+
+RUN /var/tmp/kit1zx/iterate.sh

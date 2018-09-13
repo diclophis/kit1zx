@@ -13,4 +13,4 @@ cd /var/tmp/kit1zx
 
 make -f Makefile.emscripten clean
 
-make -f Makefile.emscripten -j
+emmake make -f Makefile.emscripten
