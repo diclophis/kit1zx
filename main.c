@@ -32,6 +32,11 @@
 #include "kube.h"
 #include "box.h"
 #include "init.h"
+#include "game_loop.h"
+
+#ifdef PLATFORM_DESKTOP
+#include "uv_io.h"
+#endif
 
 
 #define FLT_MAX 3.40282347E+38F
@@ -70,7 +75,7 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 size_t debug_print(const char* buf, size_t n) {
   mrb_value cstrlikebuf = mrb_str_new(global_mrb, buf, n);
-  mrb_funcall(global_mrb, global_gl, "debug_print", 2, cstrlikebuf, mrb_fixnum_value(n));
+  mrb_funcall(global_mrb, global_gl, "feed_state", 1, cstrlikebuf);
   return 0;
 }
 
@@ -424,6 +429,8 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
       mrb, self, mrb_intern_lit(mrb, "@pointer"), // set @data
       mrb_obj_value(                           // with value hold in struct
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
+
+  mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@left_over_bits"), mrb_str_new_cstr(mrb, ""));
 
 #ifndef PLATFORM_WEB
 
@@ -835,7 +842,15 @@ int main(int argc, char** argv) {
   struct RClass *sphere_class = mrb_define_class(mrb, "Sphere", model_class);
   mrb_define_method(mrb, sphere_class, "initialize", sphere_init, MRB_ARGS_REQ(4));
 
-  eval_static_libs(mrb, shmup, snake, box, kube, init, NULL);
+  eval_static_libs(mrb, shmup, snake, box, kube, NULL);
+
+  eval_static_libs(mrb, game_loop, NULL);
+
+#ifdef PLATFORM_DESKTOP
+  eval_static_libs(mrb, uv_io, NULL);
+#endif
+
+  eval_static_libs(mrb, init, NULL);
 
 /*
   FILE *fd = fopen("/dev/stdin", "r"); //fcntl(STDIN_FILENO,  F_DUPFD, 0);
