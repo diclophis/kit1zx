@@ -13,26 +13,10 @@ MRuby::Build.new do |conf|
   conf.gem :core => "mruby-io"
   conf.gem :core => "mruby-enum-ext"
 
-  #conf.gem :core => "mruby-struct"
-  #conf.gem :core => "mruby-sprintf"
-  #conf.gem :core => "mruby-string-ext"
-  #conf.gem :github => "h2so5/mruby-pure-regexp"
-  #conf.gem :github => "yui-knk/mruby-set"
-  #conf.gem :github => "iij/mruby-tempfile"
-  #conf.gem :github => "iij/mruby-process"
-
   conf.gem :github => "mattn/mruby-uv"
   conf.gem :github => "Asmod4n/mruby-simplemsgpack"
 
   #TODO: mruby websocket client
   #conf.gem :github => "Asmod4n/mruby-wslay"
   #conf.gem :github => "Asmod4n/mruby-b64"
-
-  #conf.cc do |cc|
-  #  cc.flags = [ENV['CFLAGS'], "-lm"].join(" ")
-  #end
- 
-  #conf.cc do |cc|
-  #  cc.flags = ["-O0"]
-  #end
 end

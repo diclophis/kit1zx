@@ -13,7 +13,6 @@ sources = $(wildcard *.c)
 objects = $(patsubst %,$(build)/%, $(patsubst %.c,%.o, $(sources)))
 static_ruby_headers = $(patsubst %,$(build)/%, $(patsubst lib/%.rb,%.h, $(wildcard lib/*.rb)))
 .SECONDARY: $(static_ruby_headers) $(objects)
-#.PHONY: $(mruby_static_lib) $(raylib_static_lib)
 objects += $(mruby_static_lib)
 objects += $(raylib_static_lib)
 

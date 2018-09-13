@@ -27,9 +27,6 @@ class GameLoop
 
     unpacked_length = MessagePack.unpack(small_subset_to_consider) do |result|
       @global_counter += 1
-      #if @global_counter % 10000 == 0
-      #  self.log!(@global_counter, @left_over_bits.length, result)
-      #end
     end
 
     @left_over_bits = all_bits_to_consider[unpacked_length, all_l] 
