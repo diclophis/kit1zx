@@ -14,14 +14,22 @@ class GameLoop
     puts args.inspect
   end
 
-  def feed_state!(bytes)
-    bytes.length
+  def global_count
+    @global_counter
+  end
 
+  def feed_state!(bytes)
     all_bits_to_consider = @left_over_bits + bytes
     all_l = all_bits_to_consider.length
 
-    unpacked_length = MessagePack.unpack(all_bits_to_consider) do |result|
-      self.log!(result)
+    small_subset_to_consider = all_bits_to_consider[0, 4096]
+    considered_subset = small_subset_to_consider.length
+
+    unpacked_length = MessagePack.unpack(small_subset_to_consider) do |result|
+      @global_counter += 1
+      #if @global_counter % 10000 == 0
+      #  self.log!(@global_counter, @left_over_bits.length, result)
+      #end
     end
 
     @left_over_bits = all_bits_to_consider[unpacked_length, all_l] 

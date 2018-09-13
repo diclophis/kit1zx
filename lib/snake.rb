@@ -152,6 +152,7 @@ def snake(gl)
         snake.yawpitchroll(0.0, global_time * 100.0, global_time * -100.0, 0.0, 0.0, 0.0)
 
         player.draw(true)
+
         snake.draw(true)
 
         gl.draw_grid(33, size)
@@ -159,6 +160,7 @@ def snake(gl)
 
       gl.twod {
         gl.draw_fps(10, 10)
+        player.label(gl.global_count.to_s)
       }
     }
   }

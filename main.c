@@ -431,6 +431,7 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
 
   mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@left_over_bits"), mrb_str_new_cstr(mrb, ""));
+  mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@global_counter"), mrb_fixnum_value(0));
 
 #ifndef PLATFORM_WEB
 
@@ -606,9 +607,11 @@ void UpdateDrawFrameVoid(void) {
 
 
 static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
-  //if (WindowShouldClose()) {
-  //  mrb_funcall(mrb, self, "spindown!", 0, NULL);
-  //}
+#ifdef PLATFORM_DESKTOP
+  if (WindowShouldClose()) {
+    mrb_funcall(mrb, self, "spindown!", 0, NULL);
+  }
+#endif
 
   mrb_value gtdt = mrb_ary_new(global_mrb);
 
