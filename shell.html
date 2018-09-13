@@ -507,52 +507,38 @@
         };
       };
 
-window.startConnection = function(port) {
-      if (window["WebSocket"]) {
-        var debug_print = Module.cwrap(
-          'debug_print', 'number', ['number', 'number']
-        );
+      window.startConnection = function(port) {
+        if (window["WebSocket"]) {
+          var debug_print = Module.cwrap(
+            'debug_print', 'number', ['number', 'number']
+          );
 
-        conn = new WebSocket("ws://" + "zerozero.mavenlink.link:" + port + "/ws");
+          conn = new WebSocket("ws://" + "zerozero.mavenlink.link:" + port + "/ws");
 
-        conn.onopen = function (event) {
-          console.log(event);
+          conn.onopen = function (event) {
+            console.log(event);
 
-          window.onbeforeunload = function() {
-            conn.onclose = function () {};
-            conn.close();
+            window.onbeforeunload = function() {
+              conn.onclose = function () {};
+              conn.close();
+            };
           };
-        };
 
-        conn.onclose = function (event) {
-          console.log("Connection closed.");
-        };
+          conn.onclose = function (event) {
+            console.log("Connection closed.");
+          };
 
-        conn.onmessage = function (event) {
-          //console.log(event);
-
-          origData = serializeMsgPack(JSON.parse(event.data));
-	  //console.log(origData);
-
-          //var nDataBytes = origData.length * origData.BYTES_PER_ELEMENT;
-          //var dataPtr = Module._malloc(nDataBytes);
-          ////var dataHeap = new Uint8Array(Module.HEAPU8.buffer, dataPtr, nDataBytes);
-          ////dataHeap.set(origData);
-          ////debug_print(dataHeap.byteOffset, origData.length);
-          //Module._free(dataPtr);
-          //debug_print(origData, origData.length);
-
-	  var buf = Module._malloc(origData.length*origData.BYTES_PER_ELEMENT);
-	  Module.HEAPU8.set(origData, buf);
-	  debug_print(buf, origData.length);
-	  Module._free(buf);
-
-        };
-      } else {
-        console.log("Your browser does not support WebSockets.");
+          conn.onmessage = function (event) {
+            origData = serializeMsgPack(JSON.parse(event.data));
+            var buf = Module._malloc(origData.length*origData.BYTES_PER_ELEMENT);
+            Module.HEAPU8.set(origData, buf);
+            debug_print(buf, origData.length);
+            Module._free(buf);
+          };
+        } else {
+          console.log("Your browser does not support WebSockets.");
+        }
       }
-}
-
     </script>
     {{{ SCRIPT }}}
   </body>
