@@ -10,6 +10,10 @@ class GameLoop
   def spindown!
   end
 
+  def log!(*args)
+    puts args.inspect
+  end
+
   def feed_state!(bytes)
     bytes.length
 

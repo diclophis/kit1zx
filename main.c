@@ -600,11 +600,15 @@ static mrb_value draw_fps(mrb_state* mrb, mrb_value self)
 }
 
 
-//void UpdateDrawFrame(void) {
-static void UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
-  if (WindowShouldClose()) {
-    mrb_funcall(mrb, self, "spindown!", 0, NULL);
-  }
+void UpdateDrawFrameVoid(void) {
+  mrb_funcall(global_mrb, global_gl, "update", 0, NULL);
+}
+
+
+static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
+  //if (WindowShouldClose()) {
+  //  mrb_funcall(mrb, self, "spindown!", 0, NULL);
+  //}
 
   mrb_value gtdt = mrb_ary_new(global_mrb);
 
@@ -624,7 +628,6 @@ static void UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
   UpdateCamera(&global_p_data->camera);
 
   mrb_yield_argv(global_mrb, global_block, 2, &gtdt);
-
 }
 
 
@@ -647,7 +650,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
   //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
 
 #ifdef PLATFORM_WEB
-  emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
+  emscripten_set_main_loop(UpdateDrawFrameVoid, 0, 1);
 #else
   // Main game loop
   //while (!WindowShouldClose()) // Detect window close button or ESC key
