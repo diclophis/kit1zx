@@ -600,7 +600,12 @@ static mrb_value draw_fps(mrb_state* mrb, mrb_value self)
 }
 
 
-void UpdateDrawFrame(void) {
+//void UpdateDrawFrame(void) {
+static void UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
+  if (WindowShouldClose()) {
+    mrb_funcall(mrb, self, "spindown!", 0, NULL);
+  }
+
   mrb_value gtdt = mrb_ary_new(global_mrb);
 
   double time;
@@ -645,10 +650,13 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
   emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
 #else
   // Main game loop
-  while (!WindowShouldClose()) // Detect window close button or ESC key
-  {
-    UpdateDrawFrame();
-  }
+  //while (!WindowShouldClose()) // Detect window close button or ESC key
+  //{
+  //  UpdateDrawFrame();
+  //}
+
+  mrb_funcall(mrb, self, "spinlock!", 0, NULL);
+
 #endif
 
   CloseWindow(); // Close window and OpenGL context
@@ -826,6 +834,7 @@ int main(int argc, char** argv) {
   mrb_define_method(mrb, game_class, "interim", interim, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "drawmode", drawmode, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "twod", twod, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "update", UpdateDrawFrame, MRB_ARGS_NONE());
 
   struct RClass *model_class = mrb_define_class(mrb, "Model", mrb->object_class);
   mrb_define_method(mrb, model_class, "initialize", model_init, MRB_ARGS_REQ(3));

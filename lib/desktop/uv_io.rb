@@ -2,13 +2,9 @@
 
 class GameLoop
   def prepare!
-    @stdout = UV::Pipe.new
-    @stdout.open(1)
-    @stdout.read_stop
-
-    f = UV::Pipe.new
-    f.open(0)
-    f.read_start do |buf|
+    @stdin = UV::Pipe.new
+    @stdin.open(0)
+    @stdin.read_start do |buf|
       if buf.is_a?(UVError)
         log!(buf)
       else
@@ -17,6 +13,15 @@ class GameLoop
         end
       end
     end
+
+    @stdout = UV::Pipe.new
+    @stdout.open(1)
+    @stdout.read_stop
+
+    @idle = UV::Idle.new
+    @idle.start { |x|
+      self.update
+    }
   end
 
   def log!(*args)
@@ -24,6 +29,12 @@ class GameLoop
   end
 
   def spinlock!
-    UV::run(UV::UV_RUN_NOWAIT)
+    UV::run
+  end
+
+  def spindown!
+    @idle.unref
+    @stdin.unref
+    @stdout.unref
   end
 end

@@ -161,9 +161,5 @@ def snake(gl)
         gl.draw_fps(10, 10)
       }
     }
-
-    gl.interim {
-      gl.spinlock!
-    }
   }
 end

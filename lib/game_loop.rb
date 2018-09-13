@@ -7,6 +7,9 @@ class GameLoop
   def spinlock!
   end
 
+  def spindown!
+  end
+
   def feed_state!(bytes)
     bytes.length
 
