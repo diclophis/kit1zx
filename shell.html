@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>kit1zx</title>
+    <style>
+      body { background-color: black; }
+    </style>
   </head>
   <body>
     <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
@@ -512,8 +515,9 @@ window.startConnection = function(port) {
 
         conn = new WebSocket("ws://" + "zerozero.mavenlink.link:" + port + "/ws");
 
-
         conn.onopen = function (event) {
+          console.log(event);
+
           window.onbeforeunload = function() {
             conn.onclose = function () {};
             conn.close();
@@ -525,16 +529,24 @@ window.startConnection = function(port) {
         };
 
         conn.onmessage = function (event) {
+          //console.log(event);
+
           origData = serializeMsgPack(JSON.parse(event.data));
+	  //console.log(origData);
 
-          var nDataBytes = origData.length * origData.BYTES_PER_ELEMENT;
-          var dataPtr = Module._malloc(nDataBytes);
-          var dataHeap = new Uint8Array(Module.HEAPU8.buffer, dataPtr, nDataBytes);
-          dataHeap.set(origData);
+          //var nDataBytes = origData.length * origData.BYTES_PER_ELEMENT;
+          //var dataPtr = Module._malloc(nDataBytes);
+          ////var dataHeap = new Uint8Array(Module.HEAPU8.buffer, dataPtr, nDataBytes);
+          ////dataHeap.set(origData);
+          ////debug_print(dataHeap.byteOffset, origData.length);
+          //Module._free(dataPtr);
+          //debug_print(origData, origData.length);
 
-          debug_print(dataHeap.byteOffset, origData.length);
+	  var buf = Module._malloc(origData.length*origData.BYTES_PER_ELEMENT);
+	  Module.HEAPU8.set(origData, buf);
+	  debug_print(buf, origData.length);
+	  Module._free(buf);
 
-          Module._free(dataHeap.byteOffset);
         };
       } else {
         console.log("Your browser does not support WebSockets.");

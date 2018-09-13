@@ -17,6 +17,10 @@ RUN /var/tmp/emscripten.sh
 COPY emscripten-warmup.sh /var/tmp/emscripten-warmup.sh
 RUN /var/tmp/emscripten-warmup.sh
 
+COPY config /var/tmp/kit1zx/config
+COPY mruby /var/tmp/kit1zx/mruby
+RUN cd /var/tmp/kit1zx/mruby && MRUBY_CONFIG=../config/emscripten.rb make
+
 COPY . /var/tmp/kit1zx
 
 COPY iterate.sh /var/tmp/iterate.sh

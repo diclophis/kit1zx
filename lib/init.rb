@@ -7,6 +7,8 @@ KEY_LEFT = 263
 KEY_DOWN = 264
 KEY_UP = 265
 
+puts MessagePack.inspect
+
 $gl = GameLoop.new("kit1zx", 496, 230, 60)
 
 #shmup($gl)

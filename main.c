@@ -69,14 +69,8 @@ static int counter = 0;
 EMSCRIPTEN_KEEPALIVE
 #endif
 size_t debug_print(const char* buf, size_t n) {
-  //fprintf(stderr, "debugging %zu ... \n", n);
-  //snprintf(stderr, n, buf);
-  
-  //Data_Get_Struct(mrb, global_data_value, &play_data_type, global_p_data);
-
-  mrb_value cstrlikebuf = mrb_str_new_cstr(global_mrb, buf);
+  mrb_value cstrlikebuf = mrb_str_new(global_mrb, buf, n);
   mrb_funcall(global_mrb, global_gl, "debug_print", 2, cstrlikebuf, mrb_fixnum_value(n));
-
   return 0;
 }
 
@@ -118,7 +112,7 @@ static void eval_static_libs(mrb_state* mrb, ...) {
 static void play_data_destructor(mrb_state *mrb, void *p_) {
   play_data_s *pd = (play_data_s *)p_;
 
-  UnloadRenderTexture(pd->buffer_target);     // Unload texture
+  //UnloadRenderTexture(pd->buffer_target);     // Unload texture
 
   mrb_free(mrb, pd);
 };
@@ -414,7 +408,6 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
   char *c_game_name = RSTRING_PTR(game_name);
 
   //SetConfigFlags(FLAG_MSAA_4X_HINT);
-
   InitWindow(screenWidth, screenHeight, c_game_name);
 
   play_data_s *p_data;
@@ -425,7 +418,7 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not allocate @data");
   }
 
-  p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
+  //p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
 
   mrb_iv_set(
       mrb, self, mrb_intern_lit(mrb, "@pointer"), // set @data

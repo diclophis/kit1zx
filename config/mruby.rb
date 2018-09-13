@@ -5,7 +5,7 @@ MRuby::Build.new do |conf|
 
   enable_debug
 
-  #conf.bins = ["mrbc", "mirb"]
+  conf.bins = ["mrbc", "mirb"]
 
   conf.gem :core => "mruby-bin-mirb"
   conf.gem :core => "mruby-math"
@@ -21,7 +21,7 @@ MRuby::Build.new do |conf|
   #conf.gem :github => "iij/mruby-tempfile"
   #conf.gem :github => "iij/mruby-process"
 
-  conf.gem :github => "mattn/mruby-uv"
+  #conf.gem :github => "mattn/mruby-uv"
   conf.gem :github => "Asmod4n/mruby-simplemsgpack"
 
   #TODO: mruby websocket client
@@ -30,5 +30,9 @@ MRuby::Build.new do |conf|
 
   #conf.cc do |cc|
   #  cc.flags = [ENV['CFLAGS'], "-lm"].join(" ")
+  #end
+ 
+  #conf.cc do |cc|
+  #  cc.flags = ["-O0"]
   #end
 end

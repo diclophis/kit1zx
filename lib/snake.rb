@@ -5,19 +5,18 @@ $left_over_bits = ""
 class GameLoop
   def debug_print(b, c)
     if c > 0
-      all_to_consider = $left_over_bits
-      
-      c.times { |i|
-        all_to_consider += b[i]
-      }
-
+      all_to_consider = $left_over_bits + b
       all_l = all_to_consider.length
+
+      #puts [all_to_consider, MessagePack.inspect].inspect
 
       unpacked_length = MessagePack.unpack(all_to_consider) do |result|
         if result
           puts result.inspect
         end
       end
+
+      #puts [unpacked_length].inspect
 
       $left_over_bits = all_to_consider[unpacked_length, all_l]
     end
@@ -56,7 +55,6 @@ def snake(gl)
 #  end
 #  
 #  client = Wslay::Event::Client.new wslay_callbacks
-
 
   if false
     f = UV::Pipe.new

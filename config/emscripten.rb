@@ -1,0 +1,82 @@
+MRuby::Build.new do |conf|
+  # load specific toolchain settings
+  toolchain :gcc
+
+  enable_debug
+
+  conf.bins = ["mrbc", "mirb"]
+
+  conf.gem :core => "mruby-bin-mirb"
+  conf.gem :core => "mruby-math"
+  conf.gem :core => "mruby-random"
+  conf.gem :core => "mruby-io"
+  conf.gem :core => "mruby-enum-ext"
+
+  #conf.gem :core => "mruby-struct"
+  #conf.gem :core => "mruby-sprintf"
+  #conf.gem :core => "mruby-string-ext"
+  #conf.gem :github => "h2so5/mruby-pure-regexp"
+  #conf.gem :github => "yui-knk/mruby-set"
+  #conf.gem :github => "iij/mruby-tempfile"
+  #conf.gem :github => "iij/mruby-process"
+
+  #conf.gem :github => "mattn/mruby-uv"
+  conf.gem :github => "Asmod4n/mruby-simplemsgpack"
+
+  #TODO: mruby websocket client
+  #conf.gem :github => "Asmod4n/mruby-wslay"
+  #conf.gem :github => "Asmod4n/mruby-b64"
+
+  #conf.cc do |cc|
+  #  cc.flags = [ENV['CFLAGS'], "-lm"].join(" ")
+  #end
+ 
+  #conf.cc do |cc|
+  #  cc.flags = ["-O0"]
+  #end
+end
+
+MRuby::CrossBuild.new('emscripten') do |conf|
+  # load specific toolchain settings
+  toolchain :clang
+
+  enable_debug
+
+  #conf.bins = ["mrbc", "mirb"]
+
+  conf.gem :core => "mruby-bin-mirb"
+  conf.gem :core => "mruby-math"
+  conf.gem :core => "mruby-random"
+  conf.gem :core => "mruby-io"
+  conf.gem :core => "mruby-enum-ext"
+
+  #conf.gem :core => "mruby-struct"
+  #conf.gem :core => "mruby-sprintf"
+  #conf.gem :core => "mruby-string-ext"
+  #conf.gem :github => "h2so5/mruby-pure-regexp"
+  #conf.gem :github => "yui-knk/mruby-set"
+  #conf.gem :github => "iij/mruby-tempfile"
+  #conf.gem :github => "iij/mruby-process"
+
+  #conf.gem :github => "mattn/mruby-uv"
+  conf.gem :github => "Asmod4n/mruby-simplemsgpack"
+
+  #TODO: mruby websocket client
+  #conf.gem :github => "Asmod4n/mruby-wslay"
+  #conf.gem :github => "Asmod4n/mruby-b64"
+
+  #conf.cc do |cc|
+  #  cc.flags = [ENV['CFLAGS'], "-lm"].join(" ")
+  #end
+ 
+  #conf.cc do |cc|
+  #  cc.flags = ["-O0"]
+  #end
+
+  #toolchain :clang
+  #conf.gembox 'default'
+  conf.cc.command = '/root/emsdk/emscripten/1.38.12/emcc'
+  #conf.cc.flags = %W(-Os)
+  conf.linker.command = '/root/emsdk/emscripten/1.38.12/emcc'
+  conf.archiver.command = '/root/emsdk/emscripten/1.38.12/emar'
+end
