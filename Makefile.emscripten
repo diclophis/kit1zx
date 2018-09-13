@@ -7,7 +7,7 @@ build=build/$(product)-build
 target=$(build)/$(product)
 mruby_static_lib=mruby/build/emscripten/lib/libmruby.a
 raylib_static_lib=raylib/release/libs/html5/libraylib.bc
-mrbc=mruby/bin/mrbc
+mrbc=mruby/build/host/bin/mrbc
 
 sources = $(wildcard *.c)
 objects = $(patsubst %,$(build)/%, $(patsubst %.c,%.o, $(sources)))
@@ -53,4 +53,4 @@ $(raylib_static_lib):
 #$(mrbc): $(mruby_static_lib)
 
 $(build)/%.h: lib/%.rb #$(mrbc)
-	mruby/bin/mrbc -g -B $(patsubst $(build)/%.h,%, $@) -o $@ $<
+	$(mrbc) -g -B $(patsubst $(build)/%.h,%, $@) -o $@ $<

@@ -42,8 +42,6 @@ MRuby::CrossBuild.new('emscripten') do |conf|
 
   enable_debug
 
-  #conf.bins = ["mrbc", "mirb"]
-
   conf.gem :core => "mruby-bin-mirb"
   conf.gem :core => "mruby-math"
   conf.gem :core => "mruby-random"
@@ -75,8 +73,9 @@ MRuby::CrossBuild.new('emscripten') do |conf|
 
   #toolchain :clang
   #conf.gembox 'default'
-  conf.cc.command = '/root/emsdk/emscripten/1.38.12/emcc'
   #conf.cc.flags = %W(-Os)
+
+  conf.cc.command = '/root/emsdk/emscripten/1.38.12/emcc'
   conf.linker.command = '/root/emsdk/emscripten/1.38.12/emcc'
   conf.archiver.command = '/root/emsdk/emscripten/1.38.12/emar'
 end
