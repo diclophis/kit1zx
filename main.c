@@ -75,7 +75,7 @@ EMSCRIPTEN_KEEPALIVE
 #endif
 size_t debug_print(const char* buf, size_t n) {
   mrb_value cstrlikebuf = mrb_str_new(global_mrb, buf, n);
-  mrb_funcall(global_mrb, global_gl, "feed_state", 1, cstrlikebuf);
+  mrb_funcall(global_mrb, global_gl, "feed_state!", 1, cstrlikebuf);
   return 0;
 }
 
@@ -117,7 +117,7 @@ static void eval_static_libs(mrb_state* mrb, ...) {
 static void play_data_destructor(mrb_state *mrb, void *p_) {
   play_data_s *pd = (play_data_s *)p_;
 
-  //UnloadRenderTexture(pd->buffer_target);     // Unload texture
+  UnloadRenderTexture(pd->buffer_target);     // Unload texture
 
   mrb_free(mrb, pd);
 };
@@ -423,7 +423,7 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not allocate @data");
   }
 
-  //p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
+  p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
 
   mrb_iv_set(
       mrb, self, mrb_intern_lit(mrb, "@pointer"), // set @data

@@ -163,7 +163,7 @@ def snake(gl)
     }
 
     gl.interim {
-      gl.io!
+      gl.spinlock!
     }
   }
 end
