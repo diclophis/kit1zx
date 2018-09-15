@@ -1,2 +1,8 @@
 build
+release
 .DS_Store
+*.o
+*.cmake
+*CMake*
+.*
+*.in
