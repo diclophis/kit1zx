@@ -124,13 +124,15 @@ static void play_data_destructor(mrb_state *mrb, void *p_) {
 
 
 static void model_data_destructor(mrb_state *mrb, void *p_) {
-  model_data_s *pd = (model_data_s *)p_;
+  fprintf(stderr, "dropping model ... \n");
 
-  // De-Initialization
-  UnloadTexture(pd->texture);     // Unload texture
-  UnloadModel(pd->model);         // Unload model
+  //model_data_s *pd = (model_data_s *)p_;
 
-  mrb_free(mrb, pd);
+  //// De-Initialization
+  //UnloadTexture(pd->texture);     // Unload texture
+  //UnloadModel(pd->model);         // Unload model
+
+  //mrb_free(mrb, pd);
 };
 
 

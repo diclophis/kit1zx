@@ -27,3 +27,5 @@ COPY lib /var/tmp/kit1zx/lib
 COPY Makefile.emscripten main.c config.ru iterate.sh lib shell.html /var/tmp/kit1zx/
 
 RUN /var/tmp/kit1zx/iterate.sh
+
+CMD ["rackup", "/var/tmp/kit1zx/config.ru", "-p8000", "-o0.0.0.0"]
