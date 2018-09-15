@@ -8,10 +8,12 @@ raylib_static_lib=$(build)/libraylib.a
 mrbc=mruby/bin/mrbc
 
 sources = $(wildcard *.c)
+#sources += $(wildcard **/*.c)
 objects = $(patsubst %,$(build)/%, $(patsubst %.c,%.o, $(sources)))
 static_ruby_headers = $(patsubst %,$(build)/%, $(patsubst lib/%.rb,%.h, $(wildcard lib/*.rb)))
 static_ruby_headers += $(patsubst %,$(build)/%, $(patsubst lib/desktop/%.rb,%.h, $(wildcard lib/desktop/*.rb)))
 .SECONDARY: $(static_ruby_headers) $(objects)
+.PHONY: $(mruby_static_lib) $(raylib_static_lib)
 objects += $(mruby_static_lib)
 objects += $(raylib_static_lib)
 
@@ -22,6 +24,7 @@ CFLAGS=-DPLATFORM_DESKTOP -Os -std=c99 -Imruby/include -Iraylib-src -I$(build)
 $(shell mkdir -p $(build))
 
 run: $(target) $(sources)
+	echo $(sources)
 	echo $(target)
 
 $(target): $(objects) $(sources)
@@ -42,10 +45,10 @@ $(build)/%.o: %.c $(static_ruby_headers) $(sources)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(mruby_static_lib): config/mruby.rb
-	cd mruby && MRUBY_CONFIG=../config/mruby.rb make
+	cd mruby && MRUBY_CONFIG=../config/mruby.rb make -j
 
 $(raylib_static_lib):
-	cd raylib-src && make PLATFORM=PLATFORM_DESKTOP -B
+	cd raylib-src && make -j PLATFORM=PLATFORM_DESKTOP -B
 
 $(mrbc): $(mruby_static_lib)
 

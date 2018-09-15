@@ -13,6 +13,7 @@ sources = $(wildcard *.c)
 objects = $(patsubst %,$(build)/%, $(patsubst %.c,%.o, $(sources)))
 static_ruby_headers = $(patsubst %,$(build)/%, $(patsubst lib/%.rb,%.h, $(wildcard lib/*.rb)))
 .SECONDARY: $(static_ruby_headers) $(objects)
+.PHONY: $(mruby_static_lib) $(raylib_static_lib)
 objects += $(mruby_static_lib)
 objects += $(raylib_static_lib)
 
@@ -47,7 +48,7 @@ $(build)/%.o: %.c $(static_ruby_headers) $(sources)
 #	echo cd mruby && MRUBY_CONFIG=../config/emscripten.rb make
 
 $(raylib_static_lib):
-	cd raylib-src && make PLATFORM=PLATFORM_WEB -B
+	cd raylib-src && make -j PLATFORM=PLATFORM_WEB -B
 
 #$(mrbc): $(mruby_static_lib)
 

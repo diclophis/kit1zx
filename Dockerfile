@@ -19,7 +19,7 @@ RUN /var/tmp/emscripten-warmup.sh
 
 COPY config /var/tmp/kit1zx/config
 COPY mruby /var/tmp/kit1zx/mruby
-RUN cd /var/tmp/kit1zx/mruby && rm -Rf build && make clean && MRUBY_CONFIG=../config/emscripten.rb make
+RUN cd /var/tmp/kit1zx/mruby && rm -Rf build && make clean && MRUBY_CONFIG=../config/emscripten.rb make -j
 
 COPY raylib-src /var/tmp/kit1zx/raylib-src
 COPY resources /var/tmp/kit1zx/resources
