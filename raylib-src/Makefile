@@ -168,7 +168,6 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     CLANG_VERSION       = e1.38.8_64bit
     PYTHON_VERSION      = 2.7.13.1_64bit\python-2.7.13.amd64
     NODE_VERSION        = 8.9.1_64bit
-    #export PATH         = $(EMSDK_PATH);$(EMSDK_PATH)\clang\$(CLANG_VERSION);$(EMSDK_PATH)\node\$(NODE_VERSION)\bin;$(EMSDK_PATH)\python\$(PYTHON_VERSION);$(EMSDK_PATH)\emscripten\$(EMSCRIPTEN_VERSION);C:\raylib\MinGW\bin:$$(PATH)
     EMSCRIPTEN          = $(EMSDK_PATH)\emscripten\$(EMSCRIPTEN_VERSION)
 endif
 
@@ -201,7 +200,7 @@ RAYLIB_RELEASE_PATH  ?= $(RAYLIB_PATH)/release/libs
 # Define output directory for compiled library
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     ifeq ($(PLATFORM_OS),WINDOWS)
-        RAYLIB_RELEASE_PATH = $(RAYLIB_PATH)/release/libs/win32/mingw32
+        RAYLIB_RELEASE_PATH = $(RAYLIB_PATH)\release\libs\win32\mingw32
     endif
     ifeq ($(PLATFORM_OS),LINUX)
         RAYLIB_RELEASE_PATH = $(RAYLIB_PATH)/release/libs/linux
@@ -460,7 +459,13 @@ ifeq ($(PLATFORM_OS),LINUX)
 endif
 
 # Compile raylib library
+# NOTE: Release directory is created if not exist
 raylib: $(OBJS)
+ifeq ($(PLATFORM_OS),WINDOWS)
+	if not exist $(RAYLIB_RELEASE_PATH) mkdir $(RAYLIB_RELEASE_PATH)
+else
+	mkdir -p $(RAYLIB_RELEASE_PATH)
+endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
     # Compile raylib for web.
 	emcc -O1 $(OBJS) -o $(RAYLIB_RELEASE_PATH)/libraylib.bc

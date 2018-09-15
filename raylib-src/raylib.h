@@ -71,6 +71,8 @@
 #ifndef RAYLIB_H
 #define RAYLIB_H
 
+#include <stdarg.h>                             // Required for: va_list - Only used by TraceLogCallback
+
 #if defined(_WIN32) && defined(BUILD_LIBTYPE_SHARED)
     #define RLAPI __declspec(dllexport)         // We are building raylib as a Win32 shared library (.dll)
 #elif defined(_WIN32) && defined(USE_LIBTYPE_SHARED)
@@ -134,14 +136,42 @@
 #define KEY_LEFT_SHIFT      340
 #define KEY_LEFT_CONTROL    341
 #define KEY_LEFT_ALT        342
+#define KEY_LEFT_SUPER      343
 #define KEY_RIGHT_SHIFT     344
 #define KEY_RIGHT_CONTROL   345
 #define KEY_RIGHT_ALT       346
-#define KEY_GRAVE            96
-#define KEY_SLASH            47
+#define KEY_RIGHT_SUPER     347
+#define KEY_KB_MENU         348
+#define KEY_LEFT_BRACKET     91
 #define KEY_BACKSLASH        92
+#define KEY_RIGHT_BRACKET    93
+#define KEY_GRAVE            96
+
+// Keyboard Number Pad Keys
+#define KEY_KP_0            320
+#define KEY_KP_1            321
+#define KEY_KP_2            322
+#define KEY_KP_3            323
+#define KEY_KP_4            324
+#define KEY_KP_5            325
+#define KEY_KP_6            326
+#define KEY_KP_7            327
+#define KEY_KP_8            328
+#define KEY_KP_9            329
+#define KEY_KP_DECIMAL      330
+#define KEY_KP_DIVIDE       331
+#define KEY_KP_MULTIPLY     332
+#define KEY_KP_SUBTRACT     333
+#define KEY_KP_ADD          334
+#define KEY_KP_ENTER        335
+#define KEY_KP_EQUAL        336
 
 // Keyboard Alpha Numeric Keys
+#define KEY_APOSTROPHE       39
+#define KEY_COMMA            44
+#define KEY_MINUS            45
+#define KEY_PERIOD           46
+#define KEY_SLASH            47
 #define KEY_ZERO             48
 #define KEY_ONE              49
 #define KEY_TWO              50
@@ -152,6 +182,8 @@
 #define KEY_SEVEN            55
 #define KEY_EIGHT            56
 #define KEY_NINE             57
+#define KEY_SEMICOLON        59
+#define KEY_EQUAL            61
 #define KEY_A                65
 #define KEY_B                66
 #define KEY_C                67
@@ -410,6 +442,16 @@ typedef struct RenderTexture2D {
 // RenderTexture type, same as RenderTexture2D
 typedef RenderTexture2D RenderTexture;
 
+// N-Patch layout info
+typedef struct NPatchInfo {
+    Rectangle sourceRec;   // Region in the texture
+    int left;              // left border offset
+    int top;               // top border offset
+    int right;             // right border offset
+    int bottom;            // bottom border offset
+    int type;              // layout of the n-patch: 3x3, 1x3 or 3x1
+} NPatchInfo;
+
 // Font character info
 typedef struct CharInfo {
     int value;              // Character value (Unicode)
@@ -461,6 +503,7 @@ typedef struct Mesh {
     int vertexCount;        // Number of vertices stored in arrays
     int triangleCount;      // Number of triangles stored (indexed or not)
 
+    // Default vertex data
     float *vertices;        // Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
     float *texcoords;       // Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
     float *texcoords2;      // Vertex second texture coordinates (useful for lightmaps) (shader-location = 5)
@@ -671,6 +714,13 @@ typedef enum {
     WRAP_MIRROR
 } TextureWrapMode;
 
+// Font type, defines generation method
+typedef enum {
+    FONT_DEFAULT = 0,   // Default font generation, anti-aliased
+    FONT_BITMAP,        // Bitmap font generation, no anti-aliasing
+    FONT_SDF            // SDF font generation, requires external shader
+} FontType;
+
 // Color blending modes (pre-defined)
 typedef enum {
     BLEND_ALPHA = 0,
@@ -718,6 +768,16 @@ typedef enum {
     HMD_VALVE_HTC_VIVE,
     HMD_SONY_PSVR
 } VrDeviceType;
+
+// Type of n-patch
+typedef enum {
+    NPT_9PATCH = 0,         // 3x3
+    NPT_3PATCH_VERTICAL,    // 1x3
+    NPT_3PATCH_HORIZONTAL   // 3x1
+} NPatchType;
+
+// Callbacks to be implemented by users
+typedef void (*TraceLogCallback)(int msgType, const char *text, va_list args);
 
 #ifdef __cplusplus
 extern "C" {            // Prevents name mangling of functions
@@ -771,7 +831,7 @@ RLAPI Ray GetMouseRay(Vector2 mousePosition, Camera camera);      // Returns a r
 RLAPI Vector2 GetWorldToScreen(Vector3 position, Camera camera);  // Returns the screen space position for a 3d world space position
 RLAPI Matrix GetCameraMatrix(Camera camera);                      // Returns camera transform matrix (view matrix)
 
-// Timming-related functions
+// timing-related functions
 RLAPI void SetTargetFPS(int fps);                                 // Set target FPS (maximum)
 RLAPI int GetFPS(void);                                           // Returns current FPS
 RLAPI float GetFrameTime(void);                                   // Returns time in seconds for last frame drawn
@@ -985,6 +1045,7 @@ RLAPI void DrawTextureV(Texture2D texture, Vector2 position, Color tint);       
 RLAPI void DrawTextureEx(Texture2D texture, Vector2 position, float rotation, float scale, Color tint);  // Draw a Texture2D with extended parameters
 RLAPI void DrawTextureRec(Texture2D texture, Rectangle sourceRec, Vector2 position, Color tint);         // Draw a part of a texture defined by a rectangle
 RLAPI void DrawTexturePro(Texture2D texture, Rectangle sourceRec, Rectangle destRec, Vector2 origin, float rotation, Color tint); // Draw a part of a texture defined by a rectangle with 'pro' parameters
+RLAPI void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle destRec, Vector2 origin, float rotation, Color tint); // Draws a texture (or part of it) that stretches or shrinks nicely.
 
 //------------------------------------------------------------------------------------
 // Font Loading and Text Drawing Functions (Module: text)
@@ -994,7 +1055,7 @@ RLAPI void DrawTexturePro(Texture2D texture, Rectangle sourceRec, Rectangle dest
 RLAPI Font GetFontDefault(void);                                                            // Get the default Font
 RLAPI Font LoadFont(const char *fileName);                                                  // Load font from file into GPU memory (VRAM)
 RLAPI Font LoadFontEx(const char *fileName, int fontSize, int charsCount, int *fontChars);  // Load font from file with extended parameters
-RLAPI CharInfo *LoadFontData(const char *fileName, int fontSize, int *fontChars, int charsCount, bool sdf); // Load font data for further use
+RLAPI CharInfo *LoadFontData(const char *fileName, int fontSize, int *fontChars, int charsCount, int type); // Load font data for further use
 RLAPI Image GenImageFontAtlas(CharInfo *chars, int fontSize, int charsCount, int padding, int packMethod);  // Generate image font atlas using chars info
 RLAPI void UnloadFont(Font font);                                                           // Unload Font from GPU memory (VRAM)
 

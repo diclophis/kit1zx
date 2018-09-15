@@ -66,6 +66,7 @@
 
 #if defined(RLGL_STANDALONE)
     #define RAYMATH_STANDALONE
+    #define RAYMATH_HEADER_ONLY
 #else
     #include "raylib.h"         // Required for: Model, Shader, Texture2D, TraceLog()
 #endif
@@ -198,7 +199,14 @@ typedef unsigned char byte;
         float *tangents;        // vertex tangents (XYZW - 4 components per vertex) (shader-location = 4)
         unsigned char *colors;  // vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
         unsigned short *indices;// vertex indices (in case vertex data comes indexed)
+        
+        // Animation vertex data
+        float *baseVertices;    // Vertex base position (required to apply bones transformations)
+        float *baseNormals;     // Vertex base normals (required to apply bones transformations)
+        float *weightBias;      // Vertex weight bias
+        int *weightId;          // Vertex weight id
 
+        // OpenGL identifiers
         unsigned int vaoId;     // OpenGL Vertex Array Object id
         unsigned int vboId[7];  // OpenGL Vertex Buffer Objects id (7 types of vertex data)
     } Mesh;
@@ -554,7 +562,7 @@ int GetPixelDataSize(int width, int height, int format);// Get pixel data size i
             #define WINGDIAPI __declspec(dllimport)
         #endif
 
-		#include <GL/gl.h>              // OpenGL 1.1 library
+        #include <GL/gl.h>              // OpenGL 1.1 library
     #endif
 #endif
 
@@ -2719,7 +2727,7 @@ void *rlReadTexturePixels(Texture2D texture)
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
     int glInternalFormat, glFormat, glType;
-	GetGlFormats(texture.format, &glInternalFormat, &glFormat, &glType);
+    GetGlFormats(texture.format, &glInternalFormat, &glFormat, &glType);
     unsigned int size = GetPixelDataSize(texture.width, texture.height, texture.format);
 
     if ((glInternalFormat != -1) && (texture.format < COMPRESSED_DXT1_RGB))
@@ -2805,12 +2813,12 @@ void rlRecordDraw(void)
 {
     // TODO: Before adding a new draw, check if anything changed from last stored draw
 #if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+    draws[drawsCounter].vertexCount = currentState.vertexCount;
     draws[drawsCounter].vaoId = currentState.vaoId;             // lines.id, trangles.id, quads.id?
     draws[drawsCounter].textureId = currentState.textureId;     // whiteTexture?
     draws[drawsCounter].shaderId = currentState.shaderId;       // defaultShader.id
     draws[drawsCounter].projection = projection;
     draws[drawsCounter].modelview = modelview;
-    draws[drawsCounter].vertexCount = currentState.vertexCount;
 
     drawsCounter++;
 #endif
@@ -3293,8 +3301,8 @@ Texture2D GenTexturePrefilter(Shader shader, Texture2D cubemap, int size)
     for (unsigned int mip = 0; mip < MAX_MIPMAP_LEVELS; mip++)
     {
         // Resize framebuffer according to mip-level size.
-        unsigned int mipWidth  = size*powf(0.5f, mip);
-        unsigned int mipHeight = size*powf(0.5f, mip);
+        unsigned int mipWidth  = size*(int) powf(0.5f, (float) mip);
+        unsigned int mipHeight = size* (int) powf(0.5f, (float) mip);
 
         glBindRenderbuffer(GL_RENDERBUFFER, rbo);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
@@ -3620,15 +3628,15 @@ void EndVrDrawing(void)
 
                 // Bottom-right corner for texture and quad
                 rlTexCoord2f(0.0f, 0.0f);
-                rlVertex2f(0.0f, vrConfig.stereoFbo.texture.height);
+                rlVertex2f(0.0f, (float)vrConfig.stereoFbo.texture.height);
 
                 // Top-right corner for texture and quad
                 rlTexCoord2f(1.0f, 0.0f);
-                rlVertex2f(vrConfig.stereoFbo.texture.width, vrConfig.stereoFbo.texture.height);
+                rlVertex2f( (float)vrConfig.stereoFbo.texture.width, (float)vrConfig.stereoFbo.texture.height);
 
                 // Top-left corner for texture and quad
                 rlTexCoord2f(1.0f, 1.0f);
-                rlVertex2f(vrConfig.stereoFbo.texture.width, 0.0f);
+                rlVertex2f( (float)vrConfig.stereoFbo.texture.width, 0.0f);
             rlEnd();
         rlPopMatrix();
 
@@ -4258,8 +4266,6 @@ static void DrawBuffersDefault(void)
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quads.vboId[3]);
             }
 
-            //TraceLog(LOG_DEBUG, "Draws required per frame: %i", drawsCounter);
-
             for (int i = 0; i < drawsCounter; i++)
             {
                 quadsCount = draws[i].vertexCount/4;
@@ -4489,7 +4495,7 @@ static void SetStereoConfig(VrDeviceInfo hmd)
 
     // Compute distortion scale parameters
     // NOTE: To get lens max radius, lensShift must be normalized to [-1..1]
-    float lensRadius = fabs(-1.0f - 4.0f*lensShift);
+    float lensRadius = (float)fabs(-1.0f - 4.0f*lensShift);
     float lensRadiusSq = lensRadius*lensRadius;
     float distortionScale = hmd.lensDistortionValues[0] +
                             hmd.lensDistortionValues[1]*lensRadiusSq +
@@ -4540,8 +4546,8 @@ static void SetStereoConfig(VrDeviceInfo hmd)
     vrConfig.eyesViewOffset[1] = MatrixTranslate(hmd.interpupillaryDistance*0.5f, 0.075f, 0.045f);
 
     // Compute eyes Viewports
-    vrConfig.eyesViewport[0] = (Rectangle){ 0, 0, hmd.hResolution/2, hmd.vResolution };
-    vrConfig.eyesViewport[1] = (Rectangle){ hmd.hResolution/2, 0, hmd.hResolution/2, hmd.vResolution };
+    vrConfig.eyesViewport[0] = (Rectangle){ 0.0f, 0.0f, (float)hmd.hResolution/2, (float)hmd.vResolution };
+    vrConfig.eyesViewport[1] = (Rectangle){ hmd.hResolution/2.0f, 0.0f, (float)hmd.hResolution/2, (float) hmd.vResolution };
 }
 
 // Set internal projection and modelview matrix depending on eyes tracking data

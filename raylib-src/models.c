@@ -5,10 +5,10 @@
 *   CONFIGURATION:
 *
 *   #define SUPPORT_FILEFORMAT_OBJ
-*       Selected desired fileformats to be supported for loading.
-*
 *   #define SUPPORT_FILEFORMAT_MTL
-*       Selected desired fileformats to be supported for loading.
+*   #define SUPPORT_FILEFORMAT_IQM
+*   #define SUPPORT_FILEFORMAT_GLTF
+*       Selected desired fileformats to be supported for model data loading.
 *
 *   #define SUPPORT_MESH_GENERATION
 *       Support procedural mesh generation functions, uses external par_shapes.h library
@@ -48,8 +48,20 @@
 
 #include "rlgl.h"           // raylib OpenGL abstraction layer to OpenGL 1.1, 2.1, 3.3+ or ES2
 
-#define PAR_SHAPES_IMPLEMENTATION
-#include "external/par_shapes.h"    // Shapes 3d parametric generation
+#if defined(SUPPORT_FILEFORMAT_IQM)
+    #define RIQM_IMPLEMENTATION
+    #include "external/riqm.h"          // IQM file format loading
+#endif
+
+#if defined(SUPPORT_FILEFORMAT_GLTF)
+    #define CGLTF_IMPLEMENTATION
+    #include "external/cgltf.h"         // glTF file format loading
+#endif
+
+#if defined(SUPPORT_MESH_GENERATION)
+    #define PAR_SHAPES_IMPLEMENTATION
+    #include "external/par_shapes.h"    // Shapes 3d parametric generation
+#endif
 
 //----------------------------------------------------------------------------------
 // Defines and Macros
@@ -74,6 +86,12 @@ static Mesh LoadOBJ(const char *fileName);      // Load OBJ mesh data
 #endif
 #if defined(SUPPORT_FILEFORMAT_MTL)
 static Material LoadMTL(const char *fileName);  // Load MTL material data
+#endif
+#if defined(SUPPORT_FILEFORMAT_GLTF)
+static Mesh LoadIQM(const char *fileName);      // Load IQM mesh data
+#endif
+#if defined(SUPPORT_FILEFORMAT_GLTF)
+static Mesh LoadGLTF(const char *fileName);     // Load GLTF mesh data
 #endif
 
 //----------------------------------------------------------------------------------
@@ -718,7 +736,7 @@ Mesh GenMeshPlane(float width, float length, int resX, int resZ)
     Vector3 *normals = (Vector3 *)malloc(vertexCount*sizeof(Vector3));
     for (int n = 0; n < vertexCount; n++) normals[n] = (Vector3){ 0.0f, 1.0f, 0.0f };   // Vector3.up;
 
-    // TexCoords definition		
+    // TexCoords definition        
     Vector2 *texcoords = (Vector2 *)malloc(vertexCount*sizeof(Vector2));
     for (int v = 0; v < resZ; v++)
     {
@@ -741,7 +759,7 @@ Mesh GenMeshPlane(float width, float length, int resX, int resZ)
         triangles[t++] = i + 1;
         triangles[t++] = i;
 
-        triangles[t++] = i + resX;	
+        triangles[t++] = i + resX;    
         triangles[t++] = i + resX + 1;
         triangles[t++] = i + 1;
     }
@@ -1771,7 +1789,7 @@ void DrawModelWiresEx(Model model, Vector3 position, Vector3 rotationAxis, float
 // Draw a billboard
 void DrawBillboard(Camera camera, Texture2D texture, Vector3 center, float size, Color tint)
 {
-    Rectangle sourceRec = { 0, 0, texture.width, texture.height };
+    Rectangle sourceRec = { 0.0f, 0.0f, (float)texture.width, (float)texture.height };
 
     DrawBillboardRec(camera, texture, sourceRec, center, size, tint);
 }
@@ -1837,9 +1855,9 @@ void DrawBoundingBox(BoundingBox box, Color color)
 {
     Vector3 size;
 
-    size.x = fabs(box.max.x - box.min.x);
-    size.y = fabs(box.max.y - box.min.y);
-    size.z = fabs(box.max.z - box.min.z);
+    size.x = (float)fabs(box.max.x - box.min.x);
+    size.y = (float)fabs(box.max.y - box.min.y);
+    size.z = (float)fabs(box.max.z - box.min.z);
 
     Vector3 center = { box.min.x + size.x/2.0f, box.min.y + size.y/2.0f, box.min.z + size.z/2.0f };
 
@@ -2245,7 +2263,7 @@ static Mesh LoadOBJ(const char *fileName)
     // NOTE: faces MUST be defined as TRIANGLES (3 vertex per face)
     while (!feof(objFile))
     {
-        dataType = '\0';
+        dataType = 0;
         fscanf(objFile, "%c", &dataType);
 
         switch (dataType)
@@ -2629,5 +2647,61 @@ static Material LoadMTL(const char *fileName)
     TraceLog(LOG_INFO, "[%s] Material loaded successfully", fileName);
 
     return material;
+}
+#endif
+
+#if defined(SUPPORT_FILEFORMAT_GLTF)
+// Load IQM mesh data
+static Mesh LoadIQM(const char *fileName)
+{
+    Mesh mesh = { 0 };
+    
+    // TODO: Load IQM file
+    
+    return mesh;
+} 
+#endif
+
+#if defined(SUPPORT_FILEFORMAT_GLTF)
+// Load GLTF mesh data
+static Mesh LoadGLTF(const char *fileName)
+{
+    Mesh mesh = { 0 };
+    
+    // GLTF file loading
+    FILE *gltfFile = fopen(fileName, "rb");
+    
+    if (gltfFile == NULL)
+    {
+        TraceLog(LOG_WARNING, "[%s] GLTF file could not be opened", fileName);
+        return mesh;
+    }
+
+    fseek(gltfFile, 0, SEEK_END);
+    int size = ftell(gltfFile);
+    fseek(gltfFile, 0, SEEK_SET);
+
+    void *buffer = malloc(size);
+    fread(buffer, size, 1, gltfFile);
+    
+    fclose(gltfFile);
+
+    // GLTF data loading
+    cgltf_options options = {0};
+    cgltf_data data;
+    cgltf_result result = cgltf_parse(&options, buffer, size, &data);
+
+    if (result == cgltf_result_success)
+    {
+        printf("Type: %u\n", data.file_type);
+        printf("Version: %d\n", data.version);
+        printf("Meshes: %lu\n", data.meshes_count);
+    }
+    else TraceLog(LOG_WARNING, "[%s] GLTF data could not be loaded", fileName);
+
+    free(buffer);
+    cgltf_free(&data);
+    
+    return mesh; 
 }
 #endif
