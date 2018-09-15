@@ -1211,9 +1211,19 @@ void rlEnd(void)
 
     // Verify internal buffers limits
     // NOTE: This check is combined with usage of rlCheckBufferLimit()
-    if ((lines.vCounter/2 >= MAX_LINES_BATCH - 2) ||
-        (triangles.vCounter/3 >= MAX_TRIANGLES_BATCH - 3) ||
-        (quads.vCounter/4 >= MAX_QUADS_BATCH - 4)) rlglDraw();
+    if ((lines.vCounter/2 >= (MAX_LINES_BATCH - 2)) ||
+        (triangles.vCounter/3 >= (MAX_TRIANGLES_BATCH - 3)) ||
+        (quads.vCounter/4 >= (MAX_QUADS_BATCH - 4)))
+    {
+        // WARNING: If we are between rlPushMatrix() and rlPopMatrix() and we need to force a rlglDraw(),
+        // we need to call rlPopMatrix() before to recover *currentMatrix (modelview) for the next forced draw call!
+        // Also noted that if we had multiple matrix pushed, it will require "stackCounter" pops before launching the draw
+        
+        // TODO: Undoubtely, current rlPushMatrix/rlPopMatrix should be redesigned... or removed... it's not working properly
+        
+        rlPopMatrix();
+        rlglDraw();
+    }
 }
 
 // Define one vertex (position)
@@ -1765,8 +1775,13 @@ void rlglInit(int width, int height)
 
     for (int i = 0; i < MAX_DRAWS_BY_TEXTURE; i++)
     {
-        draws[i].textureId = 0;
         draws[i].vertexCount = 0;
+        draws[i].vaoId = 0;
+        draws[i].shaderId = 0;
+        draws[i].textureId = 0;
+
+        draws[i].projection = MatrixIdentity();
+        draws[i].modelview = MatrixIdentity();
     }
 
     drawsCounter = 1;

@@ -513,7 +513,7 @@ typedef struct Mesh {
     unsigned short *indices;// Vertex indices (in case vertex data comes indexed)
 
     unsigned int vaoId;     // OpenGL Vertex Array Object id
-    unsigned int vboId[7];  // OpenGL Vertex Buffer Objects id (7 types of vertex data)
+    unsigned int vboId[7];  // OpenGL Vertex Buffer Objects id (default vertex data)
 } Mesh;
 
 // Shader type (generic)
