@@ -507,13 +507,13 @@
         };
       };
 
-      window.startConnection = function(port) {
+      window.startConnection = function(wsUrl) {
         if (window["WebSocket"]) {
           var debug_print = Module.cwrap(
             'debug_print', 'number', ['number', 'number']
           );
 
-          conn = new WebSocket("ws://" + "zerozero.mavenlink.link:" + port + "/ws");
+          conn = new WebSocket(wsUrl);
 
           conn.onopen = function (event) {
             console.log(event);
