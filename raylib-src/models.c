@@ -2224,9 +2224,8 @@ void MeshBinormals(Mesh *mesh)
         Vector3 tangent = { mesh->tangents[i*4 + 0], mesh->tangents[i*4 + 1], mesh->tangents[i*4 + 2] };
         float tangentW = mesh->tangents[i*4 + 3];
     
-        Vector3 binormal = Vector3Multiply(Vector3CrossProduct(normal, tangent), tangentW);
-        
         // TODO: Register computed binormal in mesh->binormal ?
+        // Vector3 binormal = Vector3Multiply(Vector3CrossProduct(normal, tangent), tangentW);
     }
 }
 
@@ -2240,7 +2239,7 @@ static Mesh LoadOBJ(const char *fileName)
 {
     Mesh mesh = { 0 };
 
-    char dataType;
+    char dataType = 0;
     char comments[200];
 
     int vertexCount = 0;

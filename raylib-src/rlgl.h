@@ -808,25 +808,25 @@ typedef struct VrStereoConfig {
 static Matrix stack[MATRIX_STACK_SIZE];
 static int stackCounter = 0;
 
-static Matrix modelview;
-static Matrix projection;
-static Matrix *currentMatrix;
-static int currentMatrixMode;
+static Matrix modelview = { 0 };
+static Matrix projection = { 0 };
+static Matrix *currentMatrix = NULL;
+static int currentMatrixMode = -1;
 
-static int currentDrawMode;
+static int currentDrawMode = -1;
 
 static float currentDepth = -1.0f;
 
-static DynamicBuffer lines;                 // Default dynamic buffer for lines data
-static DynamicBuffer triangles;             // Default dynamic buffer for triangles data
-static DynamicBuffer quads;                 // Default dynamic buffer for quads data (used to draw textures)
+static DynamicBuffer lines = { 0 };         // Default dynamic buffer for lines data
+static DynamicBuffer triangles = { 0 };     // Default dynamic buffer for triangles data
+static DynamicBuffer quads = { 0 };         // Default dynamic buffer for quads data (used to draw textures)
 
 // Default buffers draw calls
-static DrawCall *draws;
-static int drawsCounter;
+static DrawCall *draws = NULL;
+static int drawsCounter = 0;
 
 // Temp vertex buffer to be used with rlTranslate, rlRotate, rlScale
-static Vector3 *tempBuffer;
+static Vector3 *tempBuffer = NULL;
 static int tempBufferCount = 0;
 static bool useTempBuffer = false;
 
@@ -4302,11 +4302,6 @@ static void DrawBuffersDefault(void)
         glUseProgram(0);    // Unbind shader program
     }
 
-    // Reset draws counter
-    drawsCounter = 1;
-    draws[0].textureId = whiteTexture;
-    draws[0].vertexCount = 0;
-
     // Reset vertex counters for next frame
     lines.vCounter = 0;
     lines.cCounter = 0;
@@ -4322,6 +4317,11 @@ static void DrawBuffersDefault(void)
     // Restore projection/modelview matrices
     projection = matProjection;
     modelview = matModelView;
+
+    // Reset draws counter
+    drawsCounter = 1;
+    draws[0].textureId = whiteTexture;
+    draws[0].vertexCount = 0;
 }
 
 // Unload default internal buffers vertex data from CPU and GPU
