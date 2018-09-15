@@ -1,10 +1,10 @@
 # Makefile
 
 product=kit1zx
-build=build/$(product)-build
+build=release/libs/osx
 target=$(build)/$(product)
 mruby_static_lib=mruby/build/host/lib/libmruby.a
-raylib_static_lib=release/libs/osx/libraylib.a
+raylib_static_lib=$(build)/libraylib.a
 mrbc=mruby/bin/mrbc
 
 sources = $(wildcard *.c)
@@ -17,7 +17,7 @@ objects += $(raylib_static_lib)
 
 LDFLAGS=-lm -lpthread -ldl -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 
-CFLAGS=-DPLATFORM_DESKTOP -Os -std=c99 -Imruby/include -Iraylib-src -Irelease/include -I$(build)
+CFLAGS=-DPLATFORM_DESKTOP -Os -std=c99 -Imruby/include -Iraylib-src -I$(build)
 
 $(shell mkdir -p $(build))
 

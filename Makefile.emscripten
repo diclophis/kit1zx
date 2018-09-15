@@ -3,10 +3,10 @@
 map_base ?= http://localhost:8000/
 
 product=kit1zx.html
-build=build/$(product)-build
+build=release/libs/html5
 target=$(build)/$(product)
 mruby_static_lib=mruby/build/emscripten/lib/libmruby.a
-raylib_static_lib=raylib/release/libs/html5/libraylib.bc
+raylib_static_lib=$(build)/libraylib.bc
 mrbc=mruby/build/host/bin/mrbc
 
 sources = $(wildcard *.c)
@@ -18,7 +18,7 @@ objects += $(raylib_static_lib)
 
 LDFLAGS=-lm -lpthread -ldl $(shell (uname | grep -q Darwin || echo -static))
 
-CFLAGS=-DPLATFORM_WEB -s USE_GLFW=3 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1 -s SAFE_HEAP=1 -s WASM=0 -s EMTERPRETIFY=0 -std=c99 -Imruby/include -Iraylib/src -Iraylib/release/include -I$(build)
+CFLAGS=-DPLATFORM_WEB -s USE_GLFW=3 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1 -s SAFE_HEAP=1 -s WASM=0 -s EMTERPRETIFY=0 -std=c99 -Imruby/include -Iraylib-src -I$(build)
 
 $(shell mkdir -p $(build))
 
@@ -33,7 +33,7 @@ $(build)/test.yml: $(target) config.ru
 	$(target) > $@
 
 clean:
-	cd raylib/src && make PLATFORM=PLATFORM_WEB clean && mkdir -p ../release/libs/html5
+	cd raylib-src && make PLATFORM=PLATFORM_WEB clean
 	rm -R $(build)
 
 $(build):
@@ -47,7 +47,7 @@ $(build)/%.o: %.c $(static_ruby_headers) $(sources)
 #	echo cd mruby && MRUBY_CONFIG=../config/emscripten.rb make
 
 $(raylib_static_lib):
-	cd raylib/src && make PLATFORM=PLATFORM_WEB -B
+	cd raylib-src && make PLATFORM=PLATFORM_WEB -B
 
 #$(mrbc): $(mruby_static_lib)
 

@@ -2,7 +2,7 @@
 
 require 'rack'
 
-htdocs = "/var/tmp/kit1zx/build/kit1zx.html-build"
+htdocs = "/var/tmp/kit1zx/release/libs/html5"
 urls = Dir.glob(File.join(htdocs, "*")).collect { |f| File.join("/", File.basename(f)) }
 
 Rack::Mime::MIME_TYPES.merge!({

@@ -21,11 +21,13 @@ COPY config /var/tmp/kit1zx/config
 COPY mruby /var/tmp/kit1zx/mruby
 RUN cd /var/tmp/kit1zx/mruby && rm -Rf build && make clean && MRUBY_CONFIG=../config/emscripten.rb make
 
-COPY raylib /var/tmp/kit1zx/raylib
+COPY raylib-src /var/tmp/kit1zx/raylib-src
 COPY resources /var/tmp/kit1zx/resources
 COPY lib /var/tmp/kit1zx/lib
-COPY Makefile.emscripten main.c config.ru iterate.sh lib shell.html /var/tmp/kit1zx/
+COPY Makefile.emscripten main.c iterate.sh lib shell.html /var/tmp/kit1zx/
 
 RUN /var/tmp/kit1zx/iterate.sh
+
+COPY config.ru /var/tmp/kit1zx/
 
 CMD ["rackup", "/var/tmp/kit1zx/config.ru", "-p8000", "-o0.0.0.0"]
