@@ -160,6 +160,10 @@ def snake(gl)
         #gl.draw_fps(10, 10)
         player.label(gl.global_count.to_s)
       }
+
+      gl.interim {
+        GC.start
+      }
     }
   }
 end

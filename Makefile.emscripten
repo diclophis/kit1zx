@@ -17,9 +17,11 @@ static_ruby_headers = $(patsubst %,$(build)/%, $(patsubst lib/%.rb,%.h, $(wildca
 objects += $(mruby_static_lib)
 objects += $(raylib_static_lib)
 
-LDFLAGS=-lm -lpthread -ldl $(shell (uname | grep -q Darwin || echo -static))
+EMSCRIPTEN_FLAGS=-s NO_EXIT_RUNTIME=0 -s STACK_OVERFLOW_CHECK=0 -s ASSERTIONS=0 -s SAFE_HEAP=0 -s SAFE_HEAP_LOG=0 -s WASM=1 -s EMTERPRETIFY=0
 
-CFLAGS=-DPLATFORM_WEB -s USE_GLFW=3 -s NO_EXIT_RUNTIME=0 -s STACK_OVERFLOW_CHECK=2 -s ASSERTIONS=2 -s SAFE_HEAP=1 -s SAFE_HEAP_LOG=0 -s WASM=0 -s EMTERPRETIFY=0 -std=c99 -Imruby/include -Iraylib-src -I$(build)
+LDFLAGS=-lm -lpthread -ldl -static
+
+CFLAGS=$(EMSCRIPTEN_FLAGS) -DPLATFORM_WEB -s USE_GLFW=3 -std=c99 -Imruby/include -Iraylib-src -I$(build)
 
 $(shell mkdir -p $(build))
 
@@ -29,7 +31,7 @@ run: $(target) $(sources)
 
 #TODO: --preload-file resources
 $(target): shell.html $(objects) $(sources)
-	$(CC) -o $@ $(objects) $(LDFLAGS) -g4 -s NO_EXIT_RUNTIME=0 -s USE_GLFW=3 -s EXPORTED_FUNCTIONS="['_main', '_debug_print']" -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' --source-map-base $(map_base) -s WASM=0 -s EMTERPRETIFY=0 -s STACK_OVERFLOW_CHECK=2 -s ASSERTIONS=2 -s SAFE_HEAP=1 -s SAFE_HEAP_LOG=0 -s TOTAL_MEMORY=167772160 --shell-file shell.html
+	$(CC) -o $@ $(objects) $(LDFLAGS) $(EMSCRIPTEN_FLAGS) -s USE_GLFW=3 -g4 -s EXPORTED_FUNCTIONS="['_main', '_debug_print']" -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' --source-map-base $(map_base) -s TOTAL_MEMORY=167772160 --shell-file shell.html
 
 $(build)/test.yml: $(target) config.ru
 	$(target) > $@
