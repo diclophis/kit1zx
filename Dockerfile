@@ -30,6 +30,6 @@ COPY Makefile.emscripten main.c iterate.sh lib shell.html /var/tmp/kit1zx/
 
 RUN /var/tmp/kit1zx/iterate.sh
 
-COPY config.ru /var/tmp/kit1zx/
+COPY web_static.rb /var/tmp/kit1zx/
 
-CMD ["rackup", "/var/tmp/kit1zx/config.ru", "-p8000", "-o0.0.0.0"]
+CMD ["rackup", "/var/tmp/kit1zx/web_static.rb", "-p8000", "-o0.0.0.0"]
