@@ -18,8 +18,13 @@ class GameLoop
     @stdout.open(1)
     @stdout.read_stop
 
-    @idle = UV::Idle.new
-    @idle.start { |x|
+    #@idle = UV::Idle.new
+    #@idle.start { |x|
+    #  self.update
+    #}
+
+    @idle = UV::Timer.new
+    @idle.start(0, 16) { |x|
       self.update
     }
   end

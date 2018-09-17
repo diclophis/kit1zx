@@ -39,14 +39,15 @@ def snake(gl)
   player_position = [0.0, 0.0, 0.0]
   camera_desired_target = [0.0, 0.0, 0.0]
   camera_current_target = [33.0, 33.0, 330.0]
-  camera_speed = 0.12
+  camera_speed = 3.0
   move_vector = nil
+  interim_count = 0
+  draw_count = 0
 
   size = 10.0
   half_size = size / 2.0
 
   player = Cube.new(size, size, size, 1.0)
-  snake = Sphere.new(half_size, 10, 10, 10.0)
 
   gl.main_loop { |gtdt|
     global_time, delta_time = gtdt
@@ -102,7 +103,7 @@ def snake(gl)
       time_into_current_move = 0.0
     end
 
-    camera_index = ((global_time * 0.5).to_i % 3)
+    camera_index = ((global_time * 0.25).to_i % 3)
 
     case camera_index
       when 0
@@ -117,19 +118,6 @@ def snake(gl)
 
     gl.drawmode {
       gl.threed {
-        camera_index = ((global_time * 0.5).to_i % 3)
-
-        case camera_index
-          when 0
-            gl.lookat(1, -100.0, 50.0, -99.0, camera_current_target[0], camera_current_target[1], camera_current_target[2], 33.0)
-
-          when 1
-            gl.lookat(1, 0.0, 13.0, -99.0, next_player_positionx, 0.0, next_player_positionz, 33.0)
-
-          when 2
-           gl.lookat(0, 0.0, 999.0, 0.0, 0.0, 0.0, 1.0, 180.0)
-        end
-
         player.deltap(*player_position)
 
         if move_vector
@@ -146,12 +134,7 @@ def snake(gl)
           player.yawpitchroll(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         end
 
-        snake.deltap(50.0, 0.0, 50.0)
-        snake.yawpitchroll(0.0, global_time * 10.0, global_time * -10.0, 0.0, 0.0, 0.0)
-
         player.draw(false)
-
-        snake.draw(true)
 
         gl.draw_grid(33, size)
       }
@@ -159,10 +142,6 @@ def snake(gl)
       gl.twod {
         #gl.draw_fps(10, 10)
         player.label(gl.global_count.to_s)
-      }
-
-      gl.interim {
-        GC.start
       }
     }
   }
