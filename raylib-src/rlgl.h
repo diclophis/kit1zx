@@ -1229,7 +1229,9 @@ void rlEnd(void)
 // Define one vertex (position)
 void rlVertex3f(float x, float y, float z)
 {
-    if (useTempBuffer)
+    // NOTE: Temp buffer is processed and resetted at rlEnd()
+    // Between rlBegin() and rlEnd() can not be more than TEMP_VERTEX_BUFFER_SIZE rlVertex3f() calls
+    if (useTempBuffer && (tempBufferCount < TEMP_VERTEX_BUFFER_SIZE))
     {
         tempBuffer[tempBufferCount].x = x;
         tempBuffer[tempBufferCount].y = y;
@@ -1391,11 +1393,7 @@ void rlEnableTexture(unsigned int id)
     {
         if (draws[drawsCounter - 1].vertexCount > 0) drawsCounter++;
 
-        if (drawsCounter >= MAX_DRAWS_BY_TEXTURE)
-        {
-            rlglDraw();
-            drawsCounter = 1;
-        }
+        if (drawsCounter >= MAX_DRAWS_BY_TEXTURE) rlglDraw();
 
         draws[drawsCounter - 1].textureId = id;
         draws[drawsCounter - 1].vertexCount = 0;
@@ -1785,8 +1783,8 @@ void rlglInit(int width, int height)
     }
 
     drawsCounter = 1;
-    draws[drawsCounter - 1].textureId = whiteTexture;
-    currentDrawMode = RL_TRIANGLES;     // Set default draw mode
+    draws[0].textureId = whiteTexture;      // Set default draw texture id
+    currentDrawMode = RL_TRIANGLES;         // Set default draw mode
 
     // Init internal matrix stack (emulating OpenGL 1.1)
     for (int i = 0; i < MATRIX_STACK_SIZE; i++) stack[i] = MatrixIdentity();
@@ -1843,6 +1841,7 @@ void rlglClose(void)
     TraceLog(LOG_INFO, "[TEX ID %i] Unloaded texture data (base white texture) from VRAM", whiteTexture);
 
     free(draws);
+    free(tempBuffer);
 #endif
 }
 
