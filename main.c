@@ -55,6 +55,7 @@ typedef struct {
   Vector3 rotation;
   Vector3 scale;
   Model model;
+  Mesh mesh;
   Texture2D texture;
   Color color;
   Color label_color;
@@ -282,7 +283,8 @@ static mrb_value cube_init(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not allocate Cube");
   }
 
-  p_data->model = LoadModelFromMesh(GenMeshCube(w, h, l));
+  p_data->mesh = GenMeshCube(w, h, l);
+  p_data->model = LoadModelFromMesh(p_data->mesh);
 
   p_data->position.x = 0.0f;
   p_data->position.y = 0.0f;

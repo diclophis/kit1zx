@@ -17,6 +17,8 @@ RUN /var/tmp/emscripten.sh
 COPY emscripten-warmup.sh /var/tmp/emscripten-warmup.sh
 RUN /var/tmp/emscripten-warmup.sh
 
+COPY Makefile /var/tmp/kit1zx
+
 COPY config /var/tmp/kit1zx/config
 COPY mruby /var/tmp/kit1zx/mruby
 RUN cd /var/tmp/kit1zx/mruby && rm -Rf build && make clean && MRUBY_CONFIG=../config/emscripten.rb make -j
