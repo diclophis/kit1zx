@@ -6,3 +6,8 @@ release
 *CMake*
 .*
 *.in
+*.pbxuser
+*.perspectivev3
+project.xcworkspace
+xcuserdata
+*.pbxuser
