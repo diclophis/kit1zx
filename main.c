@@ -54,11 +54,11 @@ typedef struct {
   Vector3 position;
   Vector3 rotation;
   Vector3 scale;
-  Model model;
-  Mesh mesh;
   Texture2D texture;
   Color color;
   Color label_color;
+  Mesh mesh;
+  Model model;
 } model_data_s;
 
 
@@ -69,6 +69,9 @@ static mrb_value global_data_value;     // this IV holds the data
 static mrb_value global_block;
 static mrb_value global_gl;
 static int counter = 0;
+static mrb_value gtdt;
+static mrb_value mousexyz;
+static mrb_value pressedkeys;
 
 
 #ifdef PLATFORM_WEB
@@ -156,8 +159,6 @@ static mrb_value mousep(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
-  mrb_value mousexyz = mrb_ary_new(mrb);
-
   RayHitInfo nearestHit;
   char *hitObjectName = "None";
   nearestHit.distance = FLT_MAX;
@@ -202,7 +203,6 @@ static mrb_value keyspressed(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
-  mrb_value pressedkeys = mrb_ary_new(mrb);
   int rc = 0;
 
   for (int i=0; i<argc; i++) {
@@ -617,8 +617,6 @@ static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
   }
 #endif
 
-  mrb_value gtdt = mrb_ary_new(global_mrb);
-
   double time;
   float dt;
 
@@ -860,6 +858,10 @@ int main(int argc, char** argv) {
 
   struct RClass *sphere_class = mrb_define_class(mrb, "Sphere", model_class);
   mrb_define_method(mrb, sphere_class, "initialize", sphere_init, MRB_ARGS_REQ(4));
+
+  gtdt = mrb_ary_new(mrb);
+  mousexyz = mrb_ary_new(mrb);
+  pressedkeys = mrb_ary_new(mrb);
 
   eval_static_libs(mrb, shmup, snake, box, kube, NULL);
 
