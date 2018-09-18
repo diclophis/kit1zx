@@ -128,15 +128,13 @@ static void play_data_destructor(mrb_state *mrb, void *p_) {
 
 
 static void model_data_destructor(mrb_state *mrb, void *p_) {
-  fprintf(stderr, "dropping model ... \n");
-
-  //model_data_s *pd = (model_data_s *)p_;
+  model_data_s *pd = (model_data_s *)p_;
 
   //// De-Initialization
-  //UnloadTexture(pd->texture);     // Unload texture
-  //UnloadModel(pd->model);         // Unload model
+  UnloadTexture(pd->texture);     // Unload texture
+  UnloadModel(pd->model);         // Unload model
 
-  //mrb_free(mrb, pd);
+  mrb_free(mrb, pd);
 };
 
 
@@ -639,6 +637,12 @@ static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
 }
 
 
+#ifdef PLATFORM_WEB
+EM_JS(int, start_connection, (), {
+  return startConnection("ws://localhost:8081/ws");
+});
+#endif
+
 static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 {
   //TODO: fix this hack???
@@ -658,6 +662,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
   //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
 
 #ifdef PLATFORM_WEB
+  start_connection();
   emscripten_set_main_loop(UpdateDrawFrameVoid, 0, 1);
 #else
   // Main game loop

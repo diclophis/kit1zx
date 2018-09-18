@@ -14,9 +14,9 @@ MRuby::Build.new do |conf|
   conf.gem :core => "mruby-io"
   conf.gem :core => "mruby-enum-ext"
 
-  conf.gem :github => "mattn/mruby-uv"
   conf.gem :github => "Asmod4n/mruby-simplemsgpack"
 
+  conf.gem :github => "mattn/mruby-uv"
   conf.gem :github => "Asmod4n/mruby-wslay"
   conf.gem :github => "Asmod4n/mruby-b64"
   conf.gem :github => "Asmod4n/mruby-phr"

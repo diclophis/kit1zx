@@ -13,6 +13,7 @@ class GameLoop
     #    end
     #  end
     #end
+    self.init!
 
     @stdout = UV::Pipe.new
     @stdout.open(1)
@@ -40,13 +41,17 @@ class GameLoop
       # or else return a mruby String or a object which can be converted into a String via to_str
       # and be up to len bytes long
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when there is nothing to read
+
       ret = last_buf[last_buf_cursor, len]
       last_buf_cursor += len
-
       if last_buf_cursor > last_buf.length
         last_buf = ""
         last_buf_cursor = 0
       end
+
+      #ret
+      #ret = last_buf.dup
+      #last_buf = ""
 
       ret
     end
@@ -62,7 +67,9 @@ class GameLoop
       # :abnormal_closure, :invalid_frame_payload_data, :policy_violation, :message_too_big, :mandatory_ext,
       # :internal_server_error, :tls_handshake
       # to_str => returns the message revieced
-      puts msg.inspect
+      if msg[:opcode] == :binary_frame
+        self.feed_state!(msg[:msg])
+      end
     end
 
     wslay_callbacks.send_callback do |buf|
@@ -125,8 +132,9 @@ class GameLoop
   end
 
   def log!(*args)
-    #@stdout.write(args.inspect)
-    puts args.inspect
+    @stdout.write(args.inspect + "\n") {
+      false
+    }
   end
 
   def spinlock!

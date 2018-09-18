@@ -1,12 +1,11 @@
 #!/usr/bin/env ruby
 
 def snake(gl)
-
   gl.prepare!
 
   time_it_takes_to_move = 0.234
   time_into_current_move = 0.0
-  player_position = [0.0, 0.0, 0.0]
+  player_position = nil
   camera_desired_target = [0.0, 0.0, 0.0]
   camera_current_target = [33.0, 33.0, 330.0]
   camera_speed = 3.0
@@ -14,10 +13,13 @@ def snake(gl)
   interim_count = 0
   draw_count = 0
 
-  size = 10.0
+  size = 1.0
   half_size = size / 2.0
 
   player = Cube.new(size, size, size, 1.0)
+
+  coin = Model.new("resources/coin.obj", "resources/coin_tex.png", size)
+  coin.yawpitchroll(0.0, 90.0, 0.0, 0.0, half_size, half_size)
 
   gl.main_loop { |gtdt|
     global_time, delta_time = gtdt
@@ -36,6 +38,12 @@ def snake(gl)
       end
     end
 
+    player_position = [0.0, 5.0, 0.0]
+    if gl.global_state["globalPlayerLocation"]
+      player_position[0] = gl.global_state["globalPlayerLocation"]["X"]
+      player_position[2] = gl.global_state["globalPlayerLocation"]["Y"]
+    end
+
     next_player_positionx = player_position[0]
     next_player_positionz = player_position[2]
 
@@ -47,7 +55,7 @@ def snake(gl)
     if move_vector
       time_into_current_move += delta_time
       percent_there = time_into_current_move / time_it_takes_to_move
-      if percent_there >= 1.0
+      if percent_there >= 0.99
         percent_there = 1.0
       end
 
@@ -67,13 +75,14 @@ def snake(gl)
     camera_current_target[2] += (delta_time * camera_speed * cdistz)
 
     if percent_there == 1.0
-      player_position[0] = next_player_positionx
-      player_position[2] = next_player_positionz
+      #TODO???
+      #player_position[0] = next_player_positionx
+      #player_position[2] = next_player_positionz
       move_vector = nil
       time_into_current_move = 0.0
     end
 
-    camera_index = ((global_time * 0.25).to_i % 3)
+    camera_index = 2 #((global_time * 0.25).to_i % 3)
 
     case camera_index
       when 0
@@ -83,7 +92,7 @@ def snake(gl)
         gl.lookat(1, 0.0, 13.0, -99.0, next_player_positionx, 0.0, next_player_positionz, 33.0)
 
       when 2
-        gl.lookat(0, 0.0, 999.0, 0.0, 0.0, 0.0, 1.0, 180.0)
+        gl.lookat(0, player_position[0], 1000.0, player_position[2], player_position[0], 0.0, player_position[2]+0.0001, 10.0)
     end
 
     gl.drawmode {
@@ -104,6 +113,23 @@ def snake(gl)
           player.yawpitchroll(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         end
 
+#"31,34"=>{"Paint"=>nil, "Items"=>{"Type"=>"items", "ItemStacks"=>[{"Amount"=>0, "ItemType"=>"coin"}]}, "Object"=>nil},
+#"27,35"=>{"Paint"=>nil, "Items"=>{"Type"=>"items", "ItemStacks"=>[{"Amount"=>3, "ItemType"=>"coin"}]}, "Object"=>nil}
+
+        gl.global_state["coordinates"].each { |coord, item|
+          coord_ab = coord.split(",")
+          coord_x = coord_ab[0].to_i
+          coord_z = coord_ab[1].to_i
+
+          item && item["Items"] && item["Items"]["ItemStacks"].each { |stacked_item|
+            case stacked_item["ItemType"]
+            when "coin"
+              coin.deltap(coord_x, 0, coord_z)
+              coin.draw(false)
+            end
+          }
+        }
+
         player.draw(false)
 
         gl.draw_grid(33, size)
@@ -111,7 +137,7 @@ def snake(gl)
 
       gl.twod {
         #gl.draw_fps(10, 10)
-        player.label(gl.global_count.to_s)
+        player.label(gl.global_counter.to_s)
       }
     }
   }

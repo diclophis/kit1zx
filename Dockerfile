@@ -32,4 +32,6 @@ RUN /var/tmp/kit1zx/iterate.sh
 
 COPY web_static.rb /var/tmp/kit1zx/
 
+COPY shell.js /var/tmp/kit1zx/release/libs/html5/
+
 CMD ["rackup", "/var/tmp/kit1zx/web_static.rb", "-p8000", "-o0.0.0.0"]
