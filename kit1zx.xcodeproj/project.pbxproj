@@ -23,6 +23,7 @@
 			buildPhases = (
 			);
 			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = /Users/mavenlink/workspace/kit1zx;
 			dependencies = (
 			);
 			name = kit1zx;

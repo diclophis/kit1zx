@@ -101,10 +101,10 @@ def snake(gl)
     if player_position
       camera_index = ((global_time * 0.25).to_i % 2)
 
-      #ctrl_key = gl.keyspressed(KEY_LEFT_CONTROL)
-      #if ctrl_key[0]
-      #  camera_index = 2
-      #end
+      ctrl_key = gl.keyspressed(KEY_LEFT_CONTROL)
+      if ctrl_key[0]
+        camera_index = 2
+      end
 
       case camera_index
         when 0
@@ -180,7 +180,7 @@ def snake(gl)
         gl.draw_fps(10, 10)
 
         if player_position
-          player.label("%d %d | %d %d" % [gl.global_counter, gl.global_state["coordinates"].length, player_position[0], player_position[2]])
+          player.label([gl.global_counter, gl.global_state["coordinates"] ? gl.global_state["coordinates"].length : 0, player_position ? player_position[0] : nil, player_position ? player_position[2] : nil].inspect)
         end
       }
     }
