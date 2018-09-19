@@ -101,10 +101,10 @@ def snake(gl)
     if player_position
       camera_index = ((global_time * 0.25).to_i % 2)
 
-      ctrl_key = gl.keyspressed(KEY_LEFT_CONTROL)
-      if ctrl_key[0]
-        camera_index = 2
-      end
+      #ctrl_key = gl.keyspressed(KEY_LEFT_CONTROL)
+      #if ctrl_key[0]
+      #  camera_index = 2
+      #end
 
       case camera_index
         when 0
