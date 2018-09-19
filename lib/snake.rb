@@ -180,7 +180,9 @@ def snake(gl)
 
       gl.twod {
         #gl.draw_fps(10, 10)
-        player.label(gl.global_counter.to_s)
+        if player_position
+          player.label(gl.global_counter.to_s)
+        end
       }
     }
   }

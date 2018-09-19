@@ -226,8 +226,8 @@ static mrb_value model_init(mrb_state* mrb, mrb_value self)
   mrb_float scalef;
   mrb_get_args(mrb, "oof", &model_obj, &model_png, &scalef);
 
-  char *c_model_obj = mrb_string_value_cstr(mrb, &model_obj);
-  char *c_model_png = mrb_string_value_cstr(mrb, &model_png);
+  const char *c_model_obj = mrb_string_value_cstr(mrb, &model_obj);
+  const char *c_model_png = mrb_string_value_cstr(mrb, &model_png);
 
   model_data_s *p_data;
 
@@ -263,6 +263,11 @@ static mrb_value model_init(mrb_state* mrb, mrb_value self)
   p_data->color.g = 255;
   p_data->color.b = 255;
   p_data->color.a = 255;
+
+  p_data->label_color.r = 255;
+  p_data->label_color.g = 255;
+  p_data->label_color.b = 255;
+  p_data->label_color.a = 255;
 
   mrb_iv_set(
       mrb, self, mrb_intern_lit(mrb, "@pointer"),
@@ -416,7 +421,7 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
 
   mrb_get_args(mrb, "oiii", &game_name, &screenWidth, &screenHeight, &screenFps);
 
-  char *c_game_name = mrb_string_value_cstr(mrb, &game_name);
+  const char *c_game_name = mrb_string_value_cstr(mrb, &game_name);
 
   //SetConfigFlags(FLAG_MSAA_4X_HINT);
   InitWindow(screenWidth, screenHeight, c_game_name);
@@ -559,7 +564,7 @@ static mrb_value label_model(mrb_state* mrb, mrb_value self)
   mrb_value label_txt = mrb_nil_value();
   mrb_get_args(mrb, "o", &label_txt);
 
-  char *c_label_txt = mrb_string_value_cstr(mrb, &label_txt);
+  const char *c_label_txt = mrb_string_value_cstr(mrb, &label_txt);
 
   model_data_s *p_data = NULL;
   mrb_value data_value; // this IV holds the data
@@ -576,7 +581,7 @@ static mrb_value label_model(mrb_state* mrb, mrb_value self)
   Vector2 cubeScreenPosition;
   cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y, cubePosition.z}, global_p_data->camera);
 
-  DrawText(c_label_txt, cubeScreenPosition.x - MeasureText(c_label_txt, 10) / 2, cubeScreenPosition.y, 3, p_data->label_color);
+  DrawText(c_label_txt, cubeScreenPosition.x - MeasureText(c_label_txt, 1) / 2, cubeScreenPosition.y, 1, p_data->label_color);
 
   return mrb_nil_value();
 }
@@ -647,6 +652,8 @@ static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
   UpdateCamera(&global_p_data->camera);
 
   mrb_yield_argv(global_mrb, global_block, 2, &gtdt);
+
+  return mrb_nil_value();
 }
 
 

@@ -9,7 +9,7 @@ KEY_LEFT = 263
 KEY_DOWN = 264
 KEY_UP = 265
 
-$gl = GameLoop.new("kit1zx", 750, 750, 0)
+$gl = GameLoop.new("kit1zx", 512, 512, 0)
 
 #shmup($gl)
 snake($gl)
