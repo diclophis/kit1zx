@@ -246,6 +246,7 @@ static mrb_value model_init(mrb_state* mrb, mrb_value self)
   p_data->rotation.x = 0.0f;
   p_data->rotation.y = 1.0f;
   p_data->rotation.z = 0.0f; // Set model position
+
   p_data->angle = 0.0;
   
   p_data->texture = LoadTexture(c_model_png); // Load model texture
@@ -600,7 +601,7 @@ static mrb_value draw_plane(mrb_state* mrb, mrb_value self)
 
   mrb_get_args(mrb, "fffff", &x, &y, &z, &a, &b);
 
-  DrawPlane((Vector3){x, y, z}, (Vector2){a, b}, GRAY); // Draw a plane XZ
+  DrawPlane((Vector3){x, y, z}, (Vector2){a, b}, DARKBROWN); // Draw a plane XZ
 
   return mrb_nil_value();
 }
