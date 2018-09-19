@@ -85,9 +85,8 @@ class GameLoop
     @socket = UV::TCP.new
     @socket.connect(UV.ip4_addr(host, port)) { |connection_status|
       unless connection_status
-        path = "/ws"
         key = B64.encode(Sysrandom.buf(16)).chomp!
-        @socket.write("GET #{path} HTTP/1.1\r\nHost: #{host}:#{port}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: #{key}\r\n\r\n")
+        @socket.write("GET /ws HTTP/1.1\r\nHost: #{host}:#{port}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: #{key}\r\n\r\n")
 
         ss = ""
 
@@ -126,7 +125,7 @@ class GameLoop
         }
       else
         log!(:broken, connection_status)
-        @socket.close
+        spindown!
       end
     }
   end
