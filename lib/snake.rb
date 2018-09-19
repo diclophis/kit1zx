@@ -16,10 +16,16 @@ def snake(gl)
   size = 1.0
   half_size = size / 2.0
 
-  player = Cube.new(size, size, size, 1.0)
+  player = Model.new("resources/flourite001.obj", "resources/flourite001tex.png", size)
 
-  coin = Model.new("resources/coin.obj", "resources/coin_tex.png", size)
-  coin.yawpitchroll(0.0, 90.0, 0.0, 0.0, half_size, half_size)
+  coin = Model.new("resources/coin.obj", "resources/cointex.png", size * 0.33)
+
+  crystals = []
+  crystals << Model.new("resources/crystal001.obj", "resources/crystal001tex.png", size)
+  crystals << Model.new("resources/crystal002.obj", "resources/crystal002tex.png", size)
+
+  crystals[0].deltas(1.33, 1.66, 1.33)
+  crystals[1].deltas(1.33, 1.66, 1.33)
 
   gl.main_loop { |gtdt|
     global_time, delta_time = gtdt
@@ -38,7 +44,7 @@ def snake(gl)
       end
     end
 
-    player_position = [0.0, 5.0, 0.0]
+    player_position = [0.0, 0.0, 0.0]
     if gl.global_state["globalPlayerLocation"]
       player_position[0] = gl.global_state["globalPlayerLocation"]["X"]
       player_position[2] = gl.global_state["globalPlayerLocation"]["Y"]
@@ -82,17 +88,17 @@ def snake(gl)
       time_into_current_move = 0.0
     end
 
-    camera_index = 2 #((global_time * 0.25).to_i % 3)
+    camera_index = ((global_time * 0.25).to_i % 3)
 
     case camera_index
       when 0
-        gl.lookat(1, -100.0, 50.0, -99.0, camera_current_target[0], camera_current_target[1], camera_current_target[2], 33.0)
+        gl.lookat(1, camera_current_target[0]-13.0, 15.0, camera_current_target[2]-17.0, camera_current_target[0], camera_current_target[1], camera_current_target[2], 33.0)
 
       when 1
-        gl.lookat(1, 0.0, 13.0, -99.0, next_player_positionx, 0.0, next_player_positionz, 33.0)
+        gl.lookat(1, camera_current_target[0], 1.0, camera_current_target[2]-15.0, next_player_positionx, 0.0, next_player_positionz, 33.0)
 
       when 2
-        gl.lookat(0, player_position[0], 1000.0, player_position[2], player_position[0], 0.0, player_position[2]+0.0001, 10.0)
+        gl.lookat(0, player_position[0], 500.0, player_position[2], player_position[0], 0.0, player_position[2]+0.0001, 10.0)
     end
 
     gl.drawmode {
@@ -113,18 +119,38 @@ def snake(gl)
           player.yawpitchroll(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         end
 
+        #gl.log! gl.global_state
+
 #"31,34"=>{"Paint"=>nil, "Items"=>{"Type"=>"items", "ItemStacks"=>[{"Amount"=>0, "ItemType"=>"coin"}]}, "Object"=>nil},
 #"27,35"=>{"Paint"=>nil, "Items"=>{"Type"=>"items", "ItemStacks"=>[{"Amount"=>3, "ItemType"=>"coin"}]}, "Object"=>nil}
+#"59,92"=>{"Paint"=>{"Type"=>"paint", "TerrainType"=>"rock", "Permeable"=>false, "Friction"=>0}, "Items"=>nil, "Object"=>nil}
 
         gl.global_state["coordinates"].each { |coord, item|
           coord_ab = coord.split(",")
           coord_x = coord_ab[0].to_i
           coord_z = coord_ab[1].to_i
+          coord_i = (coord_x * coord_z)
+          coord_m = coord_i % 2
+
+          if item && item["Paint"] && item["Paint"]["Type"] && item["Paint"]["Type"] == "paint"
+            case item["Paint"]["TerrainType"]
+              when "rock"
+                if item["Paint"]["Permeable"]
+                else
+                  crystals[coord_m].deltap(coord_x, 0, coord_z)
+                  crystals[coord_m].draw(false)
+                end
+            end
+          end
 
           item && item["Items"] && item["Items"]["ItemStacks"].each { |stacked_item|
             case stacked_item["ItemType"]
             when "coin"
-              coin.deltap(coord_x, 0, coord_z)
+              coin.yawpitchroll((global_time + (coord_i)) * 100.0, 0.0, 0.0, 0.0, 10.0, 0.0)
+              coin_height_time_factor = (global_time + (coord_i) * 10.0)
+              coin_height = ((Math.sin(coin_height_time_factor * 0.66) + 1.0) * 0.125)  + 0.125
+              coin.deltap(coord_x, coin_height, coord_z)
+
               coin.draw(false)
             end
           }
@@ -132,7 +158,8 @@ def snake(gl)
 
         player.draw(false)
 
-        gl.draw_grid(33, size)
+        #gl.draw_grid(1000, size)
+        gl.draw_plane(0.0, -half_size, 0.0, 1000.0, 1000.0)
       }
 
       gl.twod {

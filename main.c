@@ -594,6 +594,18 @@ static mrb_value draw_grid(mrb_state* mrb, mrb_value self)
 }
 
 
+static mrb_value draw_plane(mrb_state* mrb, mrb_value self)
+{
+  mrb_float x,y,z,a,b;
+
+  mrb_get_args(mrb, "fffff", &x, &y, &z, &a, &b);
+
+  DrawPlane((Vector3){x, y, z}, (Vector2){a, b}, GRAY); // Draw a plane XZ
+
+  return mrb_nil_value();
+}
+
+
 static mrb_value draw_fps(mrb_state* mrb, mrb_value self)
 {
   mrb_int a,b;
@@ -842,6 +854,7 @@ int main(int argc, char** argv) {
   mrb_define_method(mrb, game_class, "initialize", game_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, game_class, "lookat", lookat, MRB_ARGS_REQ(8));
   mrb_define_method(mrb, game_class, "draw_grid", draw_grid, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, game_class, "draw_plane", draw_plane, MRB_ARGS_REQ(5));
   mrb_define_method(mrb, game_class, "draw_fps", draw_fps, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, game_class, "mousep", mousep, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "keyspressed", keyspressed, MRB_ARGS_ANY());
