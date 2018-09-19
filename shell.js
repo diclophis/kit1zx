@@ -516,8 +516,8 @@ window.startConnection = function(wsUrl) {
     };
 
     window.conn.onmessage = function (event) {
-      origData = event.data;
-      typedData = new Uint8Array(origData);
+      var origData = event.data;
+      var typedData = new Uint8Array(origData);
       var heapBuffer = Module._malloc(typedData.length * typedData.BYTES_PER_ELEMENT);
       Module.HEAPU8.set(typedData, heapBuffer);
       debug_print(heapBuffer, typedData.length);
@@ -540,7 +540,22 @@ window.makeMove = function(x, y) {
   moveEvent.To.X = x + 1.0;
   moveEvent.To.Y = y;
 
-  window.conn.send(serializeMsgPack(moveEvent));
+  var msg = serializeMsgPack(moveEvent);
+
+/*
+  var len = msg.length;
+  var typedArray = new Uint8Array(len);
+
+  for (var i=0;i<len;++i) {
+    typedArray[i] = msg[i];
+  }
+
+  window.conn.send(typedArray.buffer);
+*/
+
+  console.log(msg, deserializeMsgPack(msg));
+
+  window.conn.send(msg.buffer);
 };
 
 Module.setStatus('Downloading...');

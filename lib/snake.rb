@@ -8,10 +8,11 @@ def snake(gl)
   player_position = nil
   camera_desired_target = [0.0, 0.0, 0.0]
   camera_current_target = [0.0, 0.0, 0.0]
-  camera_speed = 1.0
+  camera_speed = 5.0
   move_vector = nil
   interim_count = 0
   draw_count = 0
+  known_coords = 0
 
   size = 1.0
   half_size = size / 2.0
@@ -23,10 +24,9 @@ def snake(gl)
   crystals = []
   crystals << Model.new("resources/crystal001.obj", "resources/crystal001tex.png", size)
   crystals << Model.new("resources/200crystal.obj", "resources/200crystaltex.png", size)
-  #crystals << Model.new("resources/crystal001.obj", "resources/200crystaltex.png", size)
 
   crystals[0].deltas(1.33, 1.66, 1.33)
-  #crystals[1].deltas(1.33, 1.66, 1.33)
+  crystals[1].deltas(1.33, 1.66, 1.33)
 
   gl.main_loop { |gtdt|
     global_time, delta_time = gtdt
@@ -48,12 +48,10 @@ def snake(gl)
     if gl.global_state["globalPlayerLocation"]
       if player_position == nil
         player_position = [0.0, 0.0, 0.0]
+
         player_position[0] = gl.global_state["globalPlayerLocation"]["X"]
         player_position[2] = gl.global_state["globalPlayerLocation"]["Y"]
-
-        gl.log!(:got_ps, player_position)
       end
-
     end
 
     if player_position
@@ -101,17 +99,22 @@ def snake(gl)
     end
 
     if player_position
-      camera_index = ((global_time * 0.25).to_i % 3)
+      camera_index = ((global_time * 0.25).to_i % 2)
+
+      ctrl_key = gl.keyspressed(KEY_LEFT_CONTROL)
+      if ctrl_key[0]
+        camera_index = 2
+      end
 
       case camera_index
         when 0
           gl.lookat(1, ((camera_current_target[0]-13.0) / 10.0) * 10, 15.0, ((camera_current_target[2]-17.0) / 10.0) * 10, camera_current_target[0], camera_current_target[1], camera_current_target[2], 33.0)
 
         when 1
-          gl.lookat(1, ((camera_current_target[0] / 10.0) * 10), 1.0, camera_current_target[2]-15.0, next_player_positionx, 0.0, next_player_positionz, 33.0)
+          gl.lookat(1, ((camera_current_target[0] / 10.0) * 10), 3.0, camera_current_target[2]-15.0, next_player_positionx, 0.0, next_player_positionz, 33.0)
 
         when 2
-          gl.lookat(0, 0.0, 500.0, 0.0, 0.0, 0.0, 0.01, 200.0)
+          gl.lookat(0, 0.0, 500.0, 0.0, 0.0, 0.0, 0.01, 500.0)
       end
     end
 
@@ -134,12 +137,6 @@ def snake(gl)
         else
           player.yawpitchroll(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         end
-
-        #gl.log! gl.global_state
-
-#"31,34"=>{"Paint"=>nil, "Items"=>{"Type"=>"items", "ItemStacks"=>[{"Amount"=>0, "ItemType"=>"coin"}]}, "Object"=>nil},
-#"27,35"=>{"Paint"=>nil, "Items"=>{"Type"=>"items", "ItemStacks"=>[{"Amount"=>3, "ItemType"=>"coin"}]}, "Object"=>nil}
-#"59,92"=>{"Paint"=>{"Type"=>"paint", "TerrainType"=>"rock", "Permeable"=>false, "Friction"=>0}, "Items"=>nil, "Object"=>nil}
 
         gl.global_state["coordinates"].each { |coord, item|
           coord_ab = coord.split(",")
@@ -175,13 +172,15 @@ def snake(gl)
         player.draw(false)
 
         #gl.draw_grid(1000, size)
+
         gl.draw_plane(0.0, -half_size, 0.0, 1000.0, 1000.0)
       }
 
       gl.twod {
-        #gl.draw_fps(10, 10)
+        gl.draw_fps(10, 10)
+
         if player_position
-          player.label(gl.global_counter.to_s)
+          player.label("%d %d | %d %d" % [gl.global_counter, gl.global_state["coordinates"].length, player_position[0], player_position[2]])
         end
       }
     }
