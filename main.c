@@ -226,8 +226,8 @@ static mrb_value model_init(mrb_state* mrb, mrb_value self)
   mrb_float scalef;
   mrb_get_args(mrb, "oof", &model_obj, &model_png, &scalef);
 
-  char *c_model_obj = RSTRING_PTR(model_obj);
-  char *c_model_png = RSTRING_PTR(model_png);
+  char *c_model_obj = mrb_string_value_cstr(mrb, &model_obj);
+  char *c_model_png = mrb_string_value_cstr(mrb, &model_png);
 
   model_data_s *p_data;
 
@@ -416,7 +416,7 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
 
   mrb_get_args(mrb, "oiii", &game_name, &screenWidth, &screenHeight, &screenFps);
 
-  char *c_game_name = RSTRING_PTR(game_name);
+  char *c_game_name = mrb_string_value_cstr(mrb, &game_name);
 
   //SetConfigFlags(FLAG_MSAA_4X_HINT);
   InitWindow(screenWidth, screenHeight, c_game_name);
@@ -559,7 +559,7 @@ static mrb_value label_model(mrb_state* mrb, mrb_value self)
   mrb_value label_txt = mrb_nil_value();
   mrb_get_args(mrb, "o", &label_txt);
 
-  char *c_label_txt = RSTRING_PTR(label_txt);
+  char *c_label_txt = mrb_string_value_cstr(mrb, &label_txt);
 
   model_data_s *p_data = NULL;
   mrb_value data_value; // this IV holds the data
