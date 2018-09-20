@@ -104,6 +104,7 @@ class GameLoop
                 when Fixnum
                   log!(phr.headers)
                   #TODO???
+                  #["sec-websocket-accept", "Vf6b9NeTXU8a37OVZUXh1Q9ExUs="]
                   #unless WebSocket.create_accept(key).securecmp(phr.headers.to_h.fetch('sec-websocket-accept'))
                   #   raise Error, "Handshake failure"
                   #end
@@ -125,7 +126,7 @@ class GameLoop
         }
       else
         log!(:broken, connection_status)
-        spindown!
+        #spindown!
       end
     }
   end
