@@ -6,10 +6,19 @@
 	objectVersion = 50;
 	objects = {
 
+/* Begin PBXFileReference section */
+		FC05A39C215B3DFF009CB1F7 /* lib */ = {isa = PBXFileReference; lastKnownFileType = folder; path = lib; sourceTree = "<group>"; };
+		FC05A39D215B3DFF009CB1F7 /* raylib-src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "raylib-src"; sourceTree = "<group>"; };
+		FC05A39E215B3DFF009CB1F7 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXGroup section */
 		FC39C5AA214F5411005EF3F9 = {
 			isa = PBXGroup;
 			children = (
+				FC05A39C215B3DFF009CB1F7 /* lib */,
+				FC05A39E215B3DFF009CB1F7 /* main.c */,
+				FC05A39D215B3DFF009CB1F7 /* raylib-src */,
 			);
 			sourceTree = "<group>";
 		};

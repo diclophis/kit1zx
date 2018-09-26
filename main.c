@@ -107,7 +107,7 @@ static void eval_static_libs(mrb_state* mrb, ...) {
       end_of_static_libs = 1;
     } else {
       mrb_load_irep(mrb, p);
-      if_exception_error_and_exit(mrb, "Exception in bundled ruby\n");
+      if_exception_error_and_exit(mrb, "bundled ruby static lib\n");
     }
   }
 

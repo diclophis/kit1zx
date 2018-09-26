@@ -31,8 +31,8 @@ class GameLoop
 
     wslay_callbacks = Wslay::Event::Callbacks.new
 
-    last_buf = ""
-    last_buf_cursor = 0
+    @last_buf = ""
+    @last_buf_cursor = 0
     
     wslay_callbacks.recv_callback do |buf, len|
       # when wslay wants to read data
@@ -42,18 +42,52 @@ class GameLoop
       # and be up to len bytes long
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when there is nothing to read
 
-      ret = last_buf[last_buf_cursor, len]
-      last_buf_cursor += len
-      if last_buf_cursor > last_buf.length
-        last_buf = ""
-        last_buf_cursor = 0
-      end
+#[:pre, 0, 0, 4096]
+#[:one]
+#[:two]
+#[:five, ""]
+#[:pre, 1, 4096, 4096]
+#[:one]
+#[:two]
+#[:five, nil]
+#[:pre, 2, 8192, 4096]
+
+#[[["content-length", "0"]]]
+#[:pre, 0, 0, 4096]
+#[:one]
+#[:two]
+#[:five, ""]
+#[:pre, 1, 0, 4096]
+#[:one]
+#[:two]
+#[:five, "\n"]
+#[:pre, 2, 1, 4095]
+#[:one]
+#[:two]
+#[:five, "\n"]
+#(lldb)
+
+      log!(:pre, @last_buf.length, @last_buf_cursor, len)
+      ret = @last_buf[@last_buf_cursor, len]
+      log!(:one)
+      @last_buf_cursor += ret.length
+      log!(:two)
+      #   if last_buf_cursor > last_buf.length
+      #     log!(:three)
+      #     last_buf = ""
+      #     log!(:four)
+      #     last_buf_cursor = 0
+      #   end
+      #   log!(:five)
+
+      #   #ret
+      #   #ret = last_buf.dup
+      #   #last_buf = ""
+
+      log!(:five, ret)
 
       #ret
-      #ret = last_buf.dup
-      #last_buf = ""
-
-      ret
+      ""
     end
     
     wslay_callbacks.on_msg_recv_callback do |msg|
@@ -77,8 +111,8 @@ class GameLoop
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when sending would block
     end
     
-    client = Wslay::Event::Context::Client.new wslay_callbacks
-    phr = Phr.new
+    @client = Wslay::Event::Context::Client.new wslay_callbacks
+    @phr = Phr.new
 
     host = '127.0.0.1'
     port = 8081
@@ -89,44 +123,45 @@ class GameLoop
         key = B64.encode(Sysrandom.buf(16)).chomp!
         @socket.write("GET #{path} HTTP/1.1\r\nHost: #{host}:#{port}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: #{key}\r\n\r\n")
 
-        ss = ""
+        @ss = ""
 
-        processing_handshake = true
+        @processing_handshake = true
 
         @socket.read_start { |b|
           if b && b.is_a?(UVError)
             log!(b)
           else
             if b && b.is_a?(String)
-              if processing_handshake
-                ss += b
-                offset = phr.parse_response(ss)
+              if @processing_handshake
+                @ss += b
+                offset = @phr.parse_response(@ss)
                 case offset
                 when Fixnum
-                  log!(phr.headers)
+                  log!(@phr.headers)
                   #TODO???
                   #unless WebSocket.create_accept(key).securecmp(phr.headers.to_h.fetch('sec-websocket-accept'))
                   #   raise Error, "Handshake failure"
                   #end
-                  processing_handshake = false
-                  last_buf = ss[offset..-1]
-                  client.recv
+                  @processing_handshake = false
+                  @last_buf = @ss[offset..-1]
+                  @client.recv
                 when :incomplete
                   log!("incomplete")
                 when :parser_error
                   log!(:parser_error, offset)
-                  @socket.close
+                  #@socket.close
+                  spindown!
                 end
               else
-                last_buf += b
-                client.recv
+                @last_buf += b
+                @client.recv
               end
             end
           end
         }
       else
         log!(:broken, connection_status)
-        @socket.close
+        spindown!
       end
     }
   end
@@ -148,3 +183,4 @@ class GameLoop
     @socket.unref if @socket
   end
 end
+
