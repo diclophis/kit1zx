@@ -69,8 +69,49 @@ class GameLoop
 
     host = '127.0.0.1'
     port = 8081
-    @socket = UV::TCP.new
-    @socket.connect(UV.ip4_addr(host, port)) { |connection_status|
+    @address = UV.ip4_addr(host, port)
+
+    on_read_start = Proc.new { |b|
+      if b && b.is_a?(UVError)
+        log!(b)
+      else
+        if b && b.is_a?(String)
+          if @processing_handshake
+            @ss += b
+            offset = @phr.parse_response(@ss)
+            case offset
+            when Fixnum
+              log!(@phr.headers)
+              #TODO???
+              #unless WebSocket.create_accept(key).securecmp(phr.headers.to_h.fetch('sec-websocket-accept'))
+              #   raise Error, "Handshake failure"
+              #end
+              @processing_handshake = false
+              @last_buf = @ss[offset..-1]
+              proto_ok = (@client.recv != :proto)
+              unless proto_ok
+                log!(:wslay_handshake_proto_error)
+                @socket.close
+              end
+            when :incomplete
+              log!("incomplete")
+            when :parser_error
+              log!(:parser_error, offset)
+              spindown!
+            end
+          else
+            @last_buf = b
+            proto_ok = (@client.recv != :proto)
+            unless proto_ok
+              log!(:wslay_handshake_proto_error)
+              @socket.close
+            end
+          end
+        end
+      end
+    }
+
+    on_connect = Proc.new { |connection_status|
       unless connection_status
         path = "/ws"
         key = B64.encode(Sysrandom.buf(16)).chomp!
@@ -80,51 +121,20 @@ class GameLoop
 
         @processing_handshake = true
 
-        @socket.read_start { |b|
-          if b && b.is_a?(UVError)
-            log!(b)
-          else
-            if b && b.is_a?(String)
-              if @processing_handshake
-                @ss += b
-                offset = @phr.parse_response(@ss)
-                case offset
-                when Fixnum
-                  log!(@phr.headers)
-                  #TODO???
-                  #unless WebSocket.create_accept(key).securecmp(phr.headers.to_h.fetch('sec-websocket-accept'))
-                  #   raise Error, "Handshake failure"
-                  #end
-                  @processing_handshake = false
-                  @last_buf = @ss[offset..-1]
-                  proto_ok = (@client.recv != :proto)
-                  unless proto_ok
-                    log!(:wslay_handshake_proto_error)
-                    @socket.close
-                  end
-                when :incomplete
-                  log!("incomplete")
-                when :parser_error
-                  log!(:parser_error, offset)
-                  spindown!
-                end
-              else
-                @last_buf = b
-                proto_ok = (@client.recv != :proto)
-                unless proto_ok
-                  log!(:wslay_handshake_proto_error)
-                  @socket.close
-                end
-              end
-            end
-          end
-        }
+        @socket.read_start(&on_read_start)
       else
         log!(:broken, connection_status)
         spindown!
       end
     }
+
+
+
+
+    @socket = UV::TCP.new
+    @socket.connect(@address, &on_connect)
   end
+
 
   def log!(*args)
     @stdout.write(args.inspect + "\n") {
