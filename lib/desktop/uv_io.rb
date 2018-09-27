@@ -74,67 +74,85 @@ class GameLoop
     on_read_start = Proc.new { |b|
       if b && b.is_a?(UVError)
         log!(b)
+        restart_connection!
       else
         if b && b.is_a?(String)
-          if @processing_handshake
-            @ss += b
-            offset = @phr.parse_response(@ss)
-            case offset
-            when Fixnum
-              log!(@phr.headers)
-              #TODO???
-              #unless WebSocket.create_accept(key).securecmp(phr.headers.to_h.fetch('sec-websocket-accept'))
-              #   raise Error, "Handshake failure"
-              #end
-              @processing_handshake = false
-              @last_buf = @ss[offset..-1]
-              proto_ok = (@client.recv != :proto)
-              unless proto_ok
-                log!(:wslay_handshake_proto_error)
-                @socket.close
-              end
-            when :incomplete
-              log!("incomplete")
-            when :parser_error
-              log!(:parser_error, offset)
-              spindown!
-            end
-          else
-            @last_buf = b
-            proto_ok = (@client.recv != :proto)
-            unless proto_ok
-              log!(:wslay_handshake_proto_error)
-              @socket.close
-            end
-          end
+          handle_bytes!(b)
         end
       end
     }
 
-    on_connect = Proc.new { |connection_status|
-      unless connection_status
-        path = "/ws"
-        key = B64.encode(Sysrandom.buf(16)).chomp!
-        @socket.write("GET #{path} HTTP/1.1\r\nHost: #{host}:#{port}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: #{key}\r\n\r\n")
-
-        @ss = ""
-
-        @processing_handshake = true
-
-        @socket.read_start(&on_read_start)
+    on_connect = Proc.new { |connection_broken_status|
+      if connection_broken_status
+        log!(:broken, connection_broken_status)
       else
-        log!(:broken, connection_status)
-        spindown!
+        @t.stop
+        write_ws_request!
+        reset_handshake!
+        @socket.read_start(&on_read_start)
       end
     }
 
+    @try_connect = Proc.new {
+      @socket = UV::TCP.new
+      @socket.connect(@address, &on_connect)
+    }
 
-
-
-    @socket = UV::TCP.new
-    @socket.connect(@address, &on_connect)
+    restart_connection!
   end
 
+  def restart_connection!
+    @t = UV::Timer.new
+    @t.start(1000, 1000) {|x|
+      @try_connect.call
+    }
+  end
+
+  def handle_bytes!(b)
+    if @processing_handshake
+      @ss += b
+      offset = @phr.parse_response(@ss)
+      case offset
+      when Fixnum
+        log!(@phr.headers)
+        #TODO???
+        #unless WebSocket.create_accept(key).securecmp(phr.headers.to_h.fetch('sec-websocket-accept'))
+        #   raise Error, "Handshake failure"
+        #end
+        @processing_handshake = false
+        @last_buf = @ss[offset..-1]
+        proto_ok = (@client.recv != :proto)
+        unless proto_ok
+          log!(:wslay_handshake_proto_error)
+          @socket.close
+        end
+      when :incomplete
+        log!("incomplete")
+      when :parser_error
+        log!(:parser_error, offset)
+        spindown!
+      end
+    else
+      @last_buf = b
+      proto_ok = (@client.recv != :proto)
+      unless proto_ok
+        log!(:wslay_handshake_proto_error)
+        @socket.close
+      end
+    end
+  end
+
+  def reset_handshake!
+    @ss = ""
+    @processing_handshake = true
+  end
+
+  def write_ws_request!
+    path = "/ws"
+    key = B64.encode(Sysrandom.buf(16)).chomp!
+    log!(@address)
+    @socket.write("GET #{path} HTTP/1.1\r\nHost: #{@address.sin_addr}:#{@address.sin_port}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: #{key}\r\n\r\n")
+  end
 
   def log!(*args)
     @stdout.write(args.inspect + "\n") {
