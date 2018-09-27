@@ -1,0 +1,29 @@
+# Makefile
+
+build=release/libs/ios
+target=$(build)/$(product)
+mruby_static_lib=mruby/build/ios/lib/libmruby.a
+raylib_static_lib=$(build)/libraylib.a
+mrbc=mruby/build/host/bin/mrbc
+
+#sources = $(wildcard *.c)
+#objects = $(patsubst %,$(build)/%, $(patsubst %.c,%.o, $(sources)))
+static_ruby_headers = $(patsubst %,$(build)/%, $(patsubst lib/%.rb,%.h, $(wildcard lib/*.rb)))
+.SECONDARY: $(static_ruby_headers)
+
+#LDFLAGS=-lm -lpthread -ldl -static
+#CFLAGS=$(EMSCRIPTEN_FLAGS) -DPLATFORM_WEB -s USE_GLFW=3 -std=c99 -Imruby/include -Iraylib-src -I$(build)
+
+$(shell mkdir -p $(build))
+
+run: $(static_ruby_headers)
+	echo $(target)
+	realpath $(target)
+
+#$(raylib_static_lib):
+#	cd raylib-src && make -j PLATFORM=PLATFORM_WEB -B
+
+#$(mrbc): $(mruby_static_lib)
+
+$(build)/%.h: lib/%.rb #$(mrbc)
+	$(mrbc) -g -B $(patsubst $(build)/%.h,%, $@) -o $@ $<

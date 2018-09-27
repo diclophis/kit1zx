@@ -572,8 +572,10 @@ int GetPixelDataSize(int width, int height, int format);// Get pixel data size i
 
 #if defined(GRAPHICS_API_OPENGL_33)
     #if defined(__APPLE__)
-        #include <OpenGL/gl3.h>         // OpenGL 3 library for OSX
-        #include <OpenGL/gl3ext.h>      // OpenGL 3 extensions library for OSX
+        //#include <OpenGL/gl3.h>         // OpenGL 3 library for OSX
+        //#include <OpenGL/gl3ext.h>      // OpenGL 3 extensions library for OSX
+        #include <OpenGLES/ES3/gl.h>
+        #include <OpenGLES/ES3/glext.h>
     #else
         #define GLAD_IMPLEMENTATION
         #if defined(RLGL_STANDALONE)
@@ -2026,12 +2028,12 @@ unsigned int rlLoadTexture(void *data, int width, int height, int format, int mi
         #if !defined(GRAPHICS_API_OPENGL_11)
             else glCompressedTexImage2D(GL_TEXTURE_2D, i, glInternalFormat, mipWidth, mipHeight, 0, mipSize, (unsigned char *)data + mipOffset);
         #endif
-
+GL_TEXTURE_S
         #if defined(GRAPHICS_API_OPENGL_33)
             if (format == UNCOMPRESSED_GRAYSCALE)
             {
                 GLint swizzleMask[] = { GL_RED, GL_RED, GL_RED, GL_ONE };
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+                //glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
             }
             else if (format == UNCOMPRESSED_GRAY_ALPHA)
             {

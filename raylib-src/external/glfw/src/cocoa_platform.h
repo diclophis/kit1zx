@@ -27,14 +27,14 @@
 #include <stdint.h>
 #include <dlfcn.h>
 
-#if defined(__OBJC__)
-#import <Carbon/Carbon.h>
-#import <Cocoa/Cocoa.h>
-#else
-#include <Carbon/Carbon.h>
-#include <ApplicationServices/ApplicationServices.h>
-typedef void* id;
-#endif
+//#if defined(__OBJC__)
+//#import <Carbon/Carbon.h>
+//#import <Cocoa/Cocoa.h>
+//#else
+//#include <Carbon/Carbon.h>
+//#include <ApplicationServices/ApplicationServices.h>
+//typedef void* id;
+//#endif
 
 typedef VkFlags VkMacOSSurfaceCreateFlagsMVK;
 

@@ -1,0 +1,533 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		FCBFF621215C759300460678 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = FCDA24F3215B6F520039EACA /* main.c */; };
+		FCBFF625215C7E8700460678 /* libmruby.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FCBFF623215C7DC700460678 /* libmruby.a */; };
+		FCBFF6C5215C7F3A00460678 /* models.c in Sources */ = {isa = PBXBuildFile; fileRef = FCBFF62F215C7F3A00460678 /* models.c */; };
+		FCBFF6C6215C7F3A00460678 /* shapes.c in Sources */ = {isa = PBXBuildFile; fileRef = FCBFF632215C7F3A00460678 /* shapes.c */; };
+		FCBFF6C7215C7F3A00460678 /* textures.c in Sources */ = {isa = PBXBuildFile; fileRef = FCBFF634215C7F3A00460678 /* textures.c */; };
+		FCBFF6C8215C7F3A00460678 /* core.c in Sources */ = {isa = PBXBuildFile; fileRef = FCBFF635215C7F3A00460678 /* core.c */; };
+		FCBFF6C9215C7F3A00460678 /* utils.c in Sources */ = {isa = PBXBuildFile; fileRef = FCBFF636215C7F3A00460678 /* utils.c */; };
+		FCBFF6CA215C7F3A00460678 /* text.c in Sources */ = {isa = PBXBuildFile; fileRef = FCBFF637215C7F3A00460678 /* text.c */; };
+		FCBFF6CB215C7F3A00460678 /* raylib.rc in Resources */ = {isa = PBXBuildFile; fileRef = FCBFF638215C7F3A00460678 /* raylib.rc */; };
+		FCBFF6CC215C7F3A00460678 /* mini_al.c in Sources */ = {isa = PBXBuildFile; fileRef = FCBFF63B215C7F3A00460678 /* mini_al.c */; };
+		FCBFF6CD215C7F3A00460678 /* stb_vorbis.c in Sources */ = {isa = PBXBuildFile; fileRef = FCBFF651215C7F3A00460678 /* stb_vorbis.c */; };
+		FCBFF6FC215C7F3A00460678 /* rglfw.c in Sources */ = {isa = PBXBuildFile; fileRef = FCBFF6BE215C7F3A00460678 /* rglfw.c */; };
+		FCBFF6FE215C7F3A00460678 /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = FCBFF6C2215C7F3A00460678 /* audio.c */; };
+		FCBFF702215C871D00460678 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FCBFF701215C871D00460678 /* OpenGLES.framework */; };
+		FCBFF704215C884200460678 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FCBFF703215C884200460678 /* CoreFoundation.framework */; };
+		FCDA24D9215B6EF50039EACA /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = FCDA24D8215B6EF50039EACA /* AppDelegate.m */; };
+		FCDA24DC215B6EF50039EACA /* Renderer.m in Sources */ = {isa = PBXBuildFile; fileRef = FCDA24DB215B6EF50039EACA /* Renderer.m */; };
+		FCDA24DF215B6EF50039EACA /* GameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = FCDA24DE215B6EF50039EACA /* GameViewController.m */; };
+		FCDA24E1215B6EF50039EACA /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = FCDA24E0215B6EF50039EACA /* Shaders.metal */; };
+		FCDA24E5215B6EF50039EACA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FCDA24E3215B6EF50039EACA /* Main.storyboard */; };
+		FCDA24E7215B6EF60039EACA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FCDA24E6215B6EF60039EACA /* Assets.xcassets */; };
+		FCDA24EA215B6EF60039EACA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FCDA24E8215B6EF60039EACA /* LaunchScreen.storyboard */; };
+		FCDA24ED215B6EF60039EACA /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = FCDA24EC215B6EF60039EACA /* main.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		FCBFF623215C7DC700460678 /* libmruby.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmruby.a; path = ../mruby/build/ios/lib/libmruby.a; sourceTree = "<group>"; };
+		FCBFF629215C7F3A00460678 /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utils.h; sourceTree = "<group>"; };
+		FCBFF62A215C7F3A00460678 /* easings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = easings.h; sourceTree = "<group>"; };
+		FCBFF62C215C7F3A00460678 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		FCBFF62E215C7F3A00460678 /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = camera.h; sourceTree = "<group>"; };
+		FCBFF62F215C7F3A00460678 /* models.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = models.c; sourceTree = "<group>"; };
+		FCBFF630215C7F3A00460678 /* rlgl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rlgl.h; sourceTree = "<group>"; };
+		FCBFF631215C7F3A00460678 /* audio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
+		FCBFF632215C7F3A00460678 /* shapes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = shapes.c; sourceTree = "<group>"; };
+		FCBFF633215C7F3A00460678 /* gestures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gestures.h; sourceTree = "<group>"; };
+		FCBFF634215C7F3A00460678 /* textures.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = textures.c; sourceTree = "<group>"; };
+		FCBFF635215C7F3A00460678 /* core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = core.c; sourceTree = "<group>"; };
+		FCBFF636215C7F3A00460678 /* utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = utils.c; sourceTree = "<group>"; };
+		FCBFF637215C7F3A00460678 /* text.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = text.c; sourceTree = "<group>"; };
+		FCBFF638215C7F3A00460678 /* raylib.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = raylib.rc; sourceTree = "<group>"; };
+		FCBFF639215C7F3A00460678 /* raymath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = raymath.h; sourceTree = "<group>"; };
+		FCBFF63B215C7F3A00460678 /* mini_al.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mini_al.c; sourceTree = "<group>"; };
+		FCBFF63C215C7F3A00460678 /* glad.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glad.h; sourceTree = "<group>"; };
+		FCBFF63D215C7F3A00460678 /* stb_image_write.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image_write.h; sourceTree = "<group>"; };
+		FCBFF63E215C7F3A00460678 /* stb_image_resize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image_resize.h; sourceTree = "<group>"; };
+		FCBFF64F215C7F3A00460678 /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_rect_pack.h; sourceTree = "<group>"; };
+		FCBFF650215C7F3A00460678 /* dr_mp3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dr_mp3.h; sourceTree = "<group>"; };
+		FCBFF651215C7F3A00460678 /* stb_vorbis.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stb_vorbis.c; sourceTree = "<group>"; };
+		FCBFF652215C7F3A00460678 /* stb_perlin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_perlin.h; sourceTree = "<group>"; };
+		FCBFF653215C7F3A00460678 /* dr_wav.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dr_wav.h; sourceTree = "<group>"; };
+		FCBFF654215C7F3A00460678 /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
+		FCBFF655215C7F3A00460678 /* jar_xm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jar_xm.h; sourceTree = "<group>"; };
+		FCBFF656215C7F3A00460678 /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_truetype.h; sourceTree = "<group>"; };
+		FCBFF657215C7F3A00460678 /* dr_flac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dr_flac.h; sourceTree = "<group>"; };
+		FCBFF658215C7F3A00460678 /* par_shapes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = par_shapes.h; sourceTree = "<group>"; };
+		FCBFF659215C7F3A00460678 /* jar_mod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jar_mod.h; sourceTree = "<group>"; };
+		FCBFF65F215C7F3A00460678 /* cgltf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cgltf.h; sourceTree = "<group>"; };
+		FCBFF660215C7F3A00460678 /* mini_al.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mini_al.h; sourceTree = "<group>"; };
+		FCBFF6BC215C7F3A00460678 /* rgif.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rgif.h; sourceTree = "<group>"; };
+		FCBFF6BD215C7F3A00460678 /* stb_vorbis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_vorbis.h; sourceTree = "<group>"; };
+		FCBFF6BE215C7F3A00460678 /* rglfw.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.objc; fileEncoding = 4; path = rglfw.c; sourceTree = "<group>"; };
+		FCBFF6C0215C7F3A00460678 /* physac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = physac.h; sourceTree = "<group>"; };
+		FCBFF6C1215C7F3A00460678 /* raylib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = raylib.h; sourceTree = "<group>"; };
+		FCBFF6C2215C7F3A00460678 /* audio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
+		FCBFF701215C871D00460678 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		FCBFF703215C884200460678 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		FCDA24D4215B6EF50039EACA /* kit1zx-metalvk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "kit1zx-metalvk.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FCDA24D7215B6EF50039EACA /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		FCDA24D8215B6EF50039EACA /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		FCDA24DA215B6EF50039EACA /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
+		FCDA24DB215B6EF50039EACA /* Renderer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Renderer.m; sourceTree = "<group>"; };
+		FCDA24DD215B6EF50039EACA /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
+		FCDA24DE215B6EF50039EACA /* GameViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GameViewController.m; sourceTree = "<group>"; };
+		FCDA24E0215B6EF50039EACA /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
+		FCDA24E2215B6EF50039EACA /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
+		FCDA24E4215B6EF50039EACA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		FCDA24E6215B6EF60039EACA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FCDA24E9215B6EF60039EACA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		FCDA24EB215B6EF60039EACA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FCDA24EC215B6EF60039EACA /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		FCDA24F3215B6F520039EACA /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = ../main.c; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FCDA24D1215B6EF50039EACA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FCBFF704215C884200460678 /* CoreFoundation.framework in Frameworks */,
+				FCBFF702215C871D00460678 /* OpenGLES.framework in Frameworks */,
+				FCBFF625215C7E8700460678 /* libmruby.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		FCBFF622215C7DC700460678 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				FCBFF703215C884200460678 /* CoreFoundation.framework */,
+				FCBFF701215C871D00460678 /* OpenGLES.framework */,
+				FCBFF623215C7DC700460678 /* libmruby.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		FCBFF628215C7F3A00460678 /* raylib-src */ = {
+			isa = PBXGroup;
+			children = (
+				FCBFF629215C7F3A00460678 /* utils.h */,
+				FCBFF62A215C7F3A00460678 /* easings.h */,
+				FCBFF62C215C7F3A00460678 /* config.h */,
+				FCBFF62E215C7F3A00460678 /* camera.h */,
+				FCBFF62F215C7F3A00460678 /* models.c */,
+				FCBFF630215C7F3A00460678 /* rlgl.h */,
+				FCBFF631215C7F3A00460678 /* audio.h */,
+				FCBFF632215C7F3A00460678 /* shapes.c */,
+				FCBFF633215C7F3A00460678 /* gestures.h */,
+				FCBFF634215C7F3A00460678 /* textures.c */,
+				FCBFF635215C7F3A00460678 /* core.c */,
+				FCBFF636215C7F3A00460678 /* utils.c */,
+				FCBFF637215C7F3A00460678 /* text.c */,
+				FCBFF638215C7F3A00460678 /* raylib.rc */,
+				FCBFF639215C7F3A00460678 /* raymath.h */,
+				FCBFF63A215C7F3A00460678 /* external */,
+				FCBFF6BE215C7F3A00460678 /* rglfw.c */,
+				FCBFF6C0215C7F3A00460678 /* physac.h */,
+				FCBFF6C1215C7F3A00460678 /* raylib.h */,
+				FCBFF6C2215C7F3A00460678 /* audio.c */,
+			);
+			name = "raylib-src";
+			path = "../raylib-src";
+			sourceTree = "<group>";
+		};
+		FCBFF63A215C7F3A00460678 /* external */ = {
+			isa = PBXGroup;
+			children = (
+				FCBFF63B215C7F3A00460678 /* mini_al.c */,
+				FCBFF63C215C7F3A00460678 /* glad.h */,
+				FCBFF63D215C7F3A00460678 /* stb_image_write.h */,
+				FCBFF63E215C7F3A00460678 /* stb_image_resize.h */,
+				FCBFF64F215C7F3A00460678 /* stb_rect_pack.h */,
+				FCBFF650215C7F3A00460678 /* dr_mp3.h */,
+				FCBFF651215C7F3A00460678 /* stb_vorbis.c */,
+				FCBFF652215C7F3A00460678 /* stb_perlin.h */,
+				FCBFF653215C7F3A00460678 /* dr_wav.h */,
+				FCBFF654215C7F3A00460678 /* stb_image.h */,
+				FCBFF655215C7F3A00460678 /* jar_xm.h */,
+				FCBFF656215C7F3A00460678 /* stb_truetype.h */,
+				FCBFF657215C7F3A00460678 /* dr_flac.h */,
+				FCBFF658215C7F3A00460678 /* par_shapes.h */,
+				FCBFF659215C7F3A00460678 /* jar_mod.h */,
+				FCBFF65F215C7F3A00460678 /* cgltf.h */,
+				FCBFF660215C7F3A00460678 /* mini_al.h */,
+				FCBFF6BC215C7F3A00460678 /* rgif.h */,
+				FCBFF6BD215C7F3A00460678 /* stb_vorbis.h */,
+			);
+			path = external;
+			sourceTree = "<group>";
+		};
+		FCDA24CB215B6EF50039EACA = {
+			isa = PBXGroup;
+			children = (
+				FCBFF628215C7F3A00460678 /* raylib-src */,
+				FCDA24F3215B6F520039EACA /* main.c */,
+				FCDA24D6215B6EF50039EACA /* kit1zx-metalvk */,
+				FCDA24D5215B6EF50039EACA /* Products */,
+				FCBFF622215C7DC700460678 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		FCDA24D5215B6EF50039EACA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FCDA24D4215B6EF50039EACA /* kit1zx-metalvk.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FCDA24D6215B6EF50039EACA /* kit1zx-metalvk */ = {
+			isa = PBXGroup;
+			children = (
+				FCDA24D7215B6EF50039EACA /* AppDelegate.h */,
+				FCDA24D8215B6EF50039EACA /* AppDelegate.m */,
+				FCDA24DA215B6EF50039EACA /* Renderer.h */,
+				FCDA24DB215B6EF50039EACA /* Renderer.m */,
+				FCDA24DD215B6EF50039EACA /* GameViewController.h */,
+				FCDA24DE215B6EF50039EACA /* GameViewController.m */,
+				FCDA24E0215B6EF50039EACA /* Shaders.metal */,
+				FCDA24E2215B6EF50039EACA /* ShaderTypes.h */,
+				FCDA24E3215B6EF50039EACA /* Main.storyboard */,
+				FCDA24E6215B6EF60039EACA /* Assets.xcassets */,
+				FCDA24E8215B6EF60039EACA /* LaunchScreen.storyboard */,
+				FCDA24EB215B6EF60039EACA /* Info.plist */,
+				FCDA24EC215B6EF60039EACA /* main.m */,
+			);
+			path = "kit1zx-metalvk";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		FCDA24D3215B6EF50039EACA /* kit1zx-metalvk */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FCDA24F0215B6EF60039EACA /* Build configuration list for PBXNativeTarget "kit1zx-metalvk" */;
+			buildPhases = (
+				FC801231215B7194002E827C /* Run Script */,
+				FCDA24D0215B6EF50039EACA /* Sources */,
+				FCDA24D1215B6EF50039EACA /* Frameworks */,
+				FCDA24D2215B6EF50039EACA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "kit1zx-metalvk";
+			productName = "kit1zx-metalvk";
+			productReference = FCDA24D4215B6EF50039EACA /* kit1zx-metalvk.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FCDA24CC215B6EF50039EACA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1000;
+				ORGANIZATIONNAME = mavenlink;
+				TargetAttributes = {
+					FCDA24D3215B6EF50039EACA = {
+						CreatedOnToolsVersion = 10.0;
+					};
+				};
+			};
+			buildConfigurationList = FCDA24CF215B6EF50039EACA /* Build configuration list for PBXProject "kit1zx-metalvk" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = FCDA24CB215B6EF50039EACA;
+			productRefGroup = FCDA24D5215B6EF50039EACA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FCDA24D3215B6EF50039EACA /* kit1zx-metalvk */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FCDA24D2215B6EF50039EACA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FCBFF6CB215C7F3A00460678 /* raylib.rc in Resources */,
+				FCDA24EA215B6EF60039EACA /* LaunchScreen.storyboard in Resources */,
+				FCDA24E7215B6EF60039EACA /* Assets.xcassets in Resources */,
+				FCDA24E5215B6EF50039EACA /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		FC801231215B7194002E827C /* Run Script */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\nset -xe\n\ncd ~/workspace/kit1zx\ncd mruby\n#MRUBY_CONFIG=../config/ios.rb make clean\nMRUBY_CONFIG=../config/ios.rb make -j\ncd ..\n\nmake -f Makefile.ios\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FCDA24D0215B6EF50039EACA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FCBFF6CD215C7F3A00460678 /* stb_vorbis.c in Sources */,
+				FCBFF6CA215C7F3A00460678 /* text.c in Sources */,
+				FCDA24ED215B6EF60039EACA /* main.m in Sources */,
+				FCDA24E1215B6EF50039EACA /* Shaders.metal in Sources */,
+				FCBFF621215C759300460678 /* main.c in Sources */,
+				FCBFF6FE215C7F3A00460678 /* audio.c in Sources */,
+				FCBFF6C7215C7F3A00460678 /* textures.c in Sources */,
+				FCBFF6CC215C7F3A00460678 /* mini_al.c in Sources */,
+				FCBFF6FC215C7F3A00460678 /* rglfw.c in Sources */,
+				FCBFF6C6215C7F3A00460678 /* shapes.c in Sources */,
+				FCDA24DC215B6EF50039EACA /* Renderer.m in Sources */,
+				FCBFF6C8215C7F3A00460678 /* core.c in Sources */,
+				FCDA24DF215B6EF50039EACA /* GameViewController.m in Sources */,
+				FCBFF6C5215C7F3A00460678 /* models.c in Sources */,
+				FCBFF6C9215C7F3A00460678 /* utils.c in Sources */,
+				FCDA24D9215B6EF50039EACA /* AppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		FCDA24E3215B6EF50039EACA /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				FCDA24E4215B6EF50039EACA /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		FCDA24E8215B6EF60039EACA /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				FCDA24E9215B6EF60039EACA /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		FCDA24EE215B6EF60039EACA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		FCDA24EF215B6EF60039EACA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		FCDA24F1215B6EF60039EACA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = (
+					../mruby/include,
+					"../raylib-src",
+					../release/libs/ios,
+				);
+				INFOPLIST_FILE = "kit1zx-metalvk/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = ../mruby/build/ios/lib;
+				OTHER_CFLAGS = (
+					"-DPLATFORM_DESKTOP",
+					"-DGRAPHICS_API_OPENGL_33",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "kit1zx-metalvk.kit1zx-metalvk";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FCDA24F2215B6EF60039EACA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = (
+					../mruby/include,
+					"../raylib-src",
+					../release/libs/ios,
+				);
+				INFOPLIST_FILE = "kit1zx-metalvk/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = ../mruby/build/ios/lib;
+				OTHER_CFLAGS = (
+					"-DPLATFORM_DESKTOP",
+					"-DGRAPHICS_API_OPENGL_33",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "kit1zx-metalvk.kit1zx-metalvk";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		FCDA24CF215B6EF50039EACA /* Build configuration list for PBXProject "kit1zx-metalvk" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FCDA24EE215B6EF60039EACA /* Debug */,
+				FCDA24EF215B6EF60039EACA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FCDA24F0215B6EF60039EACA /* Build configuration list for PBXNativeTarget "kit1zx-metalvk" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FCDA24F1215B6EF60039EACA /* Debug */,
+				FCDA24F2215B6EF60039EACA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = FCDA24CC215B6EF50039EACA /* Project object */;
+}

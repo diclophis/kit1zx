@@ -35,7 +35,7 @@
 #include "game_loop.h"
 
 #ifdef PLATFORM_DESKTOP
-#include "uv_io.h"
+//#include "uv_io.h"
 #endif
 
 
@@ -897,7 +897,7 @@ int main(int argc, char** argv) {
   eval_static_libs(mrb, game_loop, NULL);
 
 #ifdef PLATFORM_DESKTOP
-  eval_static_libs(mrb, uv_io, NULL);
+  //eval_static_libs(mrb, uv_io, NULL);
 #endif
 
   eval_static_libs(mrb, init, NULL);
