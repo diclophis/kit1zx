@@ -5,9 +5,12 @@ def snake(gl)
 
   time_it_takes_to_move = 0.33
   time_into_current_move = 0.0
-  player_position = nil
+  player_position = [0.0, 0.0, 0.0]
+
+  connected_at = nil
   camera_desired_target = [0.0, 0.0, 0.0]
   camera_current_target = [0.0, 0.0, 0.0]
+  camera_current_position = [0.0, 0.0, 0.0]
   camera_speed = 5.0
   move_vector = nil
   interim_count = 0
@@ -35,6 +38,20 @@ def snake(gl)
     global_time, delta_time = gtdt
 
     arrow_keys = gl.keyspressed(KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT)
+    #c_key = gl.keyspressed(KEY_C)
+    #if was_pressing_c && !c_key[0]
+    #  camera_index = ((camera_index + 1) % 2)
+    #  was_pressing_c = false
+    #elsif c_key[0]
+    #  was_pressing_c = true
+    #end
+
+    ##((global_time * 0.25).to_i % 2)
+
+    #ctrl_key = gl.keyspressed(KEY_LEFT_CONTROL)
+    #if ctrl_key[0]
+    #  camera_index = 2
+    #end
 
     if !move_vector && arrow_keys[0]
       if arrow_keys[0] == KEY_UP
@@ -49,25 +66,25 @@ def snake(gl)
     end
 
     if gl.global_state["globalPlayerLocation"]
-      if player_position == nil
-        player_position = [0.0, 0.0, 0.0]
+      if connected_at == nil
+        connected_at = Time.now
 
         player_position[0] = gl.global_state["globalPlayerLocation"]["X"]
         player_position[2] = gl.global_state["globalPlayerLocation"]["Y"]
       end
     end
 
-    if player_position
-      next_player_positionx = player_position[0]
-      next_player_positionz = player_position[2]
-    end
+    next_player_positionx = player_position[0]
+    next_player_positionz = player_position[2]
 
     deltax = 0.0
     deltaz = 0.0
 
     percent_there = 0.0
 
-    if player_position && move_vector
+gl.log!(move_vector)
+
+    if move_vector
       time_into_current_move += delta_time
       percent_there = time_into_current_move / time_it_takes_to_move
       if percent_there >= 0.9999
@@ -77,20 +94,38 @@ def snake(gl)
       deltax = (move_vector[0] * percent_there)
       deltaz = (move_vector[1] * percent_there)
 
-      if player_position
-        next_player_positionx = player_position[0] + deltax
-        next_player_positionz = player_position[2] + deltaz
-      end
+      next_player_positionx = player_position[0] + deltax
+      next_player_positionz = player_position[2] + deltaz
     end
 
-    if player_position
-      camera_desired_target = [next_player_positionx, 0.0, next_player_positionz]
-      cdistx = camera_desired_target[0] - camera_current_target[0]
-      cdisty = camera_desired_target[1] - camera_current_target[1]
-      cdistz = camera_desired_target[2] - camera_current_target[2]
-      camera_current_target[0] += (delta_time * camera_speed * cdistx)
-      camera_current_target[1] += (delta_time * camera_speed * cdisty)
-      camera_current_target[2] += (delta_time * camera_speed * cdistz)
+    camera_desired_target = [next_player_positionx, 0.0, next_player_positionz]
+    cdistx = camera_desired_target[0] - camera_current_target[0]
+    cdisty = camera_desired_target[1] - camera_current_target[1]
+    cdistz = camera_desired_target[2] - camera_current_target[2]
+    camera_current_target[0] += (delta_time * camera_speed * cdistx)
+    camera_current_target[1] += (delta_time * camera_speed * cdisty)
+    camera_current_target[2] += (delta_time * camera_speed * cdistz)
+
+    if connected_at
+      case camera_index
+        when 0
+          camera_current_position[0] = ((camera_current_target[0]-11.0) / 10.0) * 10
+          camera_current_position[1] = 15.0
+          camera_current_position[2] = ((camera_current_target[2]-13.0) / 10.0) * 10
+
+        when 1
+          camera_current_position[0] = ((camera_current_target[0] / 10.0) * 10)
+          camera_current_position[1] = 3.0
+          camera_current_position[2] = camera_current_target[2]-15.0
+
+          #camera_current_target[0, next_player_positionx, 0.0, next_player_positionz, 33.0)
+          #gl.lookat(1, camera_current_position[0], camera_current_position[1], camera_current_position[2], camera_current_target[0], camera_current_target[1], camera_current_target[2], 33.0)
+
+
+      end
+    else
+      camera_current_target = [0.0, 0.0, 0.0]
+      camera_current_position = [10.0, 10.0, 10.0]
     end
 
     if percent_there == 1.0
@@ -101,41 +136,19 @@ def snake(gl)
       time_into_current_move = 0.0
     end
 
-    if player_position
-      c_key = gl.keyspressed(KEY_C)
-      if was_pressing_c && !c_key[0]
-        camera_index = ((camera_index + 1) % 2)
-        was_pressing_c = false
-      elsif c_key[0]
-        was_pressing_c = true
-      end
+    case camera_index
+      when 0,1
+        gl.lookat(1, camera_current_position[0], camera_current_position[1], camera_current_position[2], camera_current_target[0], camera_current_target[1], camera_current_target[2], 33.0)
 
-      #((global_time * 0.25).to_i % 2)
-
-      ctrl_key = gl.keyspressed(KEY_LEFT_CONTROL)
-      if ctrl_key[0]
-        camera_index = 2
-      end
-
-      case camera_index
-        when 0
-          gl.lookat(1, ((camera_current_target[0]-11.0) / 10.0) * 10, 15.0, ((camera_current_target[2]-13.0) / 10.0) * 10, camera_current_target[0], camera_current_target[1], camera_current_target[2], 33.0)
-
-        when 1
-          gl.lookat(1, ((camera_current_target[0] / 10.0) * 10), 3.0, camera_current_target[2]-15.0, next_player_positionx, 0.0, next_player_positionz, 33.0)
-
-        when 2
-          gl.lookat(0, 0.0, 500.0, 0.0, 0.0, 0.0, 0.01, 500.0)
-      end
+      when 2
+        gl.lookat(0, 0.0, 500.0, 0.0, 0.0, 0.0, 0.01, 500.0)
     end
 
     gl.drawmode {
       gl.threed {
-        if player_position
-          player.deltap(*player_position)
-        end
+        player.deltap(*player_position)
 
-        if player_position && move_vector
+        if move_vector
           if move_vector[0] > 0
             player.yawpitchroll(0.0, 0.0, (percent_there * rolls_required_to_shift_block), -half_size, half_size, 0.0)
           elsif move_vector[0] < 0
@@ -190,9 +203,7 @@ def snake(gl)
       gl.twod {
         gl.draw_fps(10, 10)
 
-        if player_position
-          #player.label([gl.global_counter, gl.global_state["coordinates"] ? gl.global_state["coordinates"].length : 0, player_position ? player_position[0] : nil, player_position ? player_position[2] : nil].inspect)
-        end
+        player.label([gl.global_counter, gl.global_state["coordinates"] ? gl.global_state["coordinates"].length : 0, player_position ? player_position[0] : nil, player_position ? player_position[2] : nil].inspect)
       }
     }
   }
