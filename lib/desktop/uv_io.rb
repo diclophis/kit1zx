@@ -25,7 +25,7 @@ class GameLoop
     #}
 
     @idle = UV::Timer.new
-    @idle.start(0, 16) { |x|
+    @idle.start(0, 16) {
       self.update
     }
 
@@ -40,7 +40,10 @@ class GameLoop
       # or else return a mruby String or a object which can be converted into a String via to_str
       # and be up to len bytes long
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when there is nothing to read
-      @last_buf
+      #log!(:recv_c, [buf, len])
+      throw_away_buf = @last_buf
+      @last_buf = nil
+      throw_away_buf
     end
     
     wslay_callbacks.on_msg_recv_callback do |msg|
@@ -54,6 +57,8 @@ class GameLoop
       # :abnormal_closure, :invalid_frame_payload_data, :policy_violation, :message_too_big, :mandatory_ext,
       # :internal_server_error, :tls_handshake
       # to_str => returns the message revieced
+      #log!(:raw, msg)
+
       if msg[:opcode] == :binary_frame
         self.feed_state!(msg[:msg])
       end
@@ -69,6 +74,10 @@ class GameLoop
 
     host = '127.0.0.1'
     port = 8081
+
+    #host = '174.129.224.73'
+    #port = 80
+
     @address = UV.ip4_addr(host, port)
 
     on_read_start = Proc.new { |b|
@@ -103,7 +112,7 @@ class GameLoop
 
   def restart_connection!
     @t = UV::Timer.new
-    @t.start(1000, 1000) {|x|
+    @t.start(1000, 1000) {
       @try_connect.call
     }
   end
