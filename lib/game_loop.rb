@@ -45,8 +45,14 @@ class GameLoop
 
 #"31,34"=>{"Paint"=>nil, "Items"=>{"Type"=>"items", "ItemStacks"=>[{"Amount"=>0, "ItemType"=>"coin"}]}, "Object"=>nil},
 #"27,35"=>{"Paint"=>nil, "Items"=>{"Type"=>"items", "ItemStacks"=>[{"Amount"=>3, "ItemType"=>"coin"}]}, "Object"=>nil}
-   
-        if result["globalPlayerLocation"]
+  
+        if !self.global_state["globalPlayerLocation"]
+          self.global_state["lastGlobalPlayerLocation"] = result["globalPlayerLocation"]
+          self.global_state["globalPlayerLocation"] = result["globalPlayerLocation"]
+#        elsif result["globalPlayerLocation"] && result["globalPlayerLocation"]["X"] != self.global_state["globalPlayerLocation"]["X"] && result["globalPlayerLocation"]["Y"] != self.global_state["globalPlayerLocation"]["Y"]
+        else
+        log!(result)
+          self.global_state["lastGlobalPlayerLocation"] = self.global_state["globalPlayerLocation"]
           self.global_state["globalPlayerLocation"] = result["globalPlayerLocation"]
         end
 
@@ -55,7 +61,6 @@ class GameLoop
         #    self.global_state["coordinates"][coord] = item
         #  }
         #end
-        #log!(result)
       end
     end
 

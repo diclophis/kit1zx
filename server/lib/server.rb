@@ -20,6 +20,12 @@ class Connection
                 :socket,
                 :timer
 
+  def initialize
+    @pos_x = 0
+    @pos_y = 0
+    @pos_t = 1
+  end
+
   def handle_bytes!(b)
     if self.processing_handshake
       self.ss += b
@@ -37,9 +43,18 @@ class Connection
 				self.write_ws_response!
 
         self.timer = UV::Timer.new
-        self.timer.start(1000, 1000) {
+        self.timer.start(1000, 5000) {
+          $stdout.write(".")
           $did_timer += 1
-          msg = MessagePack.pack({"globalPlayerLocation"=>{"X"=>56, "Y"=>0}})
+          if @pos_t > 0
+            @pos_t *= -1
+            @pos_x += 1
+          else
+            @pos_t *= -1
+            @pos_y += 1
+          end
+
+          msg = MessagePack.pack({"globalPlayerLocation"=>{"X"=>@pos_x, "Y"=>@pos_y}})
         #  #msg = ("cheese" * 1024)
         #  #$stdout.write("doing #{msg.inspect} tick")
           self.client.queue_msg(msg, :binary_frame)
@@ -190,10 +205,10 @@ class Server
   end
 end
 
-t = UV::Timer.new
-t.start(1000, 1000) {
-  $stdout.write(".#{$did_handle_bytes}:#{$did_timer}")
-}
+#t = UV::Timer.new
+#t.start(500, 500) {
+#  $stdout.write(".#{$pos_x}")
+#}
 
 server = Server.new
 server.spinlock!
