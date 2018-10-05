@@ -13,6 +13,7 @@ class GameLoop
     #    end
     #  end
     #end
+    puts :SSSSSSSSSSSSSSSS
     self.init!
 
     @stdout = UV::Pipe.new
@@ -92,6 +93,7 @@ class GameLoop
     }
 
     on_connect = Proc.new { |connection_broken_status|
+      log!(:FOOOOO)
       if connection_broken_status
         log!(:broken, connection_broken_status)
       else

@@ -14,3 +14,5 @@ $gl = GameLoop.new("kit1zx", 512, 512, 0)
 #shmup($gl)
 snake($gl)
 #kube($gl)
+
+puts :wtf

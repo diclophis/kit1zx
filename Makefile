@@ -26,8 +26,8 @@ CFLAGS=-DPLATFORM_DESKTOP -DGL_SILENCE_DEPRECATION -Os -std=c99 -Imruby/include 
 $(shell mkdir -p $(build))
 
 run: $(target) $(sources)
-	echo $(sources)
 	echo $(target)
+	echo $(sources)
 
 $(target): $(objects) $(sources)
 	$(CC) $(CFLAGS) -o $@ $(objects) $(LDFLAGS)

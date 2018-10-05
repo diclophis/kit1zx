@@ -121,7 +121,7 @@ static void eval_static_libs(mrb_state* mrb, ...) {
 static void play_data_destructor(mrb_state *mrb, void *p_) {
   play_data_s *pd = (play_data_s *)p_;
 
-  UnloadRenderTexture(pd->buffer_target);     // Unload texture
+  //UnloadRenderTexture(pd->buffer_target);     // Unload texture
 
   mrb_free(mrb, pd);
 };
@@ -131,8 +131,8 @@ static void model_data_destructor(mrb_state *mrb, void *p_) {
   model_data_s *pd = (model_data_s *)p_;
 
   //// De-Initialization
-  UnloadTexture(pd->texture);     // Unload texture
-  UnloadModel(pd->model);         // Unload model
+  //UnloadTexture(pd->texture);     // Unload texture
+  //UnloadModel(pd->model);         // Unload model
 
   mrb_free(mrb, pd);
 };
