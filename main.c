@@ -733,7 +733,7 @@ static mrb_value lookat(mrb_state* mrb, mrb_value self)
       break;
     case 1:
       p_data->camera.type = CAMERA_PERSPECTIVE;
-      SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
+      //SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
       //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
       break;
   }

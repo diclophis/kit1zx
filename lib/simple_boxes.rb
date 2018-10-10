@@ -7,7 +7,7 @@ def simple_boxes(gl)
 
   cube = Cube.new(size * 0.99, (1.0 * size) * 0.99, size * 0.99, 1.0)
 
-  gl.lookat(1, 0.0, 2.0, 0.0, 1.0, 1.0, 1.0, 60.0)
+  gl.lookat(1, 10.0, 15.0, 10.0, 1.0, 1.0, 1.0, 60.0)
 
   gl.main_loop { |gtdt|
     global_time, delta_time = gtdt
