@@ -682,7 +682,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
-  SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
+  //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
 
 #ifdef PLATFORM_WEB
   start_connection();
@@ -897,7 +897,7 @@ int main(int argc, char** argv) {
   mousexyz = mrb_ary_new(mrb);
   pressedkeys = mrb_ary_new(mrb);
 
-  eval_static_libs(mrb, simple_boxes, NULL);
+  eval_static_libs(mrb, shmup, snake, box, kube, simple_boxes, NULL);
 
   eval_static_libs(mrb, game_loop, NULL);
 
