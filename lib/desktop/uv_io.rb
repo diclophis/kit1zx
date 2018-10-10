@@ -13,7 +13,7 @@ class GameLoop
     #    end
     #  end
     #end
-    puts :SSSSSSSSSSSSSSSS
+
     self.init!
 
     @stdout = UV::Pipe.new
@@ -30,6 +30,7 @@ class GameLoop
       self.update
     }
 
+=begin
     wslay_callbacks = Wslay::Event::Callbacks.new
 
     @last_buf = nil
@@ -110,6 +111,7 @@ class GameLoop
     }
 
     restart_connection!
+=end
   end
 
   def restart_connection!

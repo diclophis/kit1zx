@@ -31,6 +31,7 @@
 #include "snake.h"
 #include "kube.h"
 #include "box.h"
+#include "simple_boxes.h"
 #include "init.h"
 #include "game_loop.h"
 
@@ -404,10 +405,12 @@ static mrb_value draw_model(mrb_state* mrb, mrb_value self)
 
   if (draw_wires) {
     DrawModelWiresEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, BLUE);   // Draw 3d model with texture
-  } else {
+  } 
+
+  //else {
     // Draw 3d model with texture
     DrawModelEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, p_data->color);
-  }
+  //}
 
   return mrb_nil_value();
 }
@@ -679,7 +682,7 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
-  //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
+  SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
 
 #ifdef PLATFORM_WEB
   start_connection();
@@ -690,6 +693,8 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
   //{
   //  UpdateDrawFrame();
   //}
+
+  WindowShouldClose();
 
   mrb_funcall(mrb, self, "spinlock!", 0, NULL);
 
@@ -728,7 +733,7 @@ static mrb_value lookat(mrb_state* mrb, mrb_value self)
       break;
     case 1:
       p_data->camera.type = CAMERA_PERSPECTIVE;
-      //SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
+      SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
       //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
       break;
   }
@@ -892,7 +897,7 @@ int main(int argc, char** argv) {
   mousexyz = mrb_ary_new(mrb);
   pressedkeys = mrb_ary_new(mrb);
 
-  eval_static_libs(mrb, shmup, snake, box, kube, NULL);
+  eval_static_libs(mrb, simple_boxes, NULL);
 
   eval_static_libs(mrb, game_loop, NULL);
 
