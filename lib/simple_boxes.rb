@@ -21,7 +21,7 @@ def simple_boxes(gl)
 
       gl.twod {
         gl.draw_fps(10, 10)
-        cube.label((global_time) * 1000)
+        cube.label((global_time.to_i.to_s))
       }
     }
   }

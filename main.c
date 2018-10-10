@@ -579,12 +579,14 @@ static mrb_value label_model(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
+  int textSize = 5;
+
   Vector3 cubePosition = p_data->position;
 
   Vector2 cubeScreenPosition;
   cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y, cubePosition.z}, global_p_data->camera);
 
-  DrawText(c_label_txt, cubeScreenPosition.x - MeasureText(c_label_txt, 1) / 2, cubeScreenPosition.y, 1, p_data->label_color);
+  DrawText(c_label_txt, cubeScreenPosition.x - MeasureText(c_label_txt, textSize) / 2, cubeScreenPosition.y, textSize, p_data->label_color);
 
   return mrb_nil_value();
 }
