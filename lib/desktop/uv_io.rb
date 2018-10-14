@@ -1,7 +1,9 @@
 #
 
-class GameLoop
-  def prepare!
+class PlatformSpecificGameLoop < GameLoop
+  def initialize(*args)
+    super(*args)
+
     #@stdin = UV::Pipe.new
     #@stdin.open(0)
     #@stdin.read_start do |buf|
@@ -13,8 +15,7 @@ class GameLoop
     #    end
     #  end
     #end
-
-    self.init!
+    #self.init!
 
     @stdout = UV::Pipe.new
     @stdout.open(1)
