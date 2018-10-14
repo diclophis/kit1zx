@@ -26,7 +26,7 @@ class GameLoop
     #}
 
     @idle = UV::Timer.new
-    @idle.start(0, 10) {
+    @idle.start(3000, 10) {
       self.update
     }
 

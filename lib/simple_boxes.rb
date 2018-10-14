@@ -1,28 +1,32 @@
 #
 
-def simple_boxes(gl)
-  gl.prepare!
+Class.new(GameLoop) do
+  def initialize(*args)
+    super(*args)
 
-  size = 1.0
+    prepare!
+ 
+    size = 1.0
+ 
+    cube = Cube.new(size * 0.99, (1.0 * size) * 0.99, size * 0.99, 1.0)
+ 
+    lookat(1, 10.0, 15.0, 10.0, 1.0, 1.0, 1.0, 60.0)
+ 
+    main_loop { |gtdt|
+      global_time, delta_time = gtdt
 
-  cube = Cube.new(size * 0.99, (1.0 * size) * 0.99, size * 0.99, 1.0)
+      drawmode {
+        threed {
+          draw_grid(33, size * 2.0)
+          cube.deltap(3.0, 1.0, 1.0)
+          cube.draw(true)
+        }
 
-  gl.lookat(1, 10.0, 15.0, 10.0, 1.0, 1.0, 1.0, 60.0)
-
-  gl.main_loop { |gtdt|
-    global_time, delta_time = gtdt
-
-    gl.drawmode {
-      gl.threed {
-        gl.draw_grid(33, size * 2.0)
-        cube.deltap(3.0, 1.0, 1.0)
-        cube.draw(true)
-      }
-
-      gl.twod {
-        gl.draw_fps(10, 10)
-        cube.label((global_time.to_i.to_s))
+        twod {
+          draw_fps(10, 10)
+          cube.label((global_time.to_i.to_s))
+        }
       }
     }
-  }
-end
+  end
+end.new("kit1zx", 512, 512, 0)

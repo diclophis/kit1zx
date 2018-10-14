@@ -32,7 +32,7 @@
 #include "kube.h"
 #include "box.h"
 #include "simple_boxes.h"
-#include "init.h"
+#include "globals.h"
 #include "game_loop.h"
 
 #ifdef PLATFORM_DESKTOP
@@ -44,7 +44,8 @@
 
 
 typedef struct {
-  Camera camera;
+  Camera3D camera;
+  Camera2D cameraTwo;
   RenderTexture2D buffer_target;
   Vector2 mousePosition;
 } play_data_s;
@@ -416,7 +417,7 @@ static mrb_value draw_model(mrb_state* mrb, mrb_value self)
 }
 
 
-static mrb_value game_init(mrb_state* mrb, mrb_value self)
+static mrb_value game_loop_initialize(mrb_state* mrb, mrb_value self)
 {
   // Initialization
   mrb_value game_name = mrb_nil_value();
@@ -424,10 +425,9 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
 
   mrb_get_args(mrb, "oiii", &game_name, &screenWidth, &screenHeight, &screenFps);
 
-  const char *c_game_name = mrb_string_value_cstr(mrb, &game_name);
+fprintf(stderr, "foop\n");
 
-  //SetConfigFlags(FLAG_MSAA_4X_HINT);
-  InitWindow(screenWidth, screenHeight, c_game_name);
+  const char *c_game_name = mrb_string_value_cstr(mrb, &game_name);
 
   play_data_s *p_data;
 
@@ -437,23 +437,31 @@ static mrb_value game_init(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not allocate @data");
   }
 
-  p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
+fprintf(stderr, "foop 2222\n");
+
+  //p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
 
   mrb_iv_set(
       mrb, self, mrb_intern_lit(mrb, "@pointer"), // set @data
       mrb_obj_value(                           // with value hold in struct
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
 
+fprintf(stderr, "foop 3333\n");
+
   mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@left_over_bits"), mrb_str_new_cstr(mrb, ""));
   mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@global_counter"), mrb_fixnum_value(0));
 
-#ifndef PLATFORM_WEB
-
-  SetTargetFPS(screenFps);
-
-#endif
+fprintf(stderr, "foop 4444\n");
 
   global_gl = self;
+
+fprintf(stderr, "foop 5555\n");
+
+  InitWindow(512, 512, c_game_name);
+
+  SetTargetFPS(0);
+
+fprintf(stderr, "foop 5555\n");
 
   return self;
 }
@@ -629,12 +637,9 @@ static mrb_value draw_fps(mrb_state* mrb, mrb_value self)
 }
 
 
-void UpdateDrawFrameVoid(void) {
-  mrb_funcall(global_mrb, global_gl, "update", 0, NULL);
-}
-
-
 static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
+  //fprintf(stderr, "WTF!!");
+
 #ifdef PLATFORM_DESKTOP
   if (WindowShouldClose()) {
     mrb_funcall(mrb, self, "spindown!", 0, NULL);
@@ -646,6 +651,8 @@ static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
 
   time = GetTime();
   dt = GetFrameTime();
+
+  //fprintf(stderr, "use array!! %d", &gtdt);
 
   mrb_ary_set(global_mrb, gtdt, 0, mrb_float_value(global_mrb, time));
   mrb_ary_set(global_mrb, gtdt, 1, mrb_float_value(global_mrb, dt));
@@ -662,6 +669,11 @@ static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
 }
 
 
+void UpdateDrawFrameVoid(void) {
+  UpdateDrawFrame(global_mrb, global_gl);
+}
+
+
 #ifdef PLATFORM_WEB
 EM_JS(int, start_connection, (), {
   return startConnection("ws://localhost:8081/ws");
@@ -670,6 +682,8 @@ EM_JS(int, start_connection, (), {
 
 static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 {
+  fprintf(stderr, "foooooop 000");
+
   //TODO: fix this hack???
   global_mrb = mrb;
 
@@ -686,17 +700,30 @@ static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 
   //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
 
+#ifndef PLATFORM_WEB
+
+  //SetConfigFlags(FLAG_MSAA_4X_HINT);
+  //InitWindow(screenWidth, screenHeight, c_game_name);
+
+
+#endif
+
+fprintf(stderr, "boop\n");
+
 #ifdef PLATFORM_WEB
   start_connection();
   emscripten_set_main_loop(UpdateDrawFrameVoid, 0, 1);
 #else
   // Main game loop
-  //while (!WindowShouldClose()) // Detect window close button or ESC key
-  //{
-  //  UpdateDrawFrame();
-  //}
+  while (!WindowShouldClose()) // Detect window close button or ESC key
+  {
+    //UpdateDrawFrame();
+    UpdateDrawFrameVoid();
+  }
 
-  WindowShouldClose();
+  //WindowShouldClose();
+
+  fprintf(stderr, "CHEESE\n");
 
   mrb_funcall(mrb, self, "spinlock!", 0, NULL);
 
@@ -746,6 +773,13 @@ static mrb_value lookat(mrb_state* mrb, mrb_value self)
 
   p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
   p_data->camera.fovy = fovy;                                 // Camera field-of-view Y
+
+  p_data->cameraTwo.target = (Vector2){ 0, 0 };
+  p_data->cameraTwo.offset = (Vector2){ 0, 0 };
+  p_data->cameraTwo.rotation = 0.0f;
+  p_data->cameraTwo.zoom = 1.0f;
+
+fprintf(stderr, "LOOKAT");
 
   return mrb_nil_value();
 }
@@ -835,11 +869,11 @@ static mrb_value twod(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
-  //BeginMode2D(p_data->camera);
+  BeginMode2D(p_data->cameraTwo);
 
   mrb_yield_argv(mrb, block, 0, NULL);
 
-  //EndMode2D();
+  EndMode2D();
 
   return mrb_nil_value();
 }
@@ -866,7 +900,7 @@ int main(int argc, char** argv) {
   mrb_define_global_const(mrb, "ARGV", args);
 
   struct RClass *game_class = mrb_define_class(mrb, "GameLoop", mrb->object_class);
-  mrb_define_method(mrb, game_class, "initialize", game_init, MRB_ARGS_NONE());
+  mrb_define_method(mrb, game_class, "initialize", game_loop_initialize, MRB_ARGS_REQ(4));
   mrb_define_method(mrb, game_class, "lookat", lookat, MRB_ARGS_REQ(8));
   mrb_define_method(mrb, game_class, "draw_grid", draw_grid, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, game_class, "draw_plane", draw_plane, MRB_ARGS_REQ(5));
@@ -896,10 +930,11 @@ int main(int argc, char** argv) {
   mrb_define_method(mrb, sphere_class, "initialize", sphere_init, MRB_ARGS_REQ(4));
 
   gtdt = mrb_ary_new(mrb);
+  fprintf(stderr, "set array!! %d\n", &gtdt);
   mousexyz = mrb_ary_new(mrb);
   pressedkeys = mrb_ary_new(mrb);
 
-  eval_static_libs(mrb, shmup, snake, box, kube, simple_boxes, NULL);
+  eval_static_libs(mrb, globals, NULL);
 
   eval_static_libs(mrb, game_loop, NULL);
 
@@ -907,17 +942,9 @@ int main(int argc, char** argv) {
   eval_static_libs(mrb, uv_io, NULL);
 #endif
 
-  eval_static_libs(mrb, init, NULL);
+  //eval_static_libs(mrb, shmup, snake, box, kube, simple_boxes, NULL);
 
-/*
-  FILE *fd = fopen("/dev/stdin", "r"); //fcntl(STDIN_FILENO,  F_DUPFD, 0);
-  mrbc_context *detective_file = mrbc_context_new(mrb);
-  mrbc_filename(mrb, detective_file, "STDIN");
-  ret = mrb_parse_file(mrb, fd, detective_file);
-  mrbc_context_free(mrb, detective_file);
-  fclose(fd);
-  if_exception_error_and_exit(mrb, "Exception in STDIN\n");
-*/
+  eval_static_libs(mrb, simple_boxes, NULL);
 
   mrb_close(mrb);
 
