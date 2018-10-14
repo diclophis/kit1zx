@@ -1,16 +1,15 @@
 #
 
-Class.new(GameLoop) do
+class SimpleCube < GameLoop
   def initialize(*args)
     super(*args)
-
     prepare!
  
     size = 1.0
  
     cube = Cube.new(size * 0.99, (1.0 * size) * 0.99, size * 0.99, 1.0)
  
-    lookat(1, 10.0, 15.0, 10.0, 1.0, 1.0, 1.0, 60.0)
+    lookat(1, 10.0, 5.0, 10.0, 1.0, 1.0, 1.0, 60.0)
  
     main_loop { |gtdt|
       global_time, delta_time = gtdt
@@ -18,7 +17,7 @@ Class.new(GameLoop) do
       drawmode {
         threed {
           draw_grid(33, size * 2.0)
-          cube.deltap(3.0, 1.0, 1.0)
+          cube.deltap(Math.sin(global_time), 1.0, 1.0)
           cube.draw(true)
         }
 
@@ -29,4 +28,6 @@ Class.new(GameLoop) do
       }
     }
   end
-end.new("kit1zx", 512, 512, 0)
+end
+
+SimpleCube.new("kit1zx", 512, 512, 61)

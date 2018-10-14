@@ -770,6 +770,20 @@ int GetScreenHeight(void)
     return screenHeight;
 }
 
+// Get current screen width
+int GetMonitorWidth(void)
+{
+    const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    return mode->width;
+}
+
+// Get current screen height
+int GetMonitorHeight(void)
+{
+    const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    return mode->height;
+}
+
 // Show mouse cursor
 void ShowCursor()
 {

@@ -133,8 +133,8 @@ static void model_data_destructor(mrb_state *mrb, void *p_) {
   model_data_s *pd = (model_data_s *)p_;
 
   //// De-Initialization
-  //UnloadTexture(pd->texture);     // Unload texture
-  //UnloadModel(pd->model);         // Unload model
+  UnloadTexture(pd->texture);     // Unload texture
+  UnloadModel(pd->model);         // Unload model
 
   mrb_free(mrb, pd);
 };
@@ -425,8 +425,6 @@ static mrb_value game_loop_initialize(mrb_state* mrb, mrb_value self)
 
   mrb_get_args(mrb, "oiii", &game_name, &screenWidth, &screenHeight, &screenFps);
 
-fprintf(stderr, "foop\n");
-
   const char *c_game_name = mrb_string_value_cstr(mrb, &game_name);
 
   play_data_s *p_data;
@@ -437,8 +435,6 @@ fprintf(stderr, "foop\n");
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not allocate @data");
   }
 
-fprintf(stderr, "foop 2222\n");
-
   //p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
 
   mrb_iv_set(
@@ -446,22 +442,29 @@ fprintf(stderr, "foop 2222\n");
       mrb_obj_value(                           // with value hold in struct
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
 
-fprintf(stderr, "foop 3333\n");
-
   mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@left_over_bits"), mrb_str_new_cstr(mrb, ""));
   mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@global_counter"), mrb_fixnum_value(0));
 
-fprintf(stderr, "foop 4444\n");
-
   global_gl = self;
 
-fprintf(stderr, "foop 5555\n");
+  InitWindow(screenWidth, screenHeight, c_game_name);
 
-  InitWindow(512, 512, c_game_name);
+  global_p_data = p_data;
 
-  SetTargetFPS(0);
+  //// Main game loop
+  BeginDrawing();
+    UpdateCamera(&p_data->camera);
+    BeginMode3D(p_data->camera);
+    EndMode3D();
+    BeginMode2D(p_data->cameraTwo);
+    EndMode2D();
+  EndDrawing();
 
-fprintf(stderr, "foop 5555\n");
+#ifdef PLATFORM_DESKTOP
+  SetWindowPosition((GetMonitorWidth() - GetScreenWidth())/2, ((GetMonitorHeight() - GetScreenHeight())/2)+1);
+  SetWindowMonitor(0);
+  SetTargetFPS(screenFps);
+#endif
 
   return self;
 }
@@ -587,14 +590,14 @@ static mrb_value label_model(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
-  int textSize = 5;
+  float textSize = 5.0;
 
   Vector3 cubePosition = p_data->position;
 
   Vector2 cubeScreenPosition;
   cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y, cubePosition.z}, global_p_data->camera);
 
-  DrawText(c_label_txt, cubeScreenPosition.x - MeasureText(c_label_txt, textSize) / 2, cubeScreenPosition.y, textSize, p_data->label_color);
+  DrawText(c_label_txt, cubeScreenPosition.x - (float)MeasureText(c_label_txt, textSize) / 2.0, cubeScreenPosition.y, textSize, p_data->label_color);
 
   return mrb_nil_value();
 }
@@ -638,7 +641,6 @@ static mrb_value draw_fps(mrb_state* mrb, mrb_value self)
 
 
 static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
-  //fprintf(stderr, "WTF!!");
 
 #ifdef PLATFORM_DESKTOP
   if (WindowShouldClose()) {
@@ -651,8 +653,6 @@ static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
 
   time = GetTime();
   dt = GetFrameTime();
-
-  //fprintf(stderr, "use array!! %d", &gtdt);
 
   mrb_ary_set(global_mrb, gtdt, 0, mrb_float_value(global_mrb, time));
   mrb_ary_set(global_mrb, gtdt, 1, mrb_float_value(global_mrb, dt));
@@ -673,7 +673,6 @@ void UpdateDrawFrameVoid(void) {
   UpdateDrawFrame(global_mrb, global_gl);
 }
 
-
 #ifdef PLATFORM_WEB
 EM_JS(int, start_connection, (), {
   return startConnection("ws://localhost:8081/ws");
@@ -682,51 +681,16 @@ EM_JS(int, start_connection, (), {
 
 static mrb_value main_loop(mrb_state* mrb, mrb_value self)
 {
-  fprintf(stderr, "foooooop 000");
-
   //TODO: fix this hack???
   global_mrb = mrb;
 
   mrb_get_args(mrb, "&", &global_block);
 
-  //play_data_s *p_data = NULL;
-  //mrb_value data_value;     // this IV holds the data
-  global_data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, global_data_value, &play_data_type, global_p_data);
-  if (!global_p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
-
-#ifndef PLATFORM_WEB
-
-  //SetConfigFlags(FLAG_MSAA_4X_HINT);
-  //InitWindow(screenWidth, screenHeight, c_game_name);
-
-
-#endif
-
-fprintf(stderr, "boop\n");
-
 #ifdef PLATFORM_WEB
   start_connection();
   emscripten_set_main_loop(UpdateDrawFrameVoid, 0, 1);
 #else
-  // Main game loop
-  while (!WindowShouldClose()) // Detect window close button or ESC key
-  {
-    //UpdateDrawFrame();
-    UpdateDrawFrameVoid();
-  }
-
-  //WindowShouldClose();
-
-  fprintf(stderr, "CHEESE\n");
-
   mrb_funcall(mrb, self, "spinlock!", 0, NULL);
-
 #endif
 
   CloseWindow(); // Close window and OpenGL context
@@ -762,7 +726,6 @@ static mrb_value lookat(mrb_state* mrb, mrb_value self)
       break;
     case 1:
       p_data->camera.type = CAMERA_PERSPECTIVE;
-      //SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
       //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
       break;
   }
@@ -771,15 +734,15 @@ static mrb_value lookat(mrb_state* mrb, mrb_value self)
   p_data->camera.position = (Vector3){ px, py, pz };    // Camera position
   p_data->camera.target = (Vector3){ tx, ty, tz };      // Camera looking at point
 
-  p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-  p_data->camera.fovy = fovy;                                 // Camera field-of-view Y
+  p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };    // Camera up vector (rotation towards target)
+  p_data->camera.fovy = fovy;                           // Camera field-of-view Y
 
   p_data->cameraTwo.target = (Vector2){ 0, 0 };
   p_data->cameraTwo.offset = (Vector2){ 0, 0 };
   p_data->cameraTwo.rotation = 0.0f;
   p_data->cameraTwo.zoom = 1.0f;
 
-fprintf(stderr, "LOOKAT");
+  SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
 
   return mrb_nil_value();
 }
@@ -930,7 +893,6 @@ int main(int argc, char** argv) {
   mrb_define_method(mrb, sphere_class, "initialize", sphere_init, MRB_ARGS_REQ(4));
 
   gtdt = mrb_ary_new(mrb);
-  fprintf(stderr, "set array!! %d\n", &gtdt);
   mousexyz = mrb_ary_new(mrb);
   pressedkeys = mrb_ary_new(mrb);
 
