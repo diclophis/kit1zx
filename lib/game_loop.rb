@@ -1,6 +1,18 @@
 #
 
 class GameLoop
+  def create_websocket_connection
+    @websocket_singleton_proc = Proc.new { |bytes|
+      yield bytes
+    }
+  end
+
+  def feed_state!(bytes)
+    if @websocket_singleton_proc
+      @websocket_singleton_proc.call(bytes)
+    end
+  end
+
   def process_as_msgpack_stream(bytes)
     all_bits_to_consider = (@left_over_bits || "") + bytes
     all_l = all_bits_to_consider.length

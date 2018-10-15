@@ -87,6 +87,7 @@ EMSCRIPTEN_KEEPALIVE
 size_t debug_print(const char* buf, size_t n) {
   mrb_value cstrlikebuf = mrb_str_new(global_mrb, buf, n);
   mrb_funcall(global_mrb, global_gl, "feed_state!", 1, cstrlikebuf);
+  //???? mrb_yield_argv(mrb, block, 1, cstrlikebuf);
   return 0;
 }
 
