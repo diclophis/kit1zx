@@ -2,9 +2,9 @@
 
 class GameLoop
   def create_websocket_connection
-    #@websocket_singleton_proc = Proc.new { |bytes|
-    #  yield bytes
-    #}
+    @websocket_singleton_proc = Proc.new { |bytes|
+      yield bytes
+    }
   end
 
   def feed_state!(bytes)
@@ -25,5 +25,17 @@ class GameLoop
     end
 
     @left_over_bits = all_bits_to_consider[unpacked_length, all_l]
+  end
+
+  def log!(*args)
+    puts (args.inspect)
+  end
+
+  def spinlock!
+    puts :spinlock
+  end
+
+  def spindown!
+    puts :spindown
   end
 end
