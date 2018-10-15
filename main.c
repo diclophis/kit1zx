@@ -39,6 +39,9 @@
 #include "uv_io.h"
 #endif
 
+#ifdef PLATFORM_WEB
+#include "direct.h"
+#endif
 
 #define FLT_MAX 3.40282347E+38F
 
@@ -902,6 +905,10 @@ int main(int argc, char** argv) {
 
 #ifdef PLATFORM_DESKTOP
   eval_static_libs(mrb, uv_io, NULL);
+#endif
+
+#ifdef PLATFORM_WEB
+  eval_static_libs(mrb, direct, NULL);
 #endif
 
   //eval_static_libs(mrb, shmup, snake, box, kube, simple_boxes, NULL);

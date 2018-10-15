@@ -5,6 +5,8 @@ set -x
 
 cd /root/emsdk
 
+./emsdk activate latest
+
 . ./emsdk_env.sh
 
 echo '#include <stdio.h>' > /var/tmp/emscripten.c

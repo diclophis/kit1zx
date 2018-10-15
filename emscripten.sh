@@ -15,4 +15,3 @@ cd emsdk
 ./emsdk update || git pull
 
 ./emsdk install latest
-./emsdk activate latest
