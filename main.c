@@ -1,5 +1,7 @@
 // simple mruby/raylib game
 
+#define GAME_LIB snake
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -913,7 +915,7 @@ int main(int argc, char** argv) {
 
   //eval_static_libs(mrb, shmup, snake, box, kube, simple_boxes, NULL);
 
-  eval_static_libs(mrb, simple_boxes, NULL);
+  eval_static_libs(mrb, GAME_LIB, NULL);
 
   mrb_close(mrb);
 

@@ -26,4 +26,4 @@ class SimpleCube < PlatformSpecificGameLoop
   end
 end
 
-SimpleCube.new("kit1zx", 512, 512, 61).play
+SimpleCube.new("simple_cube", 512, 512, 0).play
