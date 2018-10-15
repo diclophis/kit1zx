@@ -1,24 +1,17 @@
 #
 
 class GameLoop
-#
-#
-#  def init!
-#  end
-#
-#  def prepare!
-#    self.init!
-#  end
-#
-#  def spinlock!
-#  end
-#
-#  def spindown!
-#  end
-#
-#  def log!(*args)
-#    puts args.inspect
-#  end
-#
-#  end
+  def process_as_msgpack_stream(bytes)
+    all_bits_to_consider = (@left_over_bits || "") + bytes
+    all_l = all_bits_to_consider.length
+
+    small_subset_to_consider = all_bits_to_consider[0, 40960]
+    considered_subset_length = small_subset_to_consider.length
+
+    unpacked_length = MessagePack.unpack(small_subset_to_consider) do |result|
+      yield result if result
+    end
+
+    @left_over_bits = all_bits_to_consider[unpacked_length, all_l]
+  end
 end

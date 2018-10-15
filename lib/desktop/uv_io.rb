@@ -32,7 +32,7 @@ class PlatformSpecificGameLoop < GameLoop
     }
   end
 
-  def create_websocket_msgpack_connection
+  def create_websocket_connection
     wslay_callbacks = Wslay::Event::Callbacks.new
 
     @last_buf = nil
