@@ -29,6 +29,7 @@ class Connection
   def disconnect!
     self.timer.stop
     self.socket.close
+    #$stdout.write("x")
   end
 
   def handle_bytes!(b)
@@ -153,7 +154,8 @@ class Server
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when there is nothing to read
       nc.last_buf
     end
-    
+
+    #TODO: this is where the client msgs are recvd
     nc.wslay_callbacks.on_msg_recv_callback do |msg|
       # when a WebSocket msg is fully recieved this callback is called
       # you get a Wslay::Event::OnMsgRecvArg Struct back with the following fields
@@ -191,6 +193,7 @@ class Server
       begin
         nc.socket.try_write(buf)
       rescue UVError => e
+        nc.disconnect!
         0
       end
     end

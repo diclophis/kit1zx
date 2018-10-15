@@ -12,7 +12,9 @@ class SocketStream
 
   def disconnect!
     @connected = false
-    @socket.unref if @socket
+    if @socket
+      @socket.unref
+    end
   end
 
   def connect!
