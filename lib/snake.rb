@@ -74,7 +74,7 @@ class Snake < PlatformSpecificGameLoop
 
       if player_position
         #camera_index = ((global_time * 0.25).to_i % 3)
-        camera_index = 2
+        camera_index = 0
 
         case camera_index
           when 0
@@ -130,7 +130,7 @@ class Snake < PlatformSpecificGameLoop
 
           player.draw(false)
 
-          draw_grid(1000, size)
+          draw_grid(10, size)
           draw_plane(0.0, -half_size, 0.0, 1000.0, 1000.0)
         }
 
