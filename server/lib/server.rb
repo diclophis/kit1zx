@@ -40,10 +40,17 @@ class Connection
         #unless WebSocket.create_accept(key).securecmp(phr.headers.to_h.fetch('sec-websocket-accept'))
         #   raise Error, "Handshake failure"
         #end
-				self.write_ws_response!
+
+        sec_websocket_key = self.phr.headers.detect { |k,v|
+          k == "sec-websocket-key"
+        }[1]
+
+        #$stdout.write(sec_websocket_key)
+
+				self.write_ws_response!(sec_websocket_key)
 
         self.timer = UV::Timer.new
-        self.timer.start(1000, 5000) {
+        self.timer.start(1000, 1000) {
           $stdout.write(".")
           $did_timer += 1
           if @pos_t > 0
@@ -57,8 +64,15 @@ class Connection
           msg = MessagePack.pack({"globalPlayerLocation"=>{"X"=>@pos_x, "Y"=>@pos_y}})
         #  #msg = ("cheese" * 1024)
         #  #$stdout.write("doing #{msg.inspect} tick")
-          self.client.queue_msg(msg, :binary_frame)
-          outg = self.client.send
+          begin
+            self.client.queue_msg(msg, :binary_frame)
+            outg = self.client.send
+          rescue Wslay::Err => e
+            $stdout.write("closeD")
+            self.timer.stop
+            self.socket.close
+            $stdout.write("closeD2")
+          end
         #  #$stdout.write("done tick #{outg.inspect}")
         }
 
@@ -88,9 +102,17 @@ class Connection
     end
   end
 
-  def write_ws_response!
-    key = B64.encode(Sysrandom.buf(16)).chomp!
+  def write_ws_response!(sec_websocket_key)
+    key = WebSocket.create_accept(sec_websocket_key)
+
+    #B64.encode(Sysrandom.buf(16)).chomp!
+    #The Sec-WebSocket-Accept part is interesting.
+    #The server must derive it from the Sec-WebSocket-Key that the client sent.
+    #To get it, concatenate the client's Sec-WebSocket-Key and "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" together
+    #(it's a "magic string"), take the SHA-1 hash of the result, and return the base64 encoding of the hash.
+
     self.socket.write("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: #{key}\r\n\r\n")
+    #self.socket.write("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n")
   end
 end
 
