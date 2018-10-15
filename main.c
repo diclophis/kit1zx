@@ -447,9 +447,6 @@ static mrb_value game_loop_initialize(mrb_state* mrb, mrb_value self)
       mrb_obj_value(                           // with value hold in struct
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
 
-  mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@left_over_bits"), mrb_str_new_cstr(mrb, ""));
-  mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@global_counter"), mrb_fixnum_value(0));
-
   global_gl = self;
 
   InitWindow(screenWidth, screenHeight, c_game_name);

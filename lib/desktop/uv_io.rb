@@ -30,8 +30,9 @@ class PlatformSpecificGameLoop < GameLoop
     @idle.start(0, 9) {
       self.update
     }
+  end
 
-=begin
+  def create_websocket_msgpack_connection
     wslay_callbacks = Wslay::Event::Callbacks.new
 
     @last_buf = nil
@@ -63,7 +64,8 @@ class PlatformSpecificGameLoop < GameLoop
       #log!(:raw, msg)
 
       if msg[:opcode] == :binary_frame
-        self.feed_state!(msg[:msg])
+        #self.feed_state!(msg[:msg])
+        yield msg[:msg]
       end
     end
 
@@ -112,7 +114,6 @@ class PlatformSpecificGameLoop < GameLoop
     }
 
     restart_connection!
-=end
   end
 
   def restart_connection!
