@@ -26,6 +26,11 @@ class Connection
     @pos_t = 1
   end
 
+  def disconnect!
+    self.timer.stop
+    self.socket.close
+  end
+
   def handle_bytes!(b)
     if self.processing_handshake
       self.ss += b
@@ -68,10 +73,7 @@ class Connection
             self.client.queue_msg(msg, :binary_frame)
             outg = self.client.send
           rescue Wslay::Err => e
-            $stdout.write("closeD")
-            self.timer.stop
-            self.socket.close
-            $stdout.write("closeD2")
+            self.disconnect!
           end
         #  #$stdout.write("done tick #{outg.inspect}")
         }

@@ -1,38 +1,21 @@
 #
 
-class PlatformSpecificGameLoop < GameLoop
-  def initialize(*args)
-    super(*args)
+class SocketStream
+  attr_accessor :connected
+  attr_accessor :got_bytes_block
 
-    #@stdin = UV::Pipe.new
-    #@stdin.open(0)
-    #@stdin.read_start do |buf|
-    #  if buf.is_a?(UVError)
-    #    log!(buf)
-    #  else
-    #    if buf && buf.length
-    #      self.feed_state!(buf)
-    #    end
-    #  end
-    #end
-    #self.init!
-
-    @stdout = UV::Pipe.new
-    @stdout.open(1)
-    @stdout.read_stop
-
-    #@idle = UV::Idle.new
-    #@idle.start { |x|
-    #  self.update
-    #}
-
-    @idle = UV::Timer.new
-    @idle.start(0, 9) {
-      self.update
-    }
+  def initialize(gl, got_bytes_block)
+    @gl = gl
+    @got_bytes_block = got_bytes_block
+    @connected = true
   end
 
-  def create_websocket_connection
+  def disconnect!
+    @connected = false
+    @socket.unref if @socket
+  end
+
+  def connect!
     wslay_callbacks = Wslay::Event::Callbacks.new
 
     @last_buf = nil
@@ -64,8 +47,9 @@ class PlatformSpecificGameLoop < GameLoop
       #log!(:raw, msg)
 
       if msg[:opcode] == :binary_frame
+        #NOTE!!!!!!! get back to this refactor
         #self.feed_state!(msg[:msg])
-        yield msg[:msg]
+        @got_bytes_block.call(msg[:msg])
       end
     end
 
@@ -87,7 +71,7 @@ class PlatformSpecificGameLoop < GameLoop
 
     on_read_start = Proc.new { |b|
       if b && b.is_a?(UVError)
-        log!(b)
+        @gl.log!(b)
         restart_connection!
       else
         if b && b.is_a?(String)
@@ -97,9 +81,9 @@ class PlatformSpecificGameLoop < GameLoop
     }
 
     on_connect = Proc.new { |connection_broken_status|
-      log!(:FOOOOO)
+      @gl.log!(:FOOOOO)
       if connection_broken_status
-        log!(:broken, connection_broken_status)
+        @gl.log!(:broken, connection_broken_status)
       else
         @t.stop
         write_ws_request!
@@ -129,7 +113,7 @@ class PlatformSpecificGameLoop < GameLoop
       offset = @phr.parse_response(@ss)
       case offset
       when Fixnum
-        log!(@phr.headers)
+        @gl.log!(@phr.headers)
         #TODO???
         #unless WebSocket.create_accept(key).securecmp(phr.headers.to_h.fetch('sec-websocket-accept'))
         #   raise Error, "Handshake failure"
@@ -138,20 +122,20 @@ class PlatformSpecificGameLoop < GameLoop
         @last_buf = @ss[offset..-1]
         proto_ok = (@client.recv != :proto)
         unless proto_ok
-          log!(:wslay_handshake_proto_error)
+          @gl.log!(:wslay_handshake_proto_error)
           @socket.close
         end
       when :incomplete
-        log!("incomplete")
+        @gl.log!("incomplete")
       when :parser_error
-        log!(:parser_error, offset)
+        @gl.log!(:parser_error, offset)
         spindown!
       end
     else
       @last_buf = b
       proto_ok = (@client.recv != :proto)
       unless proto_ok
-        log!(:wslay_handshake_proto_error)
+        @gl.log!(:wslay_handshake_proto_error)
         @socket.close
       end
     end
@@ -165,8 +149,46 @@ class PlatformSpecificGameLoop < GameLoop
   def write_ws_request!
     path = "/ws"
     key = B64.encode(Sysrandom.buf(16)).chomp!
-    log!(@address)
+    @gl.log!(@address)
     @socket.write("GET #{path} HTTP/1.1\r\nHost: #{@address.sin_addr}:#{@address.sin_port}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: #{key}\r\n\r\n")
+  end
+end
+
+class PlatformSpecificGameLoop < GameLoop
+  def initialize(*args)
+    super(*args)
+
+    #TODO: make stdin abstraction???
+    #@stdin = UV::Pipe.new
+    #@stdin.open(0)
+    #@stdin.read_start do |buf|
+    #  if buf.is_a?(UVError)
+    #    log!(buf)
+    #  else
+    #    if buf && buf.length
+    #      self.feed_state!(buf)
+    #    end
+    #  end
+    #end
+    #self.init!
+
+    @stdout = UV::Pipe.new
+    @stdout.open(1)
+    @stdout.read_stop
+
+    @idle = UV::Timer.new
+    @idle.start(0, 9) {
+      self.update
+    }
+
+    @all_connections = []
+  end
+
+  def create_websocket_connection(&block)
+    ss = SocketStream.new(self, block)
+    @all_connections << ss
+    ss.connect!
+    ss
   end
 
   def log!(*args)
@@ -183,7 +205,8 @@ class PlatformSpecificGameLoop < GameLoop
     @idle.unref if @idle
     @stdin.unref if @stdin
     @stdout.unref if @stdout
-    @socket.unref if @socket
+    @all_connections.each { |ss|
+      ss.disconnect!
+    }
   end
 end
-

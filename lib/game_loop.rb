@@ -1,10 +1,19 @@
 #
 
+class SocketStream
+  def disconnect!
+  end
+end
+
 class GameLoop
   def create_websocket_connection
+    ss = SocketStream.new
+
     @websocket_singleton_proc = Proc.new { |bytes|
       yield bytes
     }
+
+    ss
   end
 
   def feed_state!(bytes)

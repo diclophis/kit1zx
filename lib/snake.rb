@@ -33,7 +33,7 @@ class Snake < PlatformSpecificGameLoop
 
     global_counter = 0
 
-    create_websocket_connection { |bytes|
+    socket_stream = create_websocket_connection { |bytes|
       process_as_msgpack_stream(bytes) { |result|
         global_counter += 1
         log!(result)
@@ -143,6 +143,8 @@ class Snake < PlatformSpecificGameLoop
         }
       }
     }
+
+    socket_stream.disconnect!
   end
 end
 
