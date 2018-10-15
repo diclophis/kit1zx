@@ -92,54 +92,54 @@ class Snake < PlatformSpecificGameLoop
 
       drawmode {
         threed {
-          if player_position
-            player.deltap(*player_position)
-            player.yawpitchroll(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-          end
+          #if player_position
+          #  player.deltap(*player_position)
+          #  player.yawpitchroll(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+          #end
 
-          global_state["coordinates"].each { |coord, item|
-            coord_ab = coord.split(",")
-            coord_x = coord_ab[0].to_i
-            coord_z = coord_ab[1].to_i
-            coord_i = (coord_x * coord_z)
-            coord_m = coord_i % crystals.length
+          #global_state["coordinates"].each { |coord, item|
+          #  coord_ab = coord.split(",")
+          #  coord_x = coord_ab[0].to_i
+          #  coord_z = coord_ab[1].to_i
+          #  coord_i = (coord_x * coord_z)
+          #  coord_m = coord_i % crystals.length
 
-            if item && item["Paint"] && item["Paint"]["Type"] && item["Paint"]["Type"] == "paint"
-              case item["Paint"]["TerrainType"]
-                when "rock"
-                  if item["Paint"]["Permeable"]
-                  else
-                    crystals[coord_m].deltap(coord_x, 0, coord_z)
-                    crystals[coord_m].draw(false)
-                  end
-              end
-            end
+          #  if item && item["Paint"] && item["Paint"]["Type"] && item["Paint"]["Type"] == "paint"
+          #    case item["Paint"]["TerrainType"]
+          #      when "rock"
+          #        if item["Paint"]["Permeable"]
+          #        else
+          #          crystals[coord_m].deltap(coord_x, 0, coord_z)
+          #          crystals[coord_m].draw(false)
+          #        end
+          #    end
+          #  end
 
-            item && item["Items"] && item["Items"]["ItemStacks"].each { |stacked_item|
-              case stacked_item["ItemType"]
-              when "coin"
-                coin.yawpitchroll((global_time + (coord_i)) * 100.0, 0.0, 0.0, 0.0, 10.0, 0.0)
-                coin_height_time_factor = (global_time.to_f + (coord_i.to_f) * 333.0)
-                coin_height = ((Math.sin(coin_height_time_factor) + 1.0) * 0.125)
-                coin.deltap(coord_x, coin_height, coord_z)
+          #  item && item["Items"] && item["Items"]["ItemStacks"].each { |stacked_item|
+          #    case stacked_item["ItemType"]
+          #    when "coin"
+          #      coin.yawpitchroll((global_time + (coord_i)) * 100.0, 0.0, 0.0, 0.0, 10.0, 0.0)
+          #      coin_height_time_factor = (global_time.to_f + (coord_i.to_f) * 333.0)
+          #      coin_height = ((Math.sin(coin_height_time_factor) + 1.0) * 0.125)
+          #      coin.deltap(coord_x, coin_height, coord_z)
 
-                coin.draw(false)
-              end
-            }
-          }
+          #      coin.draw(false)
+          #    end
+          #  }
+          #}
 
-          player.draw(false)
+          #player.draw(false)
 
-          draw_grid(1000, size)
-          draw_plane(0.0, -half_size, 0.0, 1000.0, 1000.0)
+          #draw_grid(1000, size)
+          #draw_plane(0.0, -half_size, 0.0, 1000.0, 1000.0)
         }
 
         twod {
           draw_fps(10, 10)
 
-          if player_position
-            player.label(player_txt)
-          end
+          #if player_position
+          #  player.label(player_txt)
+          #end
         }
       }
     }
