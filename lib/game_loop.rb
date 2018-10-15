@@ -1,6 +1,13 @@
 #
 
 class GameLoop
+  def trap_play
+    begin
+      play
+    rescue StandardError => e
+      puts e.inspect
+    end
+  end
 #
 #  attr_accessor :global_counter
 #  attr_accessor :global_state
