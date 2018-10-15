@@ -36,12 +36,12 @@ class Snake < PlatformSpecificGameLoop
     create_websocket_connection { |bytes|
       process_as_msgpack_stream(bytes) { |result|
         global_counter += 1
+        log!(result)
 
         if !global_state["globalPlayerLocation"]
           global_state["lastGlobalPlayerLocation"] = result["globalPlayerLocation"]
           global_state["globalPlayerLocation"] = result["globalPlayerLocation"]
         else
-          log!(result)
           global_state["lastGlobalPlayerLocation"] = global_state["globalPlayerLocation"]
           global_state["globalPlayerLocation"] = result["globalPlayerLocation"]
         end
@@ -74,7 +74,7 @@ class Snake < PlatformSpecificGameLoop
 
       if player_position
         #camera_index = ((global_time * 0.25).to_i % 3)
-        camera_index = 1
+        camera_index = 2
 
         case camera_index
           when 0
@@ -92,10 +92,10 @@ class Snake < PlatformSpecificGameLoop
 
       drawmode {
         threed {
-          #if player_position
-          #  player.deltap(*player_position)
-          #  player.yawpitchroll(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-          #end
+          if player_position
+            player.deltap(*player_position)
+            player.yawpitchroll(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+          end
 
           #global_state["coordinates"].each { |coord, item|
           #  coord_ab = coord.split(",")
@@ -128,10 +128,10 @@ class Snake < PlatformSpecificGameLoop
           #  }
           #}
 
-          #player.draw(false)
+          player.draw(false)
 
-          #draw_grid(1000, size)
-          #draw_plane(0.0, -half_size, 0.0, 1000.0, 1000.0)
+          draw_grid(1000, size)
+          draw_plane(0.0, -half_size, 0.0, 1000.0, 1000.0)
         }
 
         twod {
