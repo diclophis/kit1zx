@@ -1,5 +1,6 @@
 /* */
 
+/*
 function serializeMsgPack(data) {
   "use strict";
   var pow32 = 0x100000000;   // 2^32
@@ -453,6 +454,7 @@ function deserializeMsgPack(array) {
     return str;
   }
 }
+*/
 
 var Module = {
   preRun: [],

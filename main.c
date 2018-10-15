@@ -83,13 +83,22 @@ static mrb_value pressedkeys;
 
 #ifdef PLATFORM_WEB
 EMSCRIPTEN_KEEPALIVE
-#endif
 size_t debug_print(const char* buf, size_t n) {
   mrb_value cstrlikebuf = mrb_str_new(global_mrb, buf, n);
   mrb_funcall(global_mrb, global_gl, "feed_state!", 1, cstrlikebuf);
   //???? mrb_yield_argv(mrb, block, 1, cstrlikebuf);
   return 0;
 }
+
+// Function to trigger alerts straight from C++
+EMSCRIPTEN_KEEPALIVE
+void Alert(const char *msg) {
+  EM_ASM_ARGS({
+    var msg = Pointer_stringify($0); // Convert message to JS string
+    alert(msg);                      // Use JS version of alert
+  }, msg);
+}
+#endif
 
 
 static void if_exception_error_and_exit(mrb_state* mrb, char *context) {
