@@ -38,6 +38,12 @@ https://github.com/alChaCC/easy-box-packer
 
 https://github.com/mruby/mruby/blob/master/mrbgems/mruby-enum-ext/mrbgem.rake
 
+https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers
+
+https://github.com/Asmod4n/mruby-websockets/blob/9bb66308085acbeb727f8ef21979b7884d8fb322/src/mrb_websocket.c
+
+https://github.com/Asmod4n/mruby-secure-compare/blob/master/src/mrb_secure_compare.c
+
 # docker 
 
     docker build -f Dockerfile
