@@ -494,9 +494,6 @@ window.onerror = function(event) {
 };
 
 window.startConnection = function(wsUrl) {
-  console.log("foo bar");
-
-/*
   if (window["WebSocket"]) {
     var debug_print = Module.cwrap(
       'debug_print', 'number', ['number', 'number']
@@ -529,7 +526,6 @@ window.startConnection = function(wsUrl) {
   } else {
     console.log("Your browser does not support WebSockets.");
   }
-*/
 };
 
 window.makeMove = function(x, y) {

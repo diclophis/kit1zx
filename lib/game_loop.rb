@@ -2,9 +2,9 @@
 
 class GameLoop
   def create_websocket_connection
-    @websocket_singleton_proc = Proc.new { |bytes|
-      yield bytes
-    }
+    #@websocket_singleton_proc = Proc.new { |bytes|
+    #  yield bytes
+    #}
   end
 
   def feed_state!(bytes)
