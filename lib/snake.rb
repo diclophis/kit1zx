@@ -17,6 +17,8 @@ class Snake < PlatformSpecificGameLoop
     draw_count = 0
     player_txt = ""
 
+    global_time = 0
+
     size = 1.0
     half_size = size / 2.0
 
@@ -36,7 +38,8 @@ class Snake < PlatformSpecificGameLoop
     socket_stream = create_websocket_connection { |bytes|
       process_as_msgpack_stream(bytes) { |result|
         global_counter += 1
-        log!(result)
+
+        socket_stream.write({"foo" => global_time})
 
         if !global_state["globalPlayerLocation"]
           global_state["lastGlobalPlayerLocation"] = result["globalPlayerLocation"]

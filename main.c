@@ -745,7 +745,7 @@ static mrb_value lookat(mrb_state* mrb, mrb_value self)
   p_data->cameraTwo.rotation = 0.0f;
   p_data->cameraTwo.zoom = 1.0f;
 
-  SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
+  //SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
 
   return mrb_nil_value();
 }

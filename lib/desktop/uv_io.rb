@@ -52,12 +52,25 @@ class SocketStream
         #NOTE!!!!!!! get back to this refactor
         #self.feed_state!(msg[:msg])
         @got_bytes_block.call(msg[:msg])
+      else
+        log!(msg[:opcode])
       end
     end
 
     wslay_callbacks.send_callback do |buf|
       # when there is data to send, you have to return the bytes send here
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when sending would block
+      begin
+        if @socket
+          @socket.try_write(buf)
+        else
+          0
+        end
+      rescue UVError => e
+      #  self.disconnect!
+        @gl.log!(e)
+        0
+      end
     end
     
     @client = Wslay::Event::Context::Client.new wslay_callbacks
@@ -65,9 +78,6 @@ class SocketStream
 
     host = '127.0.0.1'
     port = 8081
-
-    #host = '174.129.224.73'
-    #port = 80
 
     @address = UV.ip4_addr(host, port)
 
@@ -83,7 +93,6 @@ class SocketStream
     }
 
     on_connect = Proc.new { |connection_broken_status|
-      @gl.log!(:FOOOOO)
       if connection_broken_status
         @gl.log!(:broken, connection_broken_status)
       else
@@ -154,6 +163,21 @@ class SocketStream
     @gl.log!(@address)
     @socket.write("GET #{path} HTTP/1.1\r\nHost: #{@address.sin_addr}:#{@address.sin_port}\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: #{key}\r\n\r\n")
   end
+
+  def write(msg_typed)
+    begin
+      if @client
+        msg = MessagePack.pack(msg_typed)
+        @gl.log!(msg_typed, msg)
+        @client.queue_msg(msg, :binary_frame)
+        outg = @client.send
+        @gl.log!(outg)
+        outg
+      end
+    rescue Wslay::Err => e
+      @gl.log!(e)
+    end
+  end
 end
 
 class PlatformSpecificGameLoop < GameLoop
@@ -179,7 +203,7 @@ class PlatformSpecificGameLoop < GameLoop
     @stdout.read_stop
 
     @idle = UV::Timer.new
-    @idle.start(0, 9) {
+    @idle.start(0, 33) {
       self.update
     }
 

@@ -4,11 +4,19 @@ def Integer(f)
   f.to_i
 end
 
+
 $stdout = UV::Pipe.new
 $stdout.open(1)
 $stdout.read_stop
-$did_handle_bytes = 0
-$did_timer = 0
+
+  def log!(*args)
+    $stdout.write(args.inspect + "\n") {
+      false
+    }
+  end
+
+#$did_handle_bytes = 0
+#$did_timer = 0
 
 class Connection
   attr_accessor :last_buf,
@@ -28,7 +36,7 @@ class Connection
 
   def disconnect!
     self.timer.stop
-    self.socket.close
+    self.socket.unref
     #$stdout.write("x")
   end
 
@@ -40,7 +48,7 @@ class Connection
       when Fixnum
         #$stdout.write(self.phr.headers.inspect)
 
-        $did_handle_bytes += 1
+        #$did_handle_bytes += 1
 
         #TODO???
         #unless WebSocket.create_accept(key).securecmp(phr.headers.to_h.fetch('sec-websocket-accept'))
@@ -57,8 +65,8 @@ class Connection
 
         self.timer = UV::Timer.new
         self.timer.start(1000, 1000) {
-          $stdout.write(".")
-          $did_timer += 1
+          #$stdout.write(".")
+          #$did_timer += 1
           if @pos_t > 0
             @pos_t *= -1
             @pos_x += 1
@@ -127,9 +135,9 @@ class Server
 
     @server = UV::TCP.new
     @server.bind(@address)
-    @server.listen(5) { |connection_error|
+    @server.listen(1) { |connection_error|
       if connection_error
-        #$stdout.write(connection_error.inspect)
+        log!(connection_error)
       else
         self.create_connection!
       end
@@ -152,7 +160,9 @@ class Server
       # or else return a mruby String or a object which can be converted into a String via to_str
       # and be up to len bytes long
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when there is nothing to read
-      nc.last_buf
+      throw_away_buf = nc.last_buf
+      nc.last_buf = nil
+      throw_away_buf
     end
 
     #TODO: this is where the client msgs are recvd
@@ -169,33 +179,34 @@ class Server
       # to_str => returns the message revieced
       if msg[:opcode] == :binary_frame
         #self.feed_state!(msg[:msg])
-        #$stdout.write(msg.inspect)
+        #$stdout.write(msg[:msg].inspect)
+
+        bytes = msg[:msg]
+
+        all_bits_to_consider = (@left_over_bits || "") + bytes
+        all_l = all_bits_to_consider.length
+
+        small_subset_to_consider = all_bits_to_consider[0, 40960]
+        considered_subset_length = small_subset_to_consider.length
+
+        unpacked_length = MessagePack.unpack(small_subset_to_consider) do |result|
+          log!(result) if result
+        end
+
+        @left_over_bits = all_bits_to_consider[unpacked_length, all_l]
       end
     end
 
     nc.wslay_callbacks.send_callback do |buf|
       # when there is data to send, you have to return the bytes send here
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when sending would block
-      #$stdout.write(buf)
-      #$stdout.write("send_callback!!! #{buf.length}")
-      $did_timer += buf.length
-      #raise "wtf"
-#foop = buf.dup
-#foop += "\0"
-
-      #UV::Async.new do
-        #req = nc.socket.write(foop)
-      #end.send
-
-      #$stdout.write("done sent!!!")
-      #buf.length 
-      #buf.length
-      begin
+      #begin
         nc.socket.try_write(buf)
-      rescue UVError => e
-        nc.disconnect!
-        0
-      end
+      #rescue UVError => e
+      #  #nc.disconnect!
+      #  raise Errno::EAGAIN
+      #  0
+      #end
     end
 
     nc.client = Wslay::Event::Context::Server.new nc.wslay_callbacks
@@ -203,11 +214,11 @@ class Server
 
     on_read_start = Proc.new { |b|
       if b && b.is_a?(UVError)
-        #log!(b)
-        #restart_connection!
-        #$stdout.write(b.inspect)
+        log!(:on_read_start, b)
+        nc.disconnect!
       else
         if b && b.is_a?(String)
+          log!(b)
           nc.handle_bytes!(b)
         end
       end
