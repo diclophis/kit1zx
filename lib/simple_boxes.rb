@@ -18,7 +18,6 @@ class SimpleCube < PlatformSpecificGameLoop
         }
 
         twod {
-          draw_fps(10, 10)
           cube.label(global_time.to_i.to_s)
         }
       }

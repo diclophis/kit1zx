@@ -1,6 +1,6 @@
 // simple mruby/raylib game
 
-#define GAME_LIB snake
+#define GAME_LIB simple_boxes
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -473,8 +473,8 @@ static mrb_value game_loop_initialize(mrb_state* mrb, mrb_value self)
   EndDrawing();
 
 #ifdef PLATFORM_DESKTOP
-  SetWindowPosition((GetMonitorWidth() - GetScreenWidth())/2, ((GetMonitorHeight() - GetScreenHeight())/2)+1);
-  SetWindowMonitor(0);
+  //SetWindowPosition((GetMonitorWidth() - GetScreenWidth())/2, ((GetMonitorHeight() - GetScreenHeight())/2)+1);
+  //SetWindowMonitor(0);
   SetTargetFPS(screenFps);
 #endif
 
