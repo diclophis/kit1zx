@@ -1,6 +1,6 @@
 /**********************************************************************************************
 *
-*   raylib - A simple and easy-to-use library to learn videogames programming (www.raylib.com)
+*   raylib - A simple and easy-to-use library to enjoy videogames programming (www.raylib.com)
 *
 *   FEATURES:
 *       - NO external dependencies, all required libraries included with raylib
@@ -311,7 +311,7 @@
 
 // NOTE: MSC C++ compiler does not support compound literals (C99 feature)
 // Plain structures in C++ (without constructors) can be initialized from { } initializers.
-#ifdef __cplusplus
+#if defined(__cplusplus)
     #define CLITERAL
 #else
     #define CLITERAL    (Color)
@@ -354,11 +354,11 @@
 //----------------------------------------------------------------------------------
 // Structures Definition
 //----------------------------------------------------------------------------------
-#ifndef __cplusplus
 // Boolean type
-    #ifndef bool
-        typedef enum { false, true } bool;
-    #endif
+#if defined(__STDC__) && __STDC_VERSION__ >= 199901L
+    #include <stdbool.h>
+#elif !defined(__cplusplus) && !defined(bool)
+    typedef enum { false, true } bool;
 #endif
 
 // Vector2 type
@@ -511,7 +511,14 @@ typedef struct Mesh {
     float *tangents;        // Vertex tangents (XYZW - 4 components per vertex) (shader-location = 4)
     unsigned char *colors;  // Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
     unsigned short *indices;// Vertex indices (in case vertex data comes indexed)
+    
+    // Animation vertex data
+    float *baseVertices;    // Vertex base position (required to apply bones transformations)
+    float *baseNormals;     // Vertex base normals (required to apply bones transformations)
+    float *weightBias;      // Vertex weight bias
+    int *weightId;          // Vertex weight id
 
+    // OpenGL identifiers
     unsigned int vaoId;     // OpenGL Vertex Array Object id
     unsigned int vboId[7];  // OpenGL Vertex Buffer Objects id (default vertex data)
 } Mesh;
@@ -779,7 +786,7 @@ typedef enum {
 // Callbacks to be implemented by users
 typedef void (*TraceLogCallback)(int msgType, const char *text, va_list args);
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {            // Prevents name mangling of functions
 #endif
 
@@ -807,6 +814,13 @@ RLAPI void SetWindowMinSize(int width, int height);               // Set window 
 RLAPI void SetWindowSize(int width, int height);                  // Set window dimensions
 RLAPI int GetScreenWidth(void);                                   // Get current screen width
 RLAPI int GetScreenHeight(void);                                  // Get current screen height
+RLAPI void *GetWindowHandle(void);                                // Get native window handle
+RLAPI int GetMonitorCount(void);                                  // Get number of connected monitors
+RLAPI int GetMonitorWidth(int monitor);                           // Get primary monitor width
+RLAPI int GetMonitorHeight(int monitor);                          // Get primary monitor height
+RLAPI int GetMonitorPhysicalWidth(int monitor);                   // Get primary monitor physical width in millimetres
+RLAPI int GetMonitorPhysicalHeight(int monitor);                  // Get primary monitor physical height in millimetres
+RLAPI const char *GetMonitorName(int monitor);                    // Get the human-readable, UTF-8 encoded name of the primary monitor
 
 // Cursor-related functions
 RLAPI void ShowCursor(void);                                      // Shows cursor
@@ -854,15 +868,20 @@ RLAPI void TakeScreenshot(const char *fileName);                  // Takes a scr
 RLAPI int GetRandomValue(int min, int max);                       // Returns a random value between min and max (both included)
 
 // Files management functions
+RLAPI bool FileExists(const char *fileName);                      // Check if file exists
 RLAPI bool IsFileExtension(const char *fileName, const char *ext);// Check file extension
 RLAPI const char *GetExtension(const char *fileName);             // Get pointer to extension for a filename string
 RLAPI const char *GetFileName(const char *filePath);              // Get pointer to filename for a path string
+RLAPI const char *GetFileNameWithoutExt(const char *filePath);    // Get filename string without extension (memory should be freed)
 RLAPI const char *GetDirectoryPath(const char *fileName);         // Get full path for a given fileName (uses static string)
 RLAPI const char *GetWorkingDirectory(void);                      // Get current working directory (uses static string)
+RLAPI char **GetDirectoryFiles(const char *dirPath, int *count);  // Get filenames in a directory path (memory should be freed)
+RLAPI void ClearDirectoryFiles(void);                             // Clear directory files paths buffers (free memory)
 RLAPI bool ChangeDirectory(const char *dir);                      // Change working directory, returns true if success
 RLAPI bool IsFileDropped(void);                                   // Check if a file has been dropped into window
-RLAPI char **GetDroppedFiles(int *count);                         // Get dropped files names
-RLAPI void ClearDroppedFiles(void);                               // Clear dropped files paths buffer
+RLAPI char **GetDroppedFiles(int *count);                         // Get dropped files names (memory should be freed)
+RLAPI void ClearDroppedFiles(void);                               // Clear dropped files paths buffer (free memory)
+RLAPI long GetFileModTime(const char *fileName);                  // Get file modification time (last write time)
 
 // Persistent storage management
 RLAPI void StorageSaveValue(int position, int value);             // Save integer value to storage file (to defined position)
@@ -981,7 +1000,7 @@ RLAPI Image LoadImage(const char *fileName);                                    
 RLAPI Image LoadImageEx(Color *pixels, int width, int height);                                           // Load image from Color array data (RGBA - 32bit)
 RLAPI Image LoadImagePro(void *data, int width, int height, int format);                                 // Load image from raw data with parameters
 RLAPI Image LoadImageRaw(const char *fileName, int width, int height, int format, int headerSize);       // Load image from RAW file data
-RLAPI void ExportImage(const char *fileName, Image image);                                               // Export image as a PNG file
+RLAPI void ExportImage(Image image, const char *fileName);                                               // Export image data to file
 RLAPI Texture2D LoadTexture(const char *fileName);                                                       // Load texture from file into GPU memory (VRAM)
 RLAPI Texture2D LoadTextureFromImage(Image image);                                                       // Load texture from image data
 RLAPI RenderTexture2D LoadRenderTexture(int width, int height);                                          // Load texture for rendering (framebuffer)
@@ -1003,11 +1022,12 @@ RLAPI void ImageAlphaClear(Image *image, Color color, float threshold);         
 RLAPI void ImageAlphaCrop(Image *image, float threshold);                                                // Crop image depending on alpha value
 RLAPI void ImageAlphaPremultiply(Image *image);                                                          // Premultiply alpha channel
 RLAPI void ImageCrop(Image *image, Rectangle crop);                                                      // Crop an image to a defined rectangle
-RLAPI void ImageResize(Image *image, int newWidth, int newHeight);                                       // Resize image (bilinear filtering)
+RLAPI void ImageResize(Image *image, int newWidth, int newHeight);                                       // Resize image (Bicubic scaling algorithm)
 RLAPI void ImageResizeNN(Image *image, int newWidth,int newHeight);                                      // Resize image (Nearest-Neighbor scaling algorithm)
 RLAPI void ImageResizeCanvas(Image *image, int newWidth, int newHeight, int offsetX, int offsetY, Color color);  // Resize canvas and fill with color
 RLAPI void ImageMipmaps(Image *image);                                                                   // Generate all mipmap levels for a provided image
 RLAPI void ImageDither(Image *image, int rBpp, int gBpp, int bBpp, int aBpp);                            // Dither image data to 16bpp or lower (Floyd-Steinberg dithering)
+RLAPI Color *ImageExtractPalette(Image image, int maxPaletteSize, int *extractCount);                    // Extract color palette from image to maximum size (memory should be freed)
 RLAPI Image ImageText(const char *text, int fontSize, Color color);                                      // Create an image from text (default font)
 RLAPI Image ImageTextEx(Font font, const char *text, float fontSize, float spacing, Color tint);         // Create an image from text (custom sprite font)
 RLAPI void ImageDraw(Image *dst, Image src, Rectangle srcRec, Rectangle dstRec);                         // Draw a source image within a destination image
@@ -1057,7 +1077,7 @@ RLAPI Font GetFontDefault(void);                                                
 RLAPI Font LoadFont(const char *fileName);                                                  // Load font from file into GPU memory (VRAM)
 RLAPI Font LoadFontEx(const char *fileName, int fontSize, int charsCount, int *fontChars);  // Load font from file with extended parameters
 RLAPI CharInfo *LoadFontData(const char *fileName, int fontSize, int *fontChars, int charsCount, int type); // Load font data for further use
-RLAPI Image GenImageFontAtlas(CharInfo *chars, int fontSize, int charsCount, int padding, int packMethod);  // Generate image font atlas using chars info
+RLAPI Image GenImageFontAtlas(CharInfo *chars, int charsCount, int fontSize, int padding, int packMethod);  // Generate image font atlas using chars info
 RLAPI void UnloadFont(Font font);                                                           // Unload Font from GPU memory (VRAM)
 
 // Text drawing functions
@@ -1106,7 +1126,7 @@ RLAPI void UnloadModel(Model model);                                            
 // Mesh loading/unloading functions
 RLAPI Mesh LoadMesh(const char *fileName);                                                              // Load mesh from file
 RLAPI void UnloadMesh(Mesh *mesh);                                                                      // Unload mesh from memory (RAM and/or VRAM)
-RLAPI void ExportMesh(const char *fileName, Mesh mesh);                                                 // Export mesh as an OBJ file
+RLAPI void ExportMesh(Mesh mesh, const char *fileName);                                                 // Export mesh data to file
 
 // Mesh manipulation functions
 RLAPI BoundingBox MeshBoundingBox(Mesh mesh);                                                           // Compute mesh bounding box limits
@@ -1214,6 +1234,7 @@ RLAPI Sound LoadSoundFromWave(Wave wave);                             // Load so
 RLAPI void UpdateSound(Sound sound, const void *data, int samplesCount);// Update sound buffer with new data
 RLAPI void UnloadWave(Wave wave);                                     // Unload wave data
 RLAPI void UnloadSound(Sound sound);                                  // Unload sound
+RLAPI void ExportWave(Wave wave, const char *fileName);               // Export wave data to file
 
 // Wave/Sound management functions
 RLAPI void PlaySound(Sound sound);                                    // Play a sound
@@ -1256,7 +1277,7 @@ RLAPI void StopAudioStream(AudioStream stream);                       // Stop au
 RLAPI void SetAudioStreamVolume(AudioStream stream, float volume);    // Set volume for audio stream (1.0 is max level)
 RLAPI void SetAudioStreamPitch(AudioStream stream, float pitch);      // Set pitch for audio stream (1.0 is base level)
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
 #endif
 
