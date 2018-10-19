@@ -42,18 +42,21 @@ class Snake < PlatformSpecificGameLoop
 
         #socket_stream.write({"foo" => global_time})
 
-        if !global_state["globalPlayerLocation"]
+        #if !global_state["globalPlayerLocation"]
+
+        if result["globalPlayerLocation"]
           global_state["lastGlobalPlayerLocation"] = result["globalPlayerLocation"]
-          global_state["globalPlayerLocation"] = result["globalPlayerLocation"]
-        else
-          global_state["lastGlobalPlayerLocation"] = global_state["globalPlayerLocation"]
           global_state["globalPlayerLocation"] = result["globalPlayerLocation"]
         end
 
-        log!(:msg, global_state["lastGlobalPlayerLocation"])
+        #else
+        #  global_state["lastGlobalPlayerLocation"] = global_state["globalPlayerLocation"]
+        #  global_state["globalPlayerLocation"] = result["globalPlayerLocation"]
+        #end
 
         global_state["coordinates"] = result["coordinates"] if result["coordinates"]
 
+        log!(:msg, global_state["lastGlobalPlayerLocation"], result.keys)
       }
     }
 

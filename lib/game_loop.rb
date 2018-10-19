@@ -41,7 +41,7 @@ class GameLoop
     all_bits_to_consider = (@left_over_bits || "") + bytes
     all_l = all_bits_to_consider.length
 
-    small_subset_to_consider = all_bits_to_consider[0, 102400]
+    small_subset_to_consider = all_bits_to_consider[0, 1280000]
     considered_subset_length = small_subset_to_consider.length
 
     unpacked_length = MessagePack.unpack(small_subset_to_consider) do |result|
