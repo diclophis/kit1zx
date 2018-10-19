@@ -24,6 +24,7 @@
 
 #include <raylib.h>
 #include <raymath.h>
+#include <raygui.h>
 
 #ifdef PLATFORM_WEB
   #include <emscripten/emscripten.h>
@@ -36,13 +37,10 @@
 #include "simple_boxes.h"
 #include "globals.h"
 #include "game_loop.h"
+#include "main_menu.h"
 
 #ifdef PLATFORM_DESKTOP
 #include "uv_io.h"
-#endif
-
-#ifdef PLATFORM_WEB
-#include "direct.h"
 #endif
 
 #define FLT_MAX 3.40282347E+38F
@@ -68,6 +66,11 @@ typedef struct {
   Model model;
 } model_data_s;
 
+static void play_data_destructor(mrb_state *mrb, void *p_);
+static void model_data_destructor(mrb_state *mrb, void *p_);
+
+const struct mrb_data_type play_data_type = {"play_data", play_data_destructor};
+const struct mrb_data_type model_data_type = {"model_data", model_data_destructor};
 
 //TODO???????
 static mrb_state *global_mrb;
@@ -144,22 +147,11 @@ static void play_data_destructor(mrb_state *mrb, void *p_) {
 };
 
 
-static void model_data_destructor(mrb_state *mrb, void *p_) {
-  model_data_s *pd = (model_data_s *)p_;
-
-  //// De-Initialization
-  UnloadTexture(pd->texture);     // Unload texture
-  UnloadModel(pd->model);         // Unload model
-
-  mrb_free(mrb, pd);
-};
 
 
-const struct mrb_data_type play_data_type = {"play_data", play_data_destructor};
-const struct mrb_data_type model_data_type = {"model_data", model_data_destructor};
 
 
-static mrb_value mousep(mrb_state* mrb, mrb_value self)
+static mrb_value game_loop_mousep(mrb_state* mrb, mrb_value self)
 {
   mrb_value block;
   mrb_get_args(mrb, "&", &block);
@@ -202,7 +194,7 @@ static mrb_value mousep(mrb_state* mrb, mrb_value self)
 }
 
 
-static mrb_value keyspressed(mrb_state* mrb, mrb_value self)
+static mrb_value game_loop_keyspressed(mrb_state* mrb, mrb_value self)
 {
   mrb_ary_set(mrb, pressedkeys, 0, mrb_nil_value());
   mrb_ary_set(mrb, pressedkeys, 1, mrb_nil_value());
@@ -236,7 +228,416 @@ static mrb_value keyspressed(mrb_state* mrb, mrb_value self)
 }
 
 
-static mrb_value model_init(mrb_state* mrb, mrb_value self)
+
+
+static mrb_value game_loop_initialize(mrb_state* mrb, mrb_value self)
+{
+  // Initialization
+  mrb_value game_name = mrb_nil_value();
+  mrb_int screenWidth,screenHeight,screenFps;
+
+  mrb_get_args(mrb, "oiii", &game_name, &screenWidth, &screenHeight, &screenFps);
+
+  const char *c_game_name = mrb_string_value_cstr(mrb, &game_name);
+
+  play_data_s *p_data;
+
+  p_data = malloc(sizeof(play_data_s));
+  memset(p_data, 0, sizeof(play_data_s));
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not allocate @data");
+  }
+
+  //p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
+
+  mrb_iv_set(
+      mrb, self, mrb_intern_lit(mrb, "@pointer"), // set @data
+      mrb_obj_value(                           // with value hold in struct
+          Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
+
+  global_gl = self;
+
+  InitWindow(screenWidth, screenHeight, c_game_name);
+
+  global_p_data = p_data;
+
+  //// Main game loop
+  BeginDrawing();
+    UpdateCamera(&p_data->camera);
+    BeginMode3D(p_data->camera);
+    EndMode3D();
+    BeginMode2D(p_data->cameraTwo);
+    EndMode2D();
+  EndDrawing();
+
+#ifdef PLATFORM_DESKTOP
+  //SetWindowPosition((GetMonitorWidth() - GetScreenWidth())/2, ((GetMonitorHeight() - GetScreenHeight())/2)+1);
+  //SetWindowMonitor(0);
+  SetTargetFPS(screenFps);
+#endif
+
+  return self;
+}
+
+
+static mrb_value model_deltap(mrb_state* mrb, mrb_value self)
+{
+  mrb_float x,y,z;
+
+  mrb_get_args(mrb, "fff", &x, &y, &z);
+
+  model_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  p_data->position.x = x;
+  p_data->position.y = y;
+  p_data->position.z = z;
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value model_deltas(mrb_state* mrb, mrb_value self)
+{
+  mrb_float x,y,z;
+
+  mrb_get_args(mrb, "fff", &x, &y, &z);
+
+  model_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  p_data->scale.x = x;
+  p_data->scale.y = y;
+  p_data->scale.z = z;
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value model_deltar(mrb_state* mrb, mrb_value self)
+{
+  mrb_float x,y,z,r;
+
+  mrb_get_args(mrb, "ffff", &x, &y, &z, &r);
+
+  model_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  p_data->rotation.x = x;
+  p_data->rotation.y = y;
+  p_data->rotation.z = z;
+  p_data->angle = r;
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value model_yawpitchroll(mrb_state* mrb, mrb_value self)
+{
+  mrb_float yaw,pitch,roll;
+  mrb_float ox,oy,oz;
+
+  mrb_get_args(mrb, "ffffff", &yaw, &pitch, &roll, &ox, &oy, &oz);
+
+  model_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  Matrix transform = MatrixIdentity();
+
+  transform = MatrixMultiply(transform, MatrixTranslate(ox, oy, oz));
+  transform = MatrixMultiply(transform, MatrixRotateZ(DEG2RAD*roll));
+  transform = MatrixMultiply(transform, MatrixRotateX(DEG2RAD*pitch));
+  transform = MatrixMultiply(transform, MatrixRotateY(DEG2RAD*yaw));
+  transform = MatrixMultiply(transform, MatrixTranslate(-ox, -oy, -oz));
+
+  p_data->model.transform = transform;
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value game_loop_draw_grid(mrb_state* mrb, mrb_value self)
+{
+  mrb_int a;
+  mrb_float b;
+
+  mrb_get_args(mrb, "if", &a, &b);
+
+  DrawGrid(a, b);
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value game_loop_draw_plane(mrb_state* mrb, mrb_value self)
+{
+  mrb_float x,y,z,a,b;
+
+  mrb_get_args(mrb, "fffff", &x, &y, &z, &a, &b);
+
+  DrawPlane((Vector3){x, y, z}, (Vector2){a, b}, DARKBROWN); // Draw a plane XZ
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value game_loop_draw_fps(mrb_state* mrb, mrb_value self)
+{
+  mrb_int a,b;
+
+  mrb_get_args(mrb, "ii", &a, &b);
+
+  DrawFPS(a, b);
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value game_loop_update(mrb_state* mrb, mrb_value self) {
+#ifdef PLATFORM_DESKTOP
+  if (WindowShouldClose()) {
+    mrb_funcall(mrb, self, "spindown!", 0, NULL);
+  }
+#endif
+
+  double time;
+  float dt;
+
+  time = GetTime();
+  dt = GetFrameTime();
+
+  mrb_ary_set(global_mrb, gtdt, 0, mrb_float_value(global_mrb, time));
+  mrb_ary_set(global_mrb, gtdt, 1, mrb_float_value(global_mrb, dt));
+
+  global_p_data->mousePosition = GetMousePosition();
+
+  //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
+  //SetCameraMode(global_p_data->camera, CAMERA_FREE);
+  UpdateCamera(&global_p_data->camera);
+
+  mrb_yield_argv(global_mrb, global_block, 2, &gtdt);
+
+  return mrb_nil_value();
+}
+
+
+void game_loop_update_void(void) {
+  game_loop_update(global_mrb, global_gl);
+}
+
+
+#ifdef PLATFORM_WEB
+EM_JS(int, start_connection, (), {
+  return startConnection("ws://localhost:8081/ws");
+});
+#endif
+
+
+static mrb_value game_loop_main_loop(mrb_state* mrb, mrb_value self)
+{
+  //TODO: fix this hack???
+  global_mrb = mrb;
+
+  mrb_get_args(mrb, "&", &global_block);
+
+#ifdef PLATFORM_WEB
+  start_connection();
+  emscripten_set_main_loop(game_loop_update_void, 0, 1);
+#else
+  mrb_funcall(mrb, self, "spinlock!", 0, NULL);
+#endif
+
+  CloseWindow(); // Close window and OpenGL context
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value game_loop_lookat(mrb_state* mrb, mrb_value self)
+{
+  mrb_int type;
+  mrb_float px,py,pz,tx,ty,tz,fovy;
+
+  mrb_get_args(mrb, "ifffffff", &type, &px, &py, &pz, &tx, &ty, &tz, &fovy);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value;     // this IV holds the data
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  // Camera mode type
+  switch(type) {
+    case 0:
+      p_data->camera.type = CAMERA_ORTHOGRAPHIC;
+      //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
+      //SetCameraMode(p_data->camera, CAMERA_THIRD_PERSON);
+      break;
+    case 1:
+      p_data->camera.type = CAMERA_PERSPECTIVE;
+      //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
+      break;
+  }
+
+  // Define the camera to look into our 3d world
+  p_data->camera.position = (Vector3){ px, py, pz };    // Camera position
+  p_data->camera.target = (Vector3){ tx, ty, tz };      // Camera looking at point
+
+  p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };    // Camera up vector (rotation towards target)
+  p_data->camera.fovy = fovy;                           // Camera field-of-view Y
+
+  p_data->cameraTwo.target = (Vector2){ 0, 0 };
+  p_data->cameraTwo.offset = (Vector2){ 0, 0 };
+  p_data->cameraTwo.rotation = 0.0f;
+  p_data->cameraTwo.zoom = 1.0f;
+
+  //SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value game_loop_threed(mrb_state* mrb, mrb_value self)
+{
+  mrb_value block;
+  mrb_get_args(mrb, "&", &block);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value;     // this IV holds the data
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  BeginMode3D(p_data->camera);
+
+  mrb_yield_argv(mrb, block, 0, NULL);
+
+  EndMode3D();
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value game_loop_interim(mrb_state* mrb, mrb_value self)
+{
+  mrb_value block;
+  mrb_get_args(mrb, "&", &block);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value;     // this IV holds the data
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  mrb_yield_argv(mrb, block, 0, NULL);
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value game_loop_drawmode(mrb_state* mrb, mrb_value self)
+{
+  mrb_value block;
+  mrb_get_args(mrb, "&", &block);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value;     // this IV holds the data
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  BeginDrawing();
+
+  ClearBackground(BLACK);
+
+  mrb_yield_argv(mrb, block, 0, NULL);
+
+  EndDrawing();
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value game_loop_twod(mrb_state* mrb, mrb_value self)
+{
+  mrb_value block;
+  mrb_get_args(mrb, "&", &block);
+
+  play_data_s *p_data = NULL;
+  mrb_value data_value;     // this IV holds the data
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  BeginMode2D(p_data->cameraTwo);
+
+  mrb_yield_argv(mrb, block, 0, NULL);
+
+  EndMode2D();
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value game_loop_button(mrb_state* mrb, mrb_value self)
+{
+  mrb_float a,b,c,d;
+  mrb_value label;
+
+  mrb_get_args(mrb, "ffffo", &a, &b, &c, &d, &label);
+
+  const char *label_cstr = mrb_string_value_cstring(mrb, &label);
+
+  GuiButton((Rectangle){a, b, c, d}, label_cstr);
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value model_initialize(mrb_state* mrb, mrb_value self)
 {
   mrb_value model_obj = mrb_nil_value();
   mrb_value model_png = mrb_nil_value();
@@ -294,7 +695,78 @@ static mrb_value model_init(mrb_state* mrb, mrb_value self)
   return self;
 }
 
-static mrb_value cube_init(mrb_state* mrb, mrb_value self)
+
+static void model_data_destructor(mrb_state *mrb, void *p_) {
+  model_data_s *pd = (model_data_s *)p_;
+
+  //// De-Initialization
+  UnloadTexture(pd->texture);     // Unload texture
+  UnloadModel(pd->model);         // Unload model
+
+  mrb_free(mrb, pd);
+};
+
+
+static mrb_value model_draw(mrb_state* mrb, mrb_value self)
+{
+  mrb_bool draw_wires;
+
+  mrb_get_args(mrb, "b", &draw_wires);
+
+  model_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  if (draw_wires) {
+    DrawModelWiresEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, BLUE);   // Draw 3d model with texture
+  } 
+
+  //else {
+    // Draw 3d model with texture
+    DrawModelEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, p_data->color);
+  //}
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value model_label(mrb_state* mrb, mrb_value self)
+{
+  mrb_value label_txt = mrb_nil_value();
+  mrb_get_args(mrb, "o", &label_txt);
+
+  const char *c_label_txt = mrb_string_value_cstr(mrb, &label_txt);
+
+  model_data_s *p_data = NULL;
+  mrb_value data_value; // this IV holds the data
+
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  float textSize = 5.0;
+
+  Vector3 cubePosition = p_data->position;
+
+  Vector2 cubeScreenPosition;
+  cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y, cubePosition.z}, global_p_data->camera);
+
+  DrawText(c_label_txt, cubeScreenPosition.x - (float)MeasureText(c_label_txt, textSize) / 2.0, cubeScreenPosition.y, textSize, p_data->label_color);
+
+  return mrb_nil_value();
+}
+
+
+static mrb_value cube_initialize(mrb_state* mrb, mrb_value self)
 {
   mrb_float w,h,l,scalef;
   mrb_get_args(mrb, "ffff", &w, &h, &l, &scalef);
@@ -365,7 +837,7 @@ static mrb_value cube_init(mrb_state* mrb, mrb_value self)
 }
 
 
-static mrb_value sphere_init(mrb_state* mrb, mrb_value self)
+static mrb_value sphere_initialize(mrb_state* mrb, mrb_value self)
 {
   mrb_float ra,scalef;
   mrb_int ri,sl;
@@ -403,457 +875,6 @@ static mrb_value sphere_init(mrb_state* mrb, mrb_value self)
 }
 
 
-static mrb_value draw_model(mrb_state* mrb, mrb_value self)
-{
-  mrb_bool draw_wires;
-
-  mrb_get_args(mrb, "b", &draw_wires);
-
-  model_data_s *p_data = NULL;
-  mrb_value data_value; // this IV holds the data
-
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  if (draw_wires) {
-    DrawModelWiresEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, BLUE);   // Draw 3d model with texture
-  } 
-
-  //else {
-    // Draw 3d model with texture
-    DrawModelEx(p_data->model, p_data->position, p_data->rotation, p_data->angle, p_data->scale, p_data->color);
-  //}
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value game_loop_initialize(mrb_state* mrb, mrb_value self)
-{
-  // Initialization
-  mrb_value game_name = mrb_nil_value();
-  mrb_int screenWidth,screenHeight,screenFps;
-
-  mrb_get_args(mrb, "oiii", &game_name, &screenWidth, &screenHeight, &screenFps);
-
-  const char *c_game_name = mrb_string_value_cstr(mrb, &game_name);
-
-  play_data_s *p_data;
-
-  p_data = malloc(sizeof(play_data_s));
-  memset(p_data, 0, sizeof(play_data_s));
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not allocate @data");
-  }
-
-  //p_data->buffer_target = LoadRenderTexture(screenWidth, screenHeight);
-
-  mrb_iv_set(
-      mrb, self, mrb_intern_lit(mrb, "@pointer"), // set @data
-      mrb_obj_value(                           // with value hold in struct
-          Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
-
-  global_gl = self;
-
-  InitWindow(screenWidth, screenHeight, c_game_name);
-
-  global_p_data = p_data;
-
-  //// Main game loop
-  BeginDrawing();
-    UpdateCamera(&p_data->camera);
-    BeginMode3D(p_data->camera);
-    EndMode3D();
-    BeginMode2D(p_data->cameraTwo);
-    EndMode2D();
-  EndDrawing();
-
-#ifdef PLATFORM_DESKTOP
-  //SetWindowPosition((GetMonitorWidth() - GetScreenWidth())/2, ((GetMonitorHeight() - GetScreenHeight())/2)+1);
-  //SetWindowMonitor(0);
-  SetTargetFPS(screenFps);
-#endif
-
-  return self;
-}
-
-
-static mrb_value deltap_model(mrb_state* mrb, mrb_value self)
-{
-  mrb_float x,y,z;
-
-  mrb_get_args(mrb, "fff", &x, &y, &z);
-
-  model_data_s *p_data = NULL;
-  mrb_value data_value; // this IV holds the data
-
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  p_data->position.x = x;
-  p_data->position.y = y;
-  p_data->position.z = z;
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value deltas_model(mrb_state* mrb, mrb_value self)
-{
-  mrb_float x,y,z;
-
-  mrb_get_args(mrb, "fff", &x, &y, &z);
-
-  model_data_s *p_data = NULL;
-  mrb_value data_value; // this IV holds the data
-
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  p_data->scale.x = x;
-  p_data->scale.y = y;
-  p_data->scale.z = z;
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value deltar_model(mrb_state* mrb, mrb_value self)
-{
-  mrb_float x,y,z,r;
-
-  mrb_get_args(mrb, "ffff", &x, &y, &z, &r);
-
-  model_data_s *p_data = NULL;
-  mrb_value data_value; // this IV holds the data
-
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  p_data->rotation.x = x;
-  p_data->rotation.y = y;
-  p_data->rotation.z = z;
-  p_data->angle = r;
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value yawpitchroll_model(mrb_state* mrb, mrb_value self)
-{
-  mrb_float yaw,pitch,roll;
-  mrb_float ox,oy,oz;
-
-  mrb_get_args(mrb, "ffffff", &yaw, &pitch, &roll, &ox, &oy, &oz);
-
-  model_data_s *p_data = NULL;
-  mrb_value data_value; // this IV holds the data
-
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  Matrix transform = MatrixIdentity();
-
-  transform = MatrixMultiply(transform, MatrixTranslate(ox, oy, oz));
-  transform = MatrixMultiply(transform, MatrixRotateZ(DEG2RAD*roll));
-  transform = MatrixMultiply(transform, MatrixRotateX(DEG2RAD*pitch));
-  transform = MatrixMultiply(transform, MatrixRotateY(DEG2RAD*yaw));
-  transform = MatrixMultiply(transform, MatrixTranslate(-ox, -oy, -oz));
-
-  p_data->model.transform = transform;
-
-  return mrb_nil_value();
-}
-
-static mrb_value label_model(mrb_state* mrb, mrb_value self)
-{
-  mrb_value label_txt = mrb_nil_value();
-  mrb_get_args(mrb, "o", &label_txt);
-
-  const char *c_label_txt = mrb_string_value_cstr(mrb, &label_txt);
-
-  model_data_s *p_data = NULL;
-  mrb_value data_value; // this IV holds the data
-
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  float textSize = 5.0;
-
-  Vector3 cubePosition = p_data->position;
-
-  Vector2 cubeScreenPosition;
-  cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y, cubePosition.z}, global_p_data->camera);
-
-  DrawText(c_label_txt, cubeScreenPosition.x - (float)MeasureText(c_label_txt, textSize) / 2.0, cubeScreenPosition.y, textSize, p_data->label_color);
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value draw_grid(mrb_state* mrb, mrb_value self)
-{
-  mrb_int a;
-  mrb_float b;
-
-  mrb_get_args(mrb, "if", &a, &b);
-
-  DrawGrid(a, b);
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value draw_plane(mrb_state* mrb, mrb_value self)
-{
-  mrb_float x,y,z,a,b;
-
-  mrb_get_args(mrb, "fffff", &x, &y, &z, &a, &b);
-
-  DrawPlane((Vector3){x, y, z}, (Vector2){a, b}, DARKBROWN); // Draw a plane XZ
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value draw_fps(mrb_state* mrb, mrb_value self)
-{
-  mrb_int a,b;
-
-  mrb_get_args(mrb, "ii", &a, &b);
-
-  DrawFPS(a, b);
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value UpdateDrawFrame(mrb_state* mrb, mrb_value self) {
-
-#ifdef PLATFORM_DESKTOP
-  if (WindowShouldClose()) {
-    mrb_funcall(mrb, self, "spindown!", 0, NULL);
-  }
-#endif
-
-  double time;
-  float dt;
-
-  time = GetTime();
-  dt = GetFrameTime();
-
-  mrb_ary_set(global_mrb, gtdt, 0, mrb_float_value(global_mrb, time));
-  mrb_ary_set(global_mrb, gtdt, 1, mrb_float_value(global_mrb, dt));
-
-  global_p_data->mousePosition = GetMousePosition();
-
-  //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
-  //SetCameraMode(global_p_data->camera, CAMERA_FREE);
-  UpdateCamera(&global_p_data->camera);
-
-  mrb_yield_argv(global_mrb, global_block, 2, &gtdt);
-
-  return mrb_nil_value();
-}
-
-
-void UpdateDrawFrameVoid(void) {
-  UpdateDrawFrame(global_mrb, global_gl);
-}
-
-#ifdef PLATFORM_WEB
-EM_JS(int, start_connection, (), {
-  return startConnection("ws://localhost:8081/ws");
-});
-#endif
-
-static mrb_value main_loop(mrb_state* mrb, mrb_value self)
-{
-  //TODO: fix this hack???
-  global_mrb = mrb;
-
-  mrb_get_args(mrb, "&", &global_block);
-
-#ifdef PLATFORM_WEB
-  start_connection();
-  emscripten_set_main_loop(UpdateDrawFrameVoid, 0, 1);
-#else
-  mrb_funcall(mrb, self, "spinlock!", 0, NULL);
-#endif
-
-  CloseWindow(); // Close window and OpenGL context
-
-  return mrb_nil_value();
-}
-
-
-
-
-static mrb_value lookat(mrb_state* mrb, mrb_value self)
-{
-  mrb_int type;
-  mrb_float px,py,pz,tx,ty,tz,fovy;
-
-  mrb_get_args(mrb, "ifffffff", &type, &px, &py, &pz, &tx, &ty, &tz, &fovy);
-
-  play_data_s *p_data = NULL;
-  mrb_value data_value;     // this IV holds the data
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  // Camera mode type
-  switch(type) {
-    case 0:
-      p_data->camera.type = CAMERA_ORTHOGRAPHIC;
-      //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
-      //SetCameraMode(p_data->camera, CAMERA_THIRD_PERSON);
-      break;
-    case 1:
-      p_data->camera.type = CAMERA_PERSPECTIVE;
-      //SetCameraMode(p_data->camera, CAMERA_ORBITAL);
-      break;
-  }
-
-  // Define the camera to look into our 3d world
-  p_data->camera.position = (Vector3){ px, py, pz };    // Camera position
-  p_data->camera.target = (Vector3){ tx, ty, tz };      // Camera looking at point
-
-  p_data->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };    // Camera up vector (rotation towards target)
-  p_data->camera.fovy = fovy;                           // Camera field-of-view Y
-
-  p_data->cameraTwo.target = (Vector2){ 0, 0 };
-  p_data->cameraTwo.offset = (Vector2){ 0, 0 };
-  p_data->cameraTwo.rotation = 0.0f;
-  p_data->cameraTwo.zoom = 1.0f;
-
-  //SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value threed(mrb_state* mrb, mrb_value self)
-{
-  mrb_value block;
-  mrb_get_args(mrb, "&", &block);
-
-  play_data_s *p_data = NULL;
-  mrb_value data_value;     // this IV holds the data
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  BeginMode3D(p_data->camera);
-
-  mrb_yield_argv(mrb, block, 0, NULL);
-
-  EndMode3D();
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value interim(mrb_state* mrb, mrb_value self)
-{
-  mrb_value block;
-  mrb_get_args(mrb, "&", &block);
-
-  play_data_s *p_data = NULL;
-  mrb_value data_value;     // this IV holds the data
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  mrb_yield_argv(mrb, block, 0, NULL);
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value drawmode(mrb_state* mrb, mrb_value self)
-{
-  mrb_value block;
-  mrb_get_args(mrb, "&", &block);
-
-  play_data_s *p_data = NULL;
-  mrb_value data_value;     // this IV holds the data
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  BeginDrawing();
-
-  ClearBackground(BLACK);
-
-  mrb_yield_argv(mrb, block, 0, NULL);
-
-  EndDrawing();
-
-  return mrb_nil_value();
-}
-
-
-static mrb_value twod(mrb_state* mrb, mrb_value self)
-{
-  mrb_value block;
-  mrb_get_args(mrb, "&", &block);
-
-  play_data_s *p_data = NULL;
-  mrb_value data_value;     // this IV holds the data
-  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
-
-  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
-  if (!p_data) {
-    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
-  }
-
-  BeginMode2D(p_data->cameraTwo);
-
-  mrb_yield_argv(mrb, block, 0, NULL);
-
-  EndMode2D();
-
-  return mrb_nil_value();
-}
-
-
 int main(int argc, char** argv) {
   mrb_state *mrb;
   struct mrb_parser_state *ret;
@@ -874,35 +895,39 @@ int main(int argc, char** argv) {
 
   mrb_define_global_const(mrb, "ARGV", args);
 
+  // class GameLoop
   struct RClass *game_class = mrb_define_class(mrb, "GameLoop", mrb->object_class);
   mrb_define_method(mrb, game_class, "initialize", game_loop_initialize, MRB_ARGS_REQ(4));
-  mrb_define_method(mrb, game_class, "lookat", lookat, MRB_ARGS_REQ(8));
-  mrb_define_method(mrb, game_class, "draw_grid", draw_grid, MRB_ARGS_REQ(2));
-  mrb_define_method(mrb, game_class, "draw_plane", draw_plane, MRB_ARGS_REQ(5));
-  mrb_define_method(mrb, game_class, "draw_fps", draw_fps, MRB_ARGS_REQ(2));
-  mrb_define_method(mrb, game_class, "mousep", mousep, MRB_ARGS_BLOCK());
-  mrb_define_method(mrb, game_class, "keyspressed", keyspressed, MRB_ARGS_ANY());
-  mrb_define_method(mrb, game_class, "main_loop", main_loop, MRB_ARGS_BLOCK());
-  mrb_define_method(mrb, game_class, "threed", threed, MRB_ARGS_BLOCK());
-  mrb_define_method(mrb, game_class, "interim", interim, MRB_ARGS_BLOCK());
-  mrb_define_method(mrb, game_class, "drawmode", drawmode, MRB_ARGS_BLOCK());
-  mrb_define_method(mrb, game_class, "twod", twod, MRB_ARGS_BLOCK());
-  mrb_define_method(mrb, game_class, "update", UpdateDrawFrame, MRB_ARGS_NONE());
+  mrb_define_method(mrb, game_class, "lookat", game_loop_lookat, MRB_ARGS_REQ(8));
+  mrb_define_method(mrb, game_class, "draw_grid", game_loop_draw_grid, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, game_class, "draw_plane", game_loop_draw_plane, MRB_ARGS_REQ(5));
+  mrb_define_method(mrb, game_class, "draw_fps", game_loop_draw_fps, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, game_class, "mousep", game_loop_mousep, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "keyspressed", game_loop_keyspressed, MRB_ARGS_ANY());
+  mrb_define_method(mrb, game_class, "main_loop", game_loop_main_loop, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "threed", game_loop_threed, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "interim", game_loop_interim, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "drawmode", game_loop_drawmode, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "twod", game_loop_twod, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, game_class, "update", game_loop_update, MRB_ARGS_NONE());
 
+  // class Model
   struct RClass *model_class = mrb_define_class(mrb, "Model", mrb->object_class);
-  mrb_define_method(mrb, model_class, "initialize", model_init, MRB_ARGS_REQ(3));
-  mrb_define_method(mrb, model_class, "draw", draw_model, MRB_ARGS_NONE());
-  mrb_define_method(mrb, model_class, "deltap", deltap_model, MRB_ARGS_REQ(3));
-  mrb_define_method(mrb, model_class, "deltar", deltar_model, MRB_ARGS_REQ(4));
-  mrb_define_method(mrb, model_class, "deltas", deltas_model, MRB_ARGS_REQ(3));
-  mrb_define_method(mrb, model_class, "yawpitchroll", yawpitchroll_model, MRB_ARGS_REQ(6));
-  mrb_define_method(mrb, model_class, "label", label_model, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, model_class, "initialize", model_initialize, MRB_ARGS_REQ(3));
+  mrb_define_method(mrb, model_class, "draw", model_draw, MRB_ARGS_NONE());
+  mrb_define_method(mrb, model_class, "deltap", model_deltap, MRB_ARGS_REQ(3));
+  mrb_define_method(mrb, model_class, "deltar", model_deltar, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, model_class, "deltas", model_deltas, MRB_ARGS_REQ(3));
+  mrb_define_method(mrb, model_class, "yawpitchroll", model_yawpitchroll, MRB_ARGS_REQ(6));
+  mrb_define_method(mrb, model_class, "label", model_label, MRB_ARGS_REQ(1));
 
+  // class Cube
   struct RClass *cube_class = mrb_define_class(mrb, "Cube", model_class);
-  mrb_define_method(mrb, cube_class, "initialize", cube_init, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, cube_class, "initialize", cube_initialize, MRB_ARGS_REQ(4));
 
+  // class Sphere
   struct RClass *sphere_class = mrb_define_class(mrb, "Sphere", model_class);
-  mrb_define_method(mrb, sphere_class, "initialize", sphere_init, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, sphere_class, "initialize", sphere_initialize, MRB_ARGS_REQ(4));
 
   gtdt = mrb_ary_new(mrb);
   mousexyz = mrb_ary_new(mrb);
@@ -916,13 +941,9 @@ int main(int argc, char** argv) {
   eval_static_libs(mrb, uv_io, NULL);
 #endif
 
-#ifdef PLATFORM_WEB
-  eval_static_libs(mrb, direct, NULL);
-#endif
+  eval_static_libs(mrb, shmup, snake, box, kube, simple_boxes, NULL);
 
-  //eval_static_libs(mrb, shmup, snake, box, kube, simple_boxes, NULL);
-
-  eval_static_libs(mrb, GAME_LIB, NULL);
+  eval_static_libs(mrb, main_menu, NULL);
 
   mrb_close(mrb);
 

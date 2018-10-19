@@ -1,4 +1,0 @@
-#
-
-class PlatformSpecificGameLoop < GameLoop
-end

@@ -21,7 +21,7 @@ objects += $(raylib_static_lib)
 LDFLAGS=-lm -lpthread -ldl -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
 
 #TODO: remove GL_SILENCE_DEPRECATION
-CFLAGS=-DPLATFORM_DESKTOP -DGL_SILENCE_DEPRECATION -Os -std=c99 -Imruby/include -Iraylib-src -I$(build)
+CFLAGS=-DPLATFORM_DESKTOP -DGL_SILENCE_DEPRECATION -Os -std=c99 -fdeclspec -Imruby/include -Iraylib-src -I$(build)
 
 $(shell mkdir -p $(build))
 

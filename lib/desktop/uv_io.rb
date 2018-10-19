@@ -180,7 +180,7 @@ class SocketStream
   end
 end
 
-class PlatformSpecificGameLoop < GameLoop
+class GameLoop
   def initialize(*args)
     super(*args)
 

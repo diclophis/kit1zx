@@ -151,4 +151,4 @@ class Snake < PlatformSpecificGameLoop
   end
 end
 
-Snake.new("snake", 512, 512, 0).play
+#Snake.new("snake", 512, 512, 0).play

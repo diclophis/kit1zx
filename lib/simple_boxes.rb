@@ -1,6 +1,6 @@
 #
 
-class SimpleCube < PlatformSpecificGameLoop
+class SimpleBoxes
   def play
     size = 1.0
     cube = Cube.new(size, size, size, 1.0)
@@ -25,4 +25,5 @@ class SimpleCube < PlatformSpecificGameLoop
   end
 end
 
-SimpleCube.new("simple_cube", 512, 512, 0).play
+#loop(SimpleCube, "simple_cube", 512, 512, 0)
+#.play
