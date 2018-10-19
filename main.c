@@ -629,7 +629,7 @@ static mrb_value game_loop_button(mrb_state* mrb, mrb_value self)
 
   mrb_get_args(mrb, "ffffo", &a, &b, &c, &d, &label);
 
-  const char *label_cstr = mrb_string_value_cstring(mrb, &label);
+  const char *label_cstr = mrb_string_value_cstr(mrb, &label);
 
   GuiButton((Rectangle){a, b, c, d}, label_cstr);
 
