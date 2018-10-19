@@ -23,6 +23,7 @@ class Snake < PlatformSpecificGameLoop
     half_size = size / 2.0
 
     player = Model.new("resources/flourite001.obj", "resources/flourite001tex.png", size)
+    other_player = Model.new("resources/flourite001.obj", "resources/flourite001tex.png", size)
 
     coin = Model.new("resources/coin.obj", "resources/cointex.png", size * 0.33)
 
@@ -39,7 +40,7 @@ class Snake < PlatformSpecificGameLoop
       process_as_msgpack_stream(bytes) { |result|
         global_counter += 1
 
-        socket_stream.write({"foo" => global_time})
+        #socket_stream.write({"foo" => global_time})
 
         if !global_state["globalPlayerLocation"]
           global_state["lastGlobalPlayerLocation"] = result["globalPlayerLocation"]
@@ -48,6 +49,11 @@ class Snake < PlatformSpecificGameLoop
           global_state["lastGlobalPlayerLocation"] = global_state["globalPlayerLocation"]
           global_state["globalPlayerLocation"] = result["globalPlayerLocation"]
         end
+
+        log!(:msg, global_state["lastGlobalPlayerLocation"])
+
+        global_state["coordinates"] = result["coordinates"] if result["coordinates"]
+
       }
     }
 
@@ -100,36 +106,42 @@ class Snake < PlatformSpecificGameLoop
             player.yawpitchroll(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
           end
 
-          #global_state["coordinates"].each { |coord, item|
-          #  coord_ab = coord.split(",")
-          #  coord_x = coord_ab[0].to_i
-          #  coord_z = coord_ab[1].to_i
-          #  coord_i = (coord_x * coord_z)
-          #  coord_m = coord_i % crystals.length
+          global_state["coordinates"].each { |coord, item|
+            coord_ab = coord.split(",")
+            coord_x = coord_ab[0].to_i
+            coord_z = coord_ab[1].to_i
+            coord_i = (coord_x * coord_z)
+            coord_m = coord_i % crystals.length
 
-          #  if item && item["Paint"] && item["Paint"]["Type"] && item["Paint"]["Type"] == "paint"
-          #    case item["Paint"]["TerrainType"]
-          #      when "rock"
-          #        if item["Paint"]["Permeable"]
-          #        else
-          #          crystals[coord_m].deltap(coord_x, 0, coord_z)
-          #          crystals[coord_m].draw(false)
-          #        end
-          #    end
-          #  end
+            if item && item["Paint"] && item["Paint"]["Type"] && item["Paint"]["Type"] == "paint"
+              case item["Paint"]["TerrainType"]
+                when "rock"
+                  if item["Paint"]["Permeable"]
+                  else
+                    crystals[coord_m].deltap(coord_x, 0, coord_z)
+                    crystals[coord_m].draw(false)
+                  end
+              end
+            end
 
-          #  item && item["Items"] && item["Items"]["ItemStacks"].each { |stacked_item|
-          #    case stacked_item["ItemType"]
-          #    when "coin"
-          #      coin.yawpitchroll((global_time + (coord_i)) * 100.0, 0.0, 0.0, 0.0, 10.0, 0.0)
-          #      coin_height_time_factor = (global_time.to_f + (coord_i.to_f) * 333.0)
-          #      coin_height = ((Math.sin(coin_height_time_factor) + 1.0) * 0.125)
-          #      coin.deltap(coord_x, coin_height, coord_z)
+            item && item["Items"] && item["Items"]["ItemStacks"].each { |stacked_item|
+              case stacked_item["ItemType"]
+              when "coin"
+                coin.yawpitchroll((global_time + (coord_i)) * 100.0, 0.0, 0.0, 0.0, 10.0, 0.0)
+                coin_height_time_factor = (global_time.to_f + (coord_i.to_f) * 333.0)
+                coin_height = ((Math.sin(coin_height_time_factor) + 1.0) * 0.125)
+                coin.deltap(coord_x, coin_height, coord_z)
 
-          #      coin.draw(false)
-          #    end
-          #  }
-          #}
+                coin.draw(false)
+              end
+            }
+
+            if item && item["Object"] && item["Object"]["Type"] && item["Object"]["Type"] == "player"
+              #"Type", "Id", "
+              other_player.deltap(coord_x, 0, coord_z)
+              other_player.draw(false)
+            end
+          }
 
           player.draw(false)
 
@@ -151,4 +163,5 @@ class Snake < PlatformSpecificGameLoop
   end
 end
 
-#Snake.new("snake", 512, 512, 0).play
+game = Snake.new("snake", 512, 512, 0)
+game.play

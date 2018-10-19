@@ -14,4 +14,4 @@ class MainMenu < GameLoop
   end
 end
 
-MainMenu.window("kit1zx", 500, 500, 0)
+#MainMenu.window("kit1zx", 500, 500, 0)

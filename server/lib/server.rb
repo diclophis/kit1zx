@@ -160,7 +160,7 @@ class Server
       # or else return a mruby String or a object which can be converted into a String via to_str
       # and be up to len bytes long
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when there is nothing to read
-      throw_away_buf = nc.last_buf
+      throw_away_buf = nc.last_buf.dup
       nc.last_buf = nil
       throw_away_buf
     end

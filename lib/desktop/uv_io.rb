@@ -20,7 +20,7 @@ class SocketStream
   def connect!
     wslay_callbacks = Wslay::Event::Callbacks.new
 
-    @last_buf = nil
+    @last_buf = ""
 
     wslay_callbacks.recv_callback do |buf, len|
       # when wslay wants to read data
@@ -29,10 +29,12 @@ class SocketStream
       # or else return a mruby String or a object which can be converted into a String via to_str
       # and be up to len bytes long
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when there is nothing to read
-      #log!(:recv_c, [buf, len])
-      throw_away_buf = @last_buf
-      @last_buf = nil
-      throw_away_buf
+      #throw_away_buf = @last_buf
+      #@last_buf = nil
+      #throw_away_buf
+      max_sub_buf = @last_buf.slice!(0, len)
+      #@gl.log!(:recv_c, [buf, len, max_sub_buf.length])
+      max_sub_buf
     end
     
     wslay_callbacks.on_msg_recv_callback do |msg|
@@ -46,14 +48,14 @@ class SocketStream
       # :abnormal_closure, :invalid_frame_payload_data, :policy_violation, :message_too_big, :mandatory_ext,
       # :internal_server_error, :tls_handshake
       # to_str => returns the message revieced
-      #log!(:raw, msg)
+      #@gl.log!(:msg, msg)
 
       if msg[:opcode] == :binary_frame
         #NOTE!!!!!!! get back to this refactor
         #self.feed_state!(msg[:msg])
         @got_bytes_block.call(msg[:msg])
       else
-        log!(msg[:opcode])
+        @gl.log!(msg[:opcode])
       end
     end
 
@@ -76,7 +78,7 @@ class SocketStream
     @client = Wslay::Event::Context::Client.new wslay_callbacks
     @phr = Phr.new
 
-    host = '127.0.0.1'
+    host = '10.9.47.7'
     port = 8081
 
     @address = UV.ip4_addr(host, port)
@@ -119,6 +121,8 @@ class SocketStream
   end
 
   def handle_bytes!(b)
+    #@gl.log!([:raw, b.length])
+
     if @processing_handshake
       @ss += b
       offset = @phr.parse_response(@ss)
@@ -130,7 +134,7 @@ class SocketStream
         #   raise Error, "Handshake failure"
         #end
         @processing_handshake = false
-        @last_buf = @ss[offset..-1]
+        @last_buf += @ss[offset..-1]
         proto_ok = (@client.recv != :proto)
         unless proto_ok
           @gl.log!(:wslay_handshake_proto_error)
@@ -143,7 +147,7 @@ class SocketStream
         spindown!
       end
     else
-      @last_buf = b
+      @last_buf += b
       proto_ok = (@client.recv != :proto)
       unless proto_ok
         @gl.log!(:wslay_handshake_proto_error)
@@ -180,7 +184,7 @@ class SocketStream
   end
 end
 
-class GameLoop
+class PlatformSpecificGameLoop < GameLoop
   def initialize(*args)
     super(*args)
 
