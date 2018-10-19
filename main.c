@@ -456,7 +456,7 @@ void game_loop_update_void(void) {
 
 #ifdef PLATFORM_WEB
 EM_JS(int, start_connection, (), {
-  return startConnection("ws://localhost:8081/ws");
+  return startConnection("ws://10.9.47.7:8081/ws");
 });
 #endif
 

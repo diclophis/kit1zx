@@ -63,3 +63,6 @@ class GameLoop
     puts :spindown
   end
 end
+
+class PlatformSpecificGameLoop < GameLoop
+end
