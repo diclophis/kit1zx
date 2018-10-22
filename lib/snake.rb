@@ -40,7 +40,7 @@ class Snake < PlatformSpecificGameLoop
       process_as_msgpack_stream(bytes) { |result|
         global_counter += 1
 
-        #socket_stream.write({"foo" => global_time})
+        socket_stream.write({"Type" => "foo", "From" => global_time, "To" => -global_time})
 
         #if !global_state["globalPlayerLocation"]
 
@@ -56,7 +56,7 @@ class Snake < PlatformSpecificGameLoop
 
         global_state["coordinates"] = result["coordinates"] if result["coordinates"]
 
-        log!(:msg, global_state["lastGlobalPlayerLocation"], result.keys)
+        #log!(:msg, global_state["lastGlobalPlayerLocation"], result.keys)
       }
     }
 
