@@ -21,7 +21,7 @@ EMSCRIPTEN_FLAGS=-s NO_EXIT_RUNTIME=0 -s STACK_OVERFLOW_CHECK=0 -s ASSERTIONS=0 
 
 LDFLAGS=-lm -lpthread -ldl -static
 
-CFLAGS=$(EMSCRIPTEN_FLAGS) -DPLATFORM_WEB -s USE_GLFW=3 -std=c99 -Imruby/include -Iraylib-src -I$(build)
+CFLAGS=$(EMSCRIPTEN_FLAGS) -DPLATFORM_WEB -s USE_GLFW=3 -std=c99 -fdeclspec -Imruby/include -Iraylib-src -I$(build)
 
 $(shell mkdir -p $(build))
 
@@ -30,7 +30,7 @@ run: $(target) $(sources)
 	realpath $(target)
 
 $(target): shell.html $(objects) $(sources)
-	$(CC) -o $@ $(objects) $(LDFLAGS) $(EMSCRIPTEN_FLAGS) -s USE_GLFW=3 -g4 -s EXPORTED_FUNCTIONS="['_main', '_debug_print']" -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' --source-map-base $(map_base) -s TOTAL_MEMORY=167772160 --shell-file shell.html --preload-file resources
+	$(CC) -o $@ $(objects) $(LDFLAGS) $(EMSCRIPTEN_FLAGS) -fdeclspec -s USE_GLFW=3 -g4 -s EXPORTED_FUNCTIONS="['_main', '_debug_print']" -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' --source-map-base $(map_base) -s TOTAL_MEMORY=167772160 --shell-file shell.html --preload-file resources
 
 $(build)/test.yml: $(target) config.ru
 	$(target) > $@
