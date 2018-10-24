@@ -34,3 +34,6 @@ class PlatformBits
     puts :spindown
   end
 end
+
+class PlatformSpecificBits < PlatformBits
+end

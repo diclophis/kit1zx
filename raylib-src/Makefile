@@ -164,8 +164,8 @@ endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
     # Emscripten required variables
     EMSDK_PATH          = C:/emsdk
-    EMSCRIPTEN_VERSION  = 1.38.8
-    CLANG_VERSION       = e1.38.8_64bit
+    EMSCRIPTEN_VERSION  = 1.38.14
+    CLANG_VERSION       = e1.38.14_64bit
     PYTHON_VERSION      = 2.7.13.1_64bit\python-2.7.13.amd64
     NODE_VERSION        = 8.9.1_64bit
     EMSCRIPTEN          = $(EMSDK_PATH)\emscripten\$(EMSCRIPTEN_VERSION)

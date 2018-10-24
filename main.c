@@ -869,6 +869,8 @@ static mrb_value sphere_initialize(mrb_state* mrb, mrb_value self)
 
 
 mrb_value global_show(mrb_state* mrb, mrb_value self) {
+  //TODO: fix this hack
+  global_mrb = mrb;
   mrb_get_args(mrb, "o", &global_platform_bits);
 
   mousexyz = mrb_ary_new(mrb);
