@@ -1,9 +1,7 @@
 // simple mruby/raylib game
 
-#define RAYGUI_IMPLEMENTATION
 
-//#define GAME_LIB simple_boxes
-
+// stdlib stuff
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -12,6 +10,7 @@
 #include <fcntl.h>
 
 
+// mruby stuff
 #include <mruby.h>
 #include <mruby/array.h>
 #include <mruby/irep.h>
@@ -24,14 +23,20 @@
 #include <mruby/variable.h>
 
 
+// raylib stuff
+#define RAYGUI_IMPLEMENTATION
 #include <raylib.h>
 #include <raymath.h>
 #include <raygui.h>
 
+
+// emscripten/wasm stuff
 #ifdef PLATFORM_WEB
   #include <emscripten/emscripten.h>
 #endif
 
+
+// kit1zx stuff
 #include "shmup.h"
 #include "snake.h"
 #include "kube.h"
@@ -43,12 +48,13 @@
 #include "window.h"
 #include "socket_stream.h"
 #include "platform_bits.h"
-
 #ifdef PLATFORM_DESKTOP
 #include "uv_io.h"
 #include "wslay_socket_stream.h"
 #endif
 
+
+// other stuff
 #define FLT_MAX 3.40282347E+38F
 
 
@@ -80,12 +86,8 @@ const struct mrb_data_type model_data_type = {"model_data", model_data_destructo
 
 //TODO???????
 static mrb_state *global_mrb;
-static play_data_s *global_p_data = NULL;
-static mrb_value global_data_value;     // this IV holds the data
-//static mrb_value global_block;
 static mrb_value global_platform_bits;
 static int counter = 0;
-//static mrb_value gtdt;
 static mrb_value mousexyz;
 static mrb_value pressedkeys;
 
@@ -248,7 +250,7 @@ static mrb_value game_loop_initialize(mrb_state* mrb, mrb_value self)
       mrb_obj_value(                           // with value hold in struct
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
 
-  global_p_data = p_data;
+  //global_p_data = p_data;
 
   return self;
 }
@@ -264,23 +266,9 @@ static mrb_value platform_bits_initialize(mrb_state* mrb, mrb_value self)
 
   const char *c_game_name = mrb_string_value_cstr(mrb, &game_name);
 
-  //TODO???????
-  //global_gl = self;
-
   InitWindow(screenWidth, screenHeight, c_game_name);
 
   SetExitKey(0);
-
-/*
-  //// Main game loop
-  BeginDrawing();
-    UpdateCamera(&p_data->camera);
-    BeginMode3D(p_data->camera);
-    EndMode3D();
-    BeginMode2D(p_data->cameraTwo);
-    EndMode2D();
-  EndDrawing();
-*/
 
 #ifdef PLATFORM_DESKTOP
   //SetWindowPosition((GetMonitorWidth() - GetScreenWidth())/2, ((GetMonitorHeight() - GetScreenHeight())/2)+1);
@@ -446,24 +434,16 @@ static mrb_value platform_bits_update(mrb_state* mrb, mrb_value self) {
   time = GetTime();
   dt = GetFrameTime();
 
-  //self is instance of Window.new !!!!!!!!!!
 
 /*
-  mrb_ary_set(global_mrb, gtdt, 0, mrb_float_value(global_mrb, time));
-  mrb_ary_set(global_mrb, gtdt, 1, mrb_float_value(global_mrb, dt));
-
   global_p_data->mousePosition = GetMousePosition();
 
   //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
   //SetCameraMode(global_p_data->camera, CAMERA_FREE);
   UpdateCamera(&global_p_data->camera);
-
-  mrb_yield_argv(global_mrb, global_block, 2, &gtdt);
 */
 
-  //mrb_value global_window_block;     // this IV holds the data
-  //global_window_block = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@global_window_block"));
-
+  //self is instance of Window.new !!!!!!!!!!
   mrb_funcall(mrb, self, "play", 2, mrb_float_value(mrb, time), mrb_float_value(mrb, dt));
 
   return mrb_nil_value();
@@ -751,7 +731,8 @@ static mrb_value model_draw(mrb_state* mrb, mrb_value self)
 static mrb_value model_label(mrb_state* mrb, mrb_value self)
 {
   mrb_value label_txt = mrb_nil_value();
-  mrb_get_args(mrb, "o", &label_txt);
+  mrb_value pointer_value;
+  mrb_get_args(mrb, "oo", &pointer_value, &label_txt);
 
   const char *c_label_txt = mrb_string_value_cstr(mrb, &label_txt);
 
@@ -765,12 +746,19 @@ static mrb_value model_label(mrb_state* mrb, mrb_value self)
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
 
+  play_data_s *gl_p_data = NULL;
+
+  Data_Get_Struct(mrb, pointer_value, &play_data_type, gl_p_data);
+  if (!gl_p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
   float textSize = 5.0;
 
   Vector3 cubePosition = p_data->position;
 
   Vector2 cubeScreenPosition;
-  cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y, cubePosition.z}, global_p_data->camera);
+  cubeScreenPosition = GetWorldToScreen((Vector3){cubePosition.x, cubePosition.y, cubePosition.z}, gl_p_data->camera);
 
   DrawText(c_label_txt, cubeScreenPosition.x - (float)MeasureText(c_label_txt, textSize) / 2.0, cubeScreenPosition.y, textSize, p_data->label_color);
 
@@ -984,8 +972,6 @@ int main(int argc, char** argv) {
 #endif
 
   eval_static_libs(mrb, simple_boxes, main_menu, NULL);
-
-  //eval_static_libs(mrb, GAME_LIB, NULL);
 
   eval_static_libs(mrb, window, NULL);
 
