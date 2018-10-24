@@ -207,7 +207,7 @@ class PlatformSpecificGameLoop < GameLoop
     @stdout.read_stop
 
     @idle = UV::Timer.new
-    @idle.start(0, 33) {
+    @idle.start(0, 1) {
       self.update
     }
 

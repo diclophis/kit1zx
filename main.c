@@ -1,6 +1,8 @@
 // simple mruby/raylib game
 
-#define GAME_LIB snake
+#define RAYGUI_IMPLEMENTATION
+
+#define GAME_LIB main_menu
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -588,7 +590,7 @@ static mrb_value game_loop_drawmode(mrb_state* mrb, mrb_value self)
 
   BeginDrawing();
 
-  ClearBackground(BLACK);
+  ClearBackground(BLUE);
 
   mrb_yield_argv(mrb, block, 0, NULL);
 
@@ -631,7 +633,9 @@ static mrb_value game_loop_button(mrb_state* mrb, mrb_value self)
 
   const char *label_cstr = mrb_string_value_cstr(mrb, &label);
 
-  GuiButton((Rectangle){a, b, c, d}, label_cstr);
+  if (GuiButton((Rectangle){a, b, c, d}, label_cstr)) {
+    fprintf(stderr, "wtf\n");
+  }
 
   return mrb_nil_value();
 }
@@ -910,6 +914,7 @@ int main(int argc, char** argv) {
   mrb_define_method(mrb, game_class, "drawmode", game_loop_drawmode, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "twod", game_loop_twod, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "update", game_loop_update, MRB_ARGS_NONE());
+  mrb_define_method(mrb, game_class, "button", game_loop_button, MRB_ARGS_REQ(5));
 
   // class Model
   struct RClass *model_class = mrb_define_class(mrb, "Model", mrb->object_class);
