@@ -2,7 +2,7 @@
 
 #define RAYGUI_IMPLEMENTATION
 
-#define GAME_LIB main_menu
+//#define GAME_LIB simple_boxes
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,9 +40,13 @@
 #include "globals.h"
 #include "game_loop.h"
 #include "main_menu.h"
+#include "window.h"
+#include "socket_stream.h"
+#include "platform_bits.h"
 
 #ifdef PLATFORM_DESKTOP
 #include "uv_io.h"
+#include "wslay_socket_stream.h"
 #endif
 
 #define FLT_MAX 3.40282347E+38F
@@ -78,10 +82,10 @@ const struct mrb_data_type model_data_type = {"model_data", model_data_destructo
 static mrb_state *global_mrb;
 static play_data_s *global_p_data = NULL;
 static mrb_value global_data_value;     // this IV holds the data
-static mrb_value global_block;
-static mrb_value global_gl;
+//static mrb_value global_block;
+static mrb_value global_platform_bits;
 static int counter = 0;
-static mrb_value gtdt;
+//static mrb_value gtdt;
 static mrb_value mousexyz;
 static mrb_value pressedkeys;
 
@@ -90,7 +94,8 @@ static mrb_value pressedkeys;
 EMSCRIPTEN_KEEPALIVE
 size_t debug_print(const char* buf, size_t n) {
   mrb_value cstrlikebuf = mrb_str_new(global_mrb, buf, n);
-  mrb_funcall(global_mrb, global_gl, "feed_state!", 1, cstrlikebuf);
+  //TODO!!!!!!!!!!!!!!!!!!!!1
+  //mrb_funcall(global_mrb, global_gl, "feed_state!", 1, cstrlikebuf);
   //???? mrb_yield_argv(mrb, block, 1, cstrlikebuf);
   return 0;
 }
@@ -147,10 +152,6 @@ static void play_data_destructor(mrb_state *mrb, void *p_) {
 
   mrb_free(mrb, pd);
 };
-
-
-
-
 
 
 static mrb_value game_loop_mousep(mrb_state* mrb, mrb_value self)
@@ -230,18 +231,8 @@ static mrb_value game_loop_keyspressed(mrb_state* mrb, mrb_value self)
 }
 
 
-
-
 static mrb_value game_loop_initialize(mrb_state* mrb, mrb_value self)
 {
-  // Initialization
-  mrb_value game_name = mrb_nil_value();
-  mrb_int screenWidth,screenHeight,screenFps;
-
-  mrb_get_args(mrb, "oiii", &game_name, &screenWidth, &screenHeight, &screenFps);
-
-  const char *c_game_name = mrb_string_value_cstr(mrb, &game_name);
-
   play_data_s *p_data;
 
   p_data = malloc(sizeof(play_data_s));
@@ -257,12 +248,30 @@ static mrb_value game_loop_initialize(mrb_state* mrb, mrb_value self)
       mrb_obj_value(                           // with value hold in struct
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
 
-  global_gl = self;
+  global_p_data = p_data;
+
+  return self;
+}
+
+
+static mrb_value platform_bits_initialize(mrb_state* mrb, mrb_value self)
+{
+  // Initialization
+  mrb_value game_name = mrb_nil_value();
+  mrb_int screenWidth,screenHeight,screenFps;
+
+  mrb_get_args(mrb, "oiii", &game_name, &screenWidth, &screenHeight, &screenFps);
+
+  const char *c_game_name = mrb_string_value_cstr(mrb, &game_name);
+
+  //TODO???????
+  //global_gl = self;
 
   InitWindow(screenWidth, screenHeight, c_game_name);
 
-  global_p_data = p_data;
+  SetExitKey(0);
 
+/*
   //// Main game loop
   BeginDrawing();
     UpdateCamera(&p_data->camera);
@@ -271,6 +280,7 @@ static mrb_value game_loop_initialize(mrb_state* mrb, mrb_value self)
     BeginMode2D(p_data->cameraTwo);
     EndMode2D();
   EndDrawing();
+*/
 
 #ifdef PLATFORM_DESKTOP
   //SetWindowPosition((GetMonitorWidth() - GetScreenWidth())/2, ((GetMonitorHeight() - GetScreenHeight())/2)+1);
@@ -423,7 +433,7 @@ static mrb_value game_loop_draw_fps(mrb_state* mrb, mrb_value self)
 }
 
 
-static mrb_value game_loop_update(mrb_state* mrb, mrb_value self) {
+static mrb_value platform_bits_update(mrb_state* mrb, mrb_value self) {
 #ifdef PLATFORM_DESKTOP
   if (WindowShouldClose()) {
     mrb_funcall(mrb, self, "spindown!", 0, NULL);
@@ -436,6 +446,9 @@ static mrb_value game_loop_update(mrb_state* mrb, mrb_value self) {
   time = GetTime();
   dt = GetFrameTime();
 
+  //self is instance of Window.new !!!!!!!!!!
+
+/*
   mrb_ary_set(global_mrb, gtdt, 0, mrb_float_value(global_mrb, time));
   mrb_ary_set(global_mrb, gtdt, 1, mrb_float_value(global_mrb, dt));
 
@@ -446,13 +459,19 @@ static mrb_value game_loop_update(mrb_state* mrb, mrb_value self) {
   UpdateCamera(&global_p_data->camera);
 
   mrb_yield_argv(global_mrb, global_block, 2, &gtdt);
+*/
+
+  //mrb_value global_window_block;     // this IV holds the data
+  //global_window_block = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@global_window_block"));
+
+  mrb_funcall(mrb, self, "play", 2, mrb_float_value(mrb, time), mrb_float_value(mrb, dt));
 
   return mrb_nil_value();
 }
 
 
-void game_loop_update_void(void) {
-  game_loop_update(global_mrb, global_gl);
+void platform_bits_update_void(void) {
+  platform_bits_update(global_mrb, global_platform_bits);
 }
 
 
@@ -463,24 +482,12 @@ EM_JS(int, start_connection, (), {
 #endif
 
 
-static mrb_value game_loop_main_loop(mrb_state* mrb, mrb_value self)
+/*
+static mrb_value platform_bits_main_loop(mrb_state* mrb, mrb_value self)
 {
-  //TODO: fix this hack???
-  global_mrb = mrb;
-
-  mrb_get_args(mrb, "&", &global_block);
-
-#ifdef PLATFORM_WEB
-  start_connection();
-  emscripten_set_main_loop(game_loop_update_void, 0, 1);
-#else
-  mrb_funcall(mrb, self, "spinlock!", 0, NULL);
-#endif
-
-  CloseWindow(); // Close window and OpenGL context
-
   return mrb_nil_value();
 }
+*/
 
 
 static mrb_value game_loop_lookat(mrb_state* mrb, mrb_value self)
@@ -635,7 +642,7 @@ static mrb_value game_loop_button(mrb_state* mrb, mrb_value self)
   const char *label_cstr = mrb_string_value_cstr(mrb, &label);
 
   if (GuiButton((Rectangle){a, b, c, d}, label_cstr)) {
-    return mrb_yield_argv(mrb, block, 0, MRB_ARGS_NONE());
+    return mrb_yield_argv(mrb, block, 0, NULL);
   }
 
   return mrb_nil_value();
@@ -880,6 +887,29 @@ static mrb_value sphere_initialize(mrb_state* mrb, mrb_value self)
 }
 
 
+mrb_value global_show(mrb_state* mrb, mrb_value self) {
+  mrb_get_args(mrb, "o", &global_platform_bits);
+
+  //gtdt = mrb_ary_new(mrb);
+  mousexyz = mrb_ary_new(mrb);
+  pressedkeys = mrb_ary_new(mrb);
+
+  //mrb_get_args(mrb, "&", &global_block);
+
+#ifdef PLATFORM_WEB
+  //start_connection();
+  //emscripten_set_main_loop(platform_bits_update_void, 0, 1);
+#else
+  mrb_funcall(mrb, global_platform_bits, "spinlock!", 0, NULL);
+#endif
+
+  //TODO: move this to window class somehow
+  CloseWindow(); // Close window and OpenGL context
+
+  return self;
+}
+
+
 int main(int argc, char** argv) {
   mrb_state *mrb;
   struct mrb_parser_state *ret;
@@ -900,21 +930,25 @@ int main(int argc, char** argv) {
 
   mrb_define_global_const(mrb, "ARGV", args);
 
+  // class PlatformBits
+  struct RClass *platform_bits_class = mrb_define_class(mrb, "PlatformBits", mrb->object_class);
+  mrb_define_method(mrb, platform_bits_class, "initialize", platform_bits_initialize, MRB_ARGS_REQ(4));
+  //mrb_define_method(mrb, platform_bits_class, "main_loop", platform_bits_main_loop, MRB_ARGS_BLOCK());
+  mrb_define_method(mrb, platform_bits_class, "update", platform_bits_update, MRB_ARGS_NONE());
+
   // class GameLoop
   struct RClass *game_class = mrb_define_class(mrb, "GameLoop", mrb->object_class);
-  mrb_define_method(mrb, game_class, "initialize", game_loop_initialize, MRB_ARGS_REQ(4));
+  mrb_define_method(mrb, game_class, "initialize", game_loop_initialize, MRB_ARGS_NONE());
   mrb_define_method(mrb, game_class, "lookat", game_loop_lookat, MRB_ARGS_REQ(8));
   mrb_define_method(mrb, game_class, "draw_grid", game_loop_draw_grid, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, game_class, "draw_plane", game_loop_draw_plane, MRB_ARGS_REQ(5));
   mrb_define_method(mrb, game_class, "draw_fps", game_loop_draw_fps, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, game_class, "mousep", game_loop_mousep, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "keyspressed", game_loop_keyspressed, MRB_ARGS_ANY());
-  mrb_define_method(mrb, game_class, "main_loop", game_loop_main_loop, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "threed", game_loop_threed, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "interim", game_loop_interim, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "drawmode", game_loop_drawmode, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, game_class, "twod", game_loop_twod, MRB_ARGS_BLOCK());
-  mrb_define_method(mrb, game_class, "update", game_loop_update, MRB_ARGS_NONE());
   mrb_define_method(mrb, game_class, "button", game_loop_button, MRB_ARGS_REQ(5));
 
   // class Model
@@ -935,21 +969,25 @@ int main(int argc, char** argv) {
   struct RClass *sphere_class = mrb_define_class(mrb, "Sphere", model_class);
   mrb_define_method(mrb, sphere_class, "initialize", sphere_initialize, MRB_ARGS_REQ(4));
 
-  gtdt = mrb_ary_new(mrb);
-  mousexyz = mrb_ary_new(mrb);
-  pressedkeys = mrb_ary_new(mrb);
+  mrb_define_method(mrb, mrb->kernel_module, "show!", global_show, MRB_ARGS_REQ(1));
 
   eval_static_libs(mrb, globals, NULL);
+
+  eval_static_libs(mrb, socket_stream, NULL);
+
+  eval_static_libs(mrb, platform_bits, NULL);
 
   eval_static_libs(mrb, game_loop, NULL);
 
 #ifdef PLATFORM_DESKTOP
-  eval_static_libs(mrb, uv_io, NULL);
+  eval_static_libs(mrb, wslay_socket_stream, uv_io, NULL);
 #endif
 
-  //eval_static_libs(mrb, shmup, snake, box, kube, simple_boxes, NULL);
+  eval_static_libs(mrb, simple_boxes, main_menu, NULL);
 
-  eval_static_libs(mrb, GAME_LIB, NULL);
+  //eval_static_libs(mrb, GAME_LIB, NULL);
+
+  eval_static_libs(mrb, window, NULL);
 
   mrb_close(mrb);
 
