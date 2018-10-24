@@ -250,8 +250,6 @@ static mrb_value game_loop_initialize(mrb_state* mrb, mrb_value self)
       mrb_obj_value(                           // with value hold in struct
           Data_Wrap_Struct(mrb, mrb->object_class, &play_data_type, p_data)));
 
-  //global_p_data = p_data;
-
   return self;
 }
 
@@ -460,14 +458,6 @@ EM_JS(int, start_connection, (), {
   return startConnection("ws://10.9.47.7:8081/ws");
 });
 #endif
-
-
-/*
-static mrb_value platform_bits_main_loop(mrb_state* mrb, mrb_value self)
-{
-  return mrb_nil_value();
-}
-*/
 
 
 static mrb_value game_loop_lookat(mrb_state* mrb, mrb_value self)
@@ -878,15 +868,12 @@ static mrb_value sphere_initialize(mrb_state* mrb, mrb_value self)
 mrb_value global_show(mrb_state* mrb, mrb_value self) {
   mrb_get_args(mrb, "o", &global_platform_bits);
 
-  //gtdt = mrb_ary_new(mrb);
   mousexyz = mrb_ary_new(mrb);
   pressedkeys = mrb_ary_new(mrb);
 
-  //mrb_get_args(mrb, "&", &global_block);
-
 #ifdef PLATFORM_WEB
   //start_connection();
-  //emscripten_set_main_loop(platform_bits_update_void, 0, 1);
+  emscripten_set_main_loop(platform_bits_update_void, 0, 1);
 #else
   mrb_funcall(mrb, global_platform_bits, "spinlock!", 0, NULL);
 #endif
@@ -917,11 +904,11 @@ int main(int argc, char** argv) {
   }
 
   mrb_define_global_const(mrb, "ARGV", args);
+  mrb_define_method(mrb, mrb->kernel_module, "show!", global_show, MRB_ARGS_REQ(1));
 
   // class PlatformBits
   struct RClass *platform_bits_class = mrb_define_class(mrb, "PlatformBits", mrb->object_class);
   mrb_define_method(mrb, platform_bits_class, "initialize", platform_bits_initialize, MRB_ARGS_REQ(4));
-  //mrb_define_method(mrb, platform_bits_class, "main_loop", platform_bits_main_loop, MRB_ARGS_BLOCK());
   mrb_define_method(mrb, platform_bits_class, "update", platform_bits_update, MRB_ARGS_NONE());
 
   // class GameLoop
@@ -956,8 +943,6 @@ int main(int argc, char** argv) {
   // class Sphere
   struct RClass *sphere_class = mrb_define_class(mrb, "Sphere", model_class);
   mrb_define_method(mrb, sphere_class, "initialize", sphere_initialize, MRB_ARGS_REQ(4));
-
-  mrb_define_method(mrb, mrb->kernel_module, "show!", global_show, MRB_ARGS_REQ(1));
 
   eval_static_libs(mrb, globals, NULL);
 

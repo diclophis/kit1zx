@@ -18,9 +18,3 @@ class MainMenu < GameLoop
     }
   end
 end
-
-#TODO: ???
-#MainMenu.window("kit1zx", 500, 500, 0)
-
-#game = MainMenu.new("main_menu", 512, 512, 0)
-#game.play
