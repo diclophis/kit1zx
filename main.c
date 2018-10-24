@@ -628,13 +628,14 @@ static mrb_value game_loop_button(mrb_state* mrb, mrb_value self)
 {
   mrb_float a,b,c,d;
   mrb_value label;
+  mrb_value block;
 
-  mrb_get_args(mrb, "ffffo", &a, &b, &c, &d, &label);
+  mrb_get_args(mrb, "ffffo&!", &a, &b, &c, &d, &label, &block);
 
   const char *label_cstr = mrb_string_value_cstr(mrb, &label);
 
   if (GuiButton((Rectangle){a, b, c, d}, label_cstr)) {
-    fprintf(stderr, "wtf\n");
+    return mrb_yield_argv(mrb, block, 0, MRB_ARGS_NONE());
   }
 
   return mrb_nil_value();
