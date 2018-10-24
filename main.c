@@ -93,6 +93,7 @@ static mrb_value pressedkeys;
 
 
 #ifdef PLATFORM_WEB
+
 EMSCRIPTEN_KEEPALIVE
 size_t debug_print(const char* buf, size_t n) {
   mrb_value cstrlikebuf = mrb_str_new(global_mrb, buf, n);
@@ -102,6 +103,7 @@ size_t debug_print(const char* buf, size_t n) {
   return 0;
 }
 
+
 // Function to trigger alerts straight from C++
 EMSCRIPTEN_KEEPALIVE
 void Alert(const char *msg) {
@@ -110,6 +112,7 @@ void Alert(const char *msg) {
     alert(msg);                      // Use JS version of alert
   }, msg);
 }
+
 #endif
 
 
