@@ -41,6 +41,7 @@
 #include "snake.h"
 #include "kube.h"
 #include "box.h"
+#include "theseus.h"
 #include "simple_boxes.h"
 #include "globals.h"
 #include "game_loop.h"
@@ -956,6 +957,8 @@ int main(int argc, char** argv) {
   eval_static_libs(mrb, platform_bits, NULL);
 
   eval_static_libs(mrb, game_loop, NULL);
+
+  eval_static_libs(mrb, box, theseus, NULL);
 
 #ifdef PLATFORM_DESKTOP
   eval_static_libs(mrb, wslay_socket_stream, uv_io, NULL);
