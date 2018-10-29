@@ -6,13 +6,71 @@ core_size = outer_size / 1.015;
 path_size = outer_size * 0.25;
 inner_path_size = path_size * 0.75;
 fudge = 0.1;
-    
+inner_intersection_size = 0.65;
+quarter_slice_size = 0.35;
+
 module pathway(direction) {
+    if (direction == -1) {
+        //union() {
+            pathway(6);
+            pathway(7);
+        //}
+    } else {
     intersection() {
-        translate([-cut_size,0,0]) {
-            cube(inner_size, center=true);
+//        if (direction == 0) {
+//            cube(outer_size, center=true);
+//        }
+
+        if (direction == 5) {
+            translate([-cut_size*inner_intersection_size,0,0]) {
+                cube(size=[inner_size, path_size, inner_size], center=true);
+            }
+        }
+
+        if (direction == 6) {
+            translate([cut_size*inner_intersection_size,0,0]) {
+                cube(size=[inner_size, path_size, inner_size], center=true);
+            }
+        }
+
+        if (direction == 7) {
+            translate([0,-cut_size*inner_intersection_size,0]) {
+                cube(size=[path_size, inner_size, inner_size], center=true);
+            }
+        }
+
+        if (direction == 8) {
+            translate([0,cut_size*inner_intersection_size,0]) {
+                cube(size=[path_size, inner_size, inner_size], center=true);
+            }
+        }
+
+        if (direction == 9) {
+            //translate([-cut_size*0.75,0,0]) {
+                //cube(size=[inner_size, path_size, inner_size], center=true);
+                cube(size=[path_size, inner_size, inner_size], center=true);
+            //}
+        }
+
+        if (direction == 10) {
+            //translate([-cut_size*0.75,0,0]) {
+                cube(size=[inner_size, path_size, inner_size], center=true);
+                //cube(size=[path_size, inner_size, inner_size], center=true);
+            //}
         }
         
+        if (direction == 11) {
+            union() {
+                translate([cut_size*inner_intersection_size,0,0]) {
+                    cube(size=[inner_size, path_size, inner_size], center=true);
+                }
+    
+                translate([0,-cut_size*inner_intersection_size,0]) {
+                    cube(size=[path_size, inner_size, inner_size], center=true);
+                }
+            }
+        }
+
 //        difference() {
 //            cube(outer_size, center=true);
 //            
@@ -87,8 +145,52 @@ module pathway(direction) {
                 
                 if (direction == 5) {
                     //cube(size=[inner_path_size, outer_size+fudge, inner_path_size], center=true);
-                    translate([-outer_size*0.5,0,0]) {
+                    translate([-outer_size*quarter_slice_size,0,0]) {
                         cube(size=[outer_size+fudge, inner_path_size, inner_path_size], center=true);
+                    }
+                }
+                
+                if (direction == 6) {
+                    //cube(size=[inner_path_size, outer_size+fudge, inner_path_size], center=true);
+                    translate([outer_size*quarter_slice_size,0,0]) {
+                        cube(size=[outer_size+fudge, inner_path_size, inner_path_size], center=true);
+                    }
+                }
+                
+                if (direction == 7) {
+                    //cube(size=[inner_path_size, outer_size+fudge, inner_path_size], center=true);
+                    translate([0,-outer_size*quarter_slice_size,0]) {
+                        cube(size=[inner_path_size, outer_size+fudge, inner_path_size], center=true);
+                    }
+                }
+                
+                if (direction == 8) {
+                    //cube(size=[inner_path_size, outer_size+fudge, inner_path_size], center=true);
+                    translate([0, outer_size*quarter_slice_size,0]) {
+                        cube(size=[inner_path_size, outer_size+fudge, inner_path_size], center=true);
+                    }
+                }
+                
+                if (direction == 9) {
+                    cube(size=[inner_path_size, outer_size+fudge, inner_path_size], center=true);
+                    //cube(size=[outer_size+fudge, inner_path_size, inner_path_size], center=true);
+                }
+                
+                if (direction == 10) {
+                    //cube(size=[inner_path_size, outer_size+fudge, inner_path_size], center=true);
+                    cube(size=[outer_size+fudge, inner_path_size, inner_path_size], center=true);
+                }
+
+                if (direction == 11) {
+                    union() {
+                        translate([outer_size*quarter_slice_size,0,0]) {
+                            cube(size=[(outer_size+fudge)*0.825, inner_path_size, inner_path_size], center=true);
+                        }
+    
+                        //cube(size=[inner_path_size, outer_size+fudge, inner_path_size], center=true);
+                        translate([0,-outer_size*quarter_slice_size,0]) {
+                            cube(size=[inner_path_size, (outer_size+fudge)*0.825, inner_path_size], center=true);
+                        }
                     }
                 }
             }
@@ -102,12 +204,13 @@ module pathway(direction) {
             }
         }
     }
+    }
 }
 
 //for (offset=[0:15]) {
-//    translate([offset*outer_size,0,0]) {
+//    translate([(offset*(outer_size+fudge)),0,0]) {
 //        pathway(offset);
 //    }
 //}
 
-pathway(5);
+pathway(11);
