@@ -7,8 +7,9 @@ core_size = outer_size / 1.015;
 path_size = outer_size * 0.25;
 inner_path_size = path_size * 0.75;
 fudge = 0.05 * outer_size;
-inner_intersection_size = 0.0;
+inner_intersection_size = 0.75;
 quarter_slice_size = 0.35;
+outer_fudge_smidge = (outer_size+fudge)*0.845;
 
 module pathway(direction) {
     intersection() {
@@ -167,11 +168,11 @@ module pathway(direction) {
                 if (direction == 11) {
                     union() {
                         translate([outer_size*quarter_slice_size,0,0]) {
-                            cube(size=[(outer_size+fudge)*0.825, inner_path_size, inner_path_size], center=true);
+                            cube(size=[outer_fudge_smidge, inner_path_size, inner_path_size], center=true);
                         }
 
                         translate([0,-outer_size*quarter_slice_size,0]) {
-                            cube(size=[inner_path_size, (outer_size+fudge)*0.825, inner_path_size], center=true);
+                            cube(size=[inner_path_size, outer_fudge_smidge, inner_path_size], center=true);
                         }
                     }
                 }
@@ -179,11 +180,11 @@ module pathway(direction) {
                 if (direction == 12) {
                     union() {
                         translate([outer_size*quarter_slice_size,0,0]) {
-                            cube(size=[(outer_size+fudge)*0.825, inner_path_size, inner_path_size], center=true);
+                            cube(size=[outer_fudge_smidge, inner_path_size, inner_path_size], center=true);
                         }
 
                         translate([0, outer_size*quarter_slice_size,0]) {
-                            cube(size=[inner_path_size, (outer_size+fudge)*0.825, inner_path_size], center=true);
+                            cube(size=[inner_path_size, outer_fudge_smidge, inner_path_size], center=true);
                         }
                     }
                 }
@@ -191,11 +192,11 @@ module pathway(direction) {
                 if (direction == 13) {
                     union() {
                         translate([-outer_size*quarter_slice_size,0,0]) {
-                            cube(size=[(outer_size+fudge)*0.825, inner_path_size, inner_path_size], center=true);
+                            cube(size=[outer_fudge_smidge, inner_path_size, inner_path_size], center=true);
                         }
 
                         translate([0, outer_size*quarter_slice_size,0]) {
-                            cube(size=[inner_path_size, (outer_size+fudge)*0.825, inner_path_size], center=true);
+                            cube(size=[inner_path_size, outer_fudge_smidge, inner_path_size], center=true);
                         }
                     }
                 }
@@ -203,11 +204,11 @@ module pathway(direction) {
                 if (direction == 14) {
                     union() {
                         translate([-outer_size*quarter_slice_size,0,0]) {
-                            cube(size=[(outer_size+fudge)*0.825, inner_path_size, inner_path_size], center=true);
+                            cube(size=[outer_fudge_smidge, inner_path_size, inner_path_size], center=true);
                         }
 
                         translate([0,-outer_size*quarter_slice_size,0]) {
-                            cube(size=[inner_path_size, (outer_size+fudge)*0.825, inner_path_size], center=true);
+                            cube(size=[inner_path_size, outer_fudge_smidge, inner_path_size], center=true);
                         }
                     }
                 }

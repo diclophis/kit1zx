@@ -36,7 +36,6 @@
   <Param type="RichBool" tooltip="The transformation is explicitly applied, and the vertex coordinates are actually changed" name="Freeze" description="Freeze Matrix" value="true"/>
   <Param type="RichBool" tooltip="If selected the filter will be applied to all visible mesh layers" name="allLayers" description="Apply to all visible Layers" value="false"/>
  </filter>
- <filter name="Random Face Color"/>
  <filter name="Transfer: Vertex Attributes to Texture (1 or 2 meshes)">
   <Param type="RichMesh" tooltip="" name="sourceMesh" description="" value="0"/>
   <Param type="RichMesh" tooltip="" name="targetMesh" description="" value="0"/>
@@ -49,7 +48,6 @@
   <Param type="RichBool" tooltip="assign the newly created texture to target mesh" name="assign" description="Assign Texture" value="false"/>
   <Param type="RichBool" tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" name="pullpush" description="Fill texture" value="true"/>
  </filter>
- <filter name="Random Face Color"/>
  <filter name="Transfer: Vertex Color to Texture">
   <Param type="RichString" tooltip="The texture file to be created" name="textName" description="Texture file" value="shape-null_tex.png"/>
   <Param type="RichInt" tooltip="The texture width" name="textW" description="Texture width (px)" value="1024"/>
@@ -58,7 +56,6 @@
   <Param type="RichBool" tooltip="assign the newly created texture" name="assign" description="Assign texture" value="false"/>
   <Param type="RichBool" tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" name="pullpush" description="Fill texture" value="true"/>
  </filter>
- <filter name="Random Face Color"/>
  <filter name="Transfer Color: Face to Vertex"/>
  <filter name="Transfer: Vertex Color to Texture">
   <Param type="RichString" tooltip="The texture file to be created" name="textName" description="Texture file" value="shape-null_tex.png"/>
@@ -75,12 +72,6 @@
   <Param type="RichBool" tooltip="if current mesh has a texture will be overwritten (with provided texture dimension)" name="overwrite" description="Overwrite texture" value="false"/>
   <Param type="RichBool" tooltip="assign the newly created texture" name="assign" description="Assign texture" value="false"/>
   <Param type="RichBool" tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" name="pullpush" description="Fill texture" value="true"/>
- </filter>
- <filter name="Colorize by face Quality">
-  <Param type="RichFloat" tooltip="The value that will be mapped with the lower end of the scale (blue)" name="minVal" description="Min" value="0.143"/>
-  <Param type="RichFloat" tooltip="The value that will be mapped with the upper end of the scale (red)" name="maxVal" description="Max" value="0.866"/>
-  <Param type="RichDynamicFloat" tooltip="If not zero this value will be used for a percentile cropping of the quality values.&lt;br> If this parameter is set to a value&lt;i>P&lt;/i> then the two values &lt;i>V_min,V_max&lt;/i> for which &lt;i>P&lt;/i>% of the vertices have a quality &lt;b>lower or greater than &lt;i>V_min,V_max&lt;/i> are used as min/max values for clamping.&lt;br>&lt;br> The automated percentile cropping is very useful for automatically discarding outliers." min="0" max="100" name="perc" description="Percentile Crop [0..100]" value="0"/>
-  <Param type="RichBool" tooltip="If true the min max range will be enlarged to be symmertic (so that green is always Zero)" name="zeroSym" description="Zero Simmetric" value="false"/>
  </filter>
  <filter name="Transfer Color: Face to Vertex"/>
  <filter name="Transfer: Vertex Color to Texture">

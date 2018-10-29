@@ -11,3 +11,4 @@ release
 project.xcworkspace
 xcuserdata
 *.pbxuser
+resources/shape-*
