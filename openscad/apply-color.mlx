@@ -1,5 +1,8 @@
 <!DOCTYPE FilterScript>
 <FilterScript>
+ <filter name="Per Face Quality according to Triangle shape and aspect ratio">
+  <Param value="2" description="Metric:" enum_val0="area/max side" enum_cardinality="8" enum_val1="inradius/circumradius" enum_val2="mean ratio" type="RichEnum" enum_val3="Area" enum_val4="Texture Angle Distortion" enum_val5="Texture Area Distortion" enum_val6="Planarity (abs plane dist)" enum_val7="Planarity (relative)" name="Metric" tooltip="Choose a metric to compute triangle quality."/>
+ </filter>
  <filter name="Colorize by face Quality">
   <Param tooltip="The value that will be mapped with the lower end of the scale (blue)" type="RichFloat" value="0.143" name="minVal" description="Min"/>
   <Param tooltip="The value that will be mapped with the upper end of the scale (red)" type="RichFloat" value="0.866" name="maxVal" description="Max"/>

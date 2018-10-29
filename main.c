@@ -436,7 +436,6 @@ static mrb_value platform_bits_update(mrb_state* mrb, mrb_value self) {
   time = GetTime();
   dt = GetFrameTime();
 
-
 /*
   global_p_data->mousePosition = GetMousePosition();
 
@@ -505,11 +504,27 @@ static mrb_value game_loop_lookat(mrb_state* mrb, mrb_value self)
   p_data->cameraTwo.rotation = 0.0f;
   p_data->cameraTwo.zoom = 1.0f;
 
-  //SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
-
   return mrb_nil_value();
 }
 
+
+static mrb_value game_loop_first_person(mrb_state* mrb, mrb_value self)
+{
+  play_data_s *p_data = NULL;
+  mrb_value data_value;     // this IV holds the data
+  data_value = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@pointer"));
+
+  Data_Get_Struct(mrb, data_value, &play_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+
+  fprintf(stderr, "wtf!!!\n");
+
+  SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
+
+  return mrb_nil_value();
+}
 
 static mrb_value game_loop_threed(mrb_state* mrb, mrb_value self)
 {
@@ -524,6 +539,8 @@ static mrb_value game_loop_threed(mrb_state* mrb, mrb_value self)
   if (!p_data) {
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
+
+  UpdateCamera(&p_data->camera);
 
   BeginMode3D(p_data->camera);
 
@@ -874,6 +891,9 @@ mrb_value global_show(mrb_state* mrb, mrb_value self) {
   global_mrb = mrb;
   mrb_get_args(mrb, "o", &global_platform_bits);
 
+//FOOO
+  //SetCameraMode(global_p_data->camera, CAMERA_FIRST_PERSON);
+
   mousexyz = mrb_ary_new(mrb);
   pressedkeys = mrb_ary_new(mrb);
 
@@ -921,6 +941,7 @@ int main(int argc, char** argv) {
   struct RClass *game_class = mrb_define_class(mrb, "GameLoop", mrb->object_class);
   mrb_define_method(mrb, game_class, "initialize", game_loop_initialize, MRB_ARGS_NONE());
   mrb_define_method(mrb, game_class, "lookat", game_loop_lookat, MRB_ARGS_REQ(8));
+  mrb_define_method(mrb, game_class, "first_person!", game_loop_first_person, MRB_ARGS_NONE());
   mrb_define_method(mrb, game_class, "draw_grid", game_loop_draw_grid, MRB_ARGS_REQ(2));
   mrb_define_method(mrb, game_class, "draw_plane", game_loop_draw_plane, MRB_ARGS_REQ(5));
   mrb_define_method(mrb, game_class, "draw_fps", game_loop_draw_fps, MRB_ARGS_REQ(2));

@@ -19,9 +19,6 @@ end
 
 show! Window.new("window", 512, 512, 0)
 
-# generate a 10x10 orthogonal maze and print it to the console
-#maze = Theseus::OrthogonalMaze.generate(:width => 100, :height => 100, :braid => 100, :weave => 10, :wrap => "xy")
-
 #maze = maze.to_unicursal
 
 #puts maze.to_s(:mode => :plain)

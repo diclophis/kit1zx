@@ -1,0 +1,6 @@
+<!DOCTYPE FilterScript>
+<FilterScript>
+ <filter name="Per Face Quality according to Triangle shape and aspect ratio">
+  <Param value="2" description="Metric:" enum_val0="area/max side" enum_cardinality="8" enum_val1="inradius/circumradius" enum_val2="mean ratio" type="RichEnum" enum_val3="Area" enum_val4="Texture Angle Distortion" enum_val5="Texture Area Distortion" enum_val6="Planarity (abs plane dist)" enum_val7="Planarity (relative)" name="Metric" tooltip="Choose a metric to compute triangle quality."/>
+ </filter>
+</FilterScript>
