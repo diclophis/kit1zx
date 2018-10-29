@@ -1,0 +1,34 @@
+<!DOCTYPE FilterScript>
+<FilterScript>
+ <filter name="Ambient Occlusion">
+  <Param name="occMode" tooltip="Occlusion may be calculated per-vertex or per-face, color and quality will be saved in the chosen component." description="Occlusion mode:" value="0" enum_cardinality="2" enum_val0="per-Vertex" enum_val1="per-Face (deprecated)" type="RichEnum"/>
+  <Param name="dirBias" tooltip="The balance between a uniform and a directionally biased set of lighting direction&lt;br>: - 0 means light came only uniformly from any direction&lt;br> - 1 means that all the light cames from the specified cone of directions &lt;br> - other values mix the two set of lighting directions " description="Directional Bias [0..1]" value="0" type="RichFloat"/>
+  <Param name="reqViews" tooltip="Number of different views uniformly placed around the mesh. More views means better accuracy at the cost of increased calculation time" description="Requested views" value="128" type="RichInt"/>
+  <Param name="coneDir" tooltip="Number of different views placed around the mesh. More views means better accuracy at the cost of increased calculation time" description="Lighting Direction" x="0" y="1" z="0" type="RichPoint3f"/>
+  <Param name="coneAngle" tooltip="Number of different views uniformly placed around the mesh. More views means better accuracy at the cost of increased calculation time" description="Cone amplitude" value="30" type="RichFloat"/>
+  <Param name="useGPU" tooltip="Only works for per-vertex AO. In order to use GPU-Mode, your hardware must support FBOs, FP32 Textures and Shaders. Normally increases the performance by a factor of 4x-5x" description="Use GPU acceleration" value="false" type="RichBool"/>
+  <Param name="depthTexSize" tooltip="Defines the depth texture size used to compute occlusion from each point of view. Higher values means better accuracy usually with low impact on performance" description="Depth texture size(should be 2^n)" value="512" type="RichInt"/>
+ </filter>
+ <filter name="Parametrization: Trivial Per-Triangle">
+  <Param name="sidedim" tooltip="Indicates how many triangles have to be put on each line (every quad contains two triangles)&#xa;Leave 0 for automatic calculation" description="Quads per line" value="0" type="RichInt"/>
+  <Param name="textdim" tooltip="Gives an indication on how big the texture is" description="Texture Dimension (px)" value="1024" type="RichInt"/>
+  <Param name="border" tooltip="Specifies how many pixels to be left between triangles in parametrization domain" description="Inter-Triangle border (px)" value="2" type="RichInt"/>
+  <Param name="method" tooltip="Choose space optimizing to map smaller faces into smaller triangles in parametrizazion domain" description="Method" value="1" enum_cardinality="2" enum_val0="Basic" enum_val1="Space-optimizing" type="RichEnum"/>
+ </filter>
+ <filter name="Transfer: Vertex Color to Texture">
+  <Param name="textName" tooltip="The texture file to be created" description="Texture file" value="shape-0_tex.png" type="RichString"/>
+  <Param name="textW" tooltip="The texture width" description="Texture width (px)" value="1024" type="RichInt"/>
+  <Param name="textH" tooltip="The texture height" description="Texture height (px)" value="1024" type="RichInt"/>
+  <Param name="overwrite" tooltip="if current mesh has a texture will be overwritten (with provided texture dimension)" description="Overwrite texture" value="true" type="RichBool"/>
+  <Param name="assign" tooltip="assign the newly created texture" description="Assign texture" value="true" type="RichBool"/>
+  <Param name="pullpush" tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" description="Fill texture" value="true" type="RichBool"/>
+ </filter>
+ <filter name="Transfer: Vertex Color to Texture">
+  <Param name="textName" tooltip="The texture file to be created" description="Texture file" value="shape-0_tex.png" type="RichString"/>
+  <Param name="textW" tooltip="The texture width" description="Texture width (px)" value="1024" type="RichInt"/>
+  <Param name="textH" tooltip="The texture height" description="Texture height (px)" value="1024" type="RichInt"/>
+  <Param name="overwrite" tooltip="if current mesh has a texture will be overwritten (with provided texture dimension)" description="Overwrite texture" value="false" type="RichBool"/>
+  <Param name="assign" tooltip="assign the newly created texture" description="Assign texture" value="true" type="RichBool"/>
+  <Param name="pullpush" tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" description="Fill texture" value="true" type="RichBool"/>
+ </filter>
+</FilterScript>
