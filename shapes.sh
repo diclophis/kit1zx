@@ -15,7 +15,7 @@ for I in `seq 0 15`
 do
   /Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD -D shape=${I} -o resources/shape-${I}.stl openscad/map-parts.scad
 
-  MESHARGS="-i resources/shape-${I}.stl -o resources/shape-${I}.obj -s openscad/apply-color-3.mlx"
+  MESHARGS="-i resources/shape-${I}.stl -o resources/shape-${I}.obj -m vn vc fc wt -s openscad/apply-color-5.mlx"
 
   DYLD_FRAMEWORK_PATH=/Applications/meshlab.app/Contents/Frameworks /Applications/meshlab.app/Contents/MacOS/meshlabserver ${MESHARGS}
 

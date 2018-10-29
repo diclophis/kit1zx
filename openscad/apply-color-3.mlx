@@ -1,38 +1,52 @@
 <!DOCTYPE FilterScript>
 <FilterScript>
  <filter name="Per Face Quality according to Triangle shape and aspect ratio">
-  <Param value="2" type="RichEnum" enum_cardinality="8" tooltip="Choose a metric to compute triangle quality." enum_val0="area/max side" name="Metric" enum_val1="inradius/circumradius" enum_val2="mean ratio" enum_val3="Area" enum_val4="Texture Angle Distortion" enum_val5="Texture Area Distortion" enum_val6="Planarity (abs plane dist)" enum_val7="Planarity (relative)" description="Metric:"/>
+  <Param name="Metric" description="Metric:" value="2" enum_val0="area/max side" enum_val1="inradius/circumradius" enum_val2="mean ratio" enum_val3="Area" enum_val4="Texture Angle Distortion" enum_val5="Texture Area Distortion" enum_val6="Planarity (abs plane dist)" type="RichEnum" enum_cardinality="8" enum_val7="Planarity (relative)" tooltip="Choose a metric to compute triangle quality."/>
  </filter>
  <filter name="Colorize by face Quality">
-  <Param name="minVal" value="0.143" description="Min" tooltip="The value that will be mapped with the lower end of the scale (blue)" type="RichFloat"/>
-  <Param name="maxVal" value="0.866" description="Max" tooltip="The value that will be mapped with the upper end of the scale (red)" type="RichFloat"/>
-  <Param name="perc" min="0" max="100" value="0" description="Percentile Crop [0..100]" tooltip="If not zero this value will be used for a percentile cropping of the quality values.&lt;br> If this parameter is set to a value&lt;i>P&lt;/i> then the two values &lt;i>V_min,V_max&lt;/i> for which &lt;i>P&lt;/i>% of the vertices have a quality &lt;b>lower or greater than &lt;i>V_min,V_max&lt;/i> are used as min/max values for clamping.&lt;br>&lt;br> The automated percentile cropping is very useful for automatically discarding outliers." type="RichDynamicFloat"/>
-  <Param name="zeroSym" value="false" description="Zero Simmetric" tooltip="If true the min max range will be enlarged to be symmertic (so that green is always Zero)" type="RichBool"/>
+  <Param name="minVal" description="Min" value="0.143" type="RichFloat" tooltip="The value that will be mapped with the lower end of the scale (blue)"/>
+  <Param name="maxVal" description="Max" value="0.866" type="RichFloat" tooltip="The value that will be mapped with the upper end of the scale (red)"/>
+  <Param name="perc" description="Percentile Crop [0..100]" value="0" type="RichDynamicFloat" tooltip="If not zero this value will be used for a percentile cropping of the quality values.&lt;br> If this parameter is set to a value&lt;i>P&lt;/i> then the two values &lt;i>V_min,V_max&lt;/i> for which &lt;i>P&lt;/i>% of the vertices have a quality &lt;b>lower or greater than &lt;i>V_min,V_max&lt;/i> are used as min/max values for clamping.&lt;br>&lt;br> The automated percentile cropping is very useful for automatically discarding outliers." min="0" max="100"/>
+  <Param name="zeroSym" description="Zero Simmetric" value="false" type="RichBool" tooltip="If true the min max range will be enlarged to be symmertic (so that green is always Zero)"/>
  </filter>
+ <filter name="Transfer Color: Face to Vertex"/>
  <filter name="Parametrization: Trivial Per-Triangle">
-  <Param name="sidedim" value="0" description="Quads per line" tooltip="Indicates how many triangles have to be put on each line (every quad contains two triangles)&#xa;Leave 0 for automatic calculation" type="RichInt"/>
-  <Param name="textdim" value="1024" description="Texture Dimension (px)" tooltip="Gives an indication on how big the texture is" type="RichInt"/>
-  <Param name="border" value="2" description="Inter-Triangle border (px)" tooltip="Specifies how many pixels to be left between triangles in parametrization domain" type="RichInt"/>
-  <Param name="method" value="1" description="Method" tooltip="Choose space optimizing to map smaller faces into smaller triangles in parametrizazion domain" enum_val0="Basic" enum_val1="Space-optimizing" type="RichEnum" enum_cardinality="2"/>
+  <Param name="sidedim" description="Quads per line" value="0" type="RichInt" tooltip="Indicates how many triangles have to be put on each line (every quad contains two triangles)&#xa;Leave 0 for automatic calculation"/>
+  <Param name="textdim" description="Texture Dimension (px)" value="1024" type="RichInt" tooltip="Gives an indication on how big the texture is"/>
+  <Param name="border" description="Inter-Triangle border (px)" value="2" type="RichInt" tooltip="Specifies how many pixels to be left between triangles in parametrization domain"/>
+  <Param name="method" description="Method" value="1" enum_val0="Basic" enum_val1="Space-optimizing" type="RichEnum" enum_cardinality="2" tooltip="Choose space optimizing to map smaller faces into smaller triangles in parametrizazion domain"/>
  </filter>
  <filter name="Ambient Occlusion">
-  <Param tooltip="Occlusion may be calculated per-vertex or per-face, color and quality will be saved in the chosen component." enum_val0="per-Vertex" enum_val1="per-Face (deprecated)" type="RichEnum" value="0" name="occMode" enum_cardinality="2" description="Occlusion mode:"/>
-  <Param tooltip="The balance between a uniform and a directionally biased set of lighting direction&lt;br>: - 0 means light came only uniformly from any direction&lt;br> - 1 means that all the light cames from the specified cone of directions &lt;br> - other values mix the two set of lighting directions " type="RichFloat" value="0" name="dirBias" description="Directional Bias [0..1]"/>
-  <Param tooltip="Number of different views uniformly placed around the mesh. More views means better accuracy at the cost of increased calculation time" type="RichInt" value="128" name="reqViews" description="Requested views"/>
-  <Param x="0" y="1" z="0" tooltip="Number of different views placed around the mesh. More views means better accuracy at the cost of increased calculation time" type="RichPoint3f" name="coneDir" description="Lighting Direction"/>
-  <Param tooltip="Number of different views uniformly placed around the mesh. More views means better accuracy at the cost of increased calculation time" type="RichFloat" value="30" name="coneAngle" description="Cone amplitude"/>
-  <Param tooltip="Only works for per-vertex AO. In order to use GPU-Mode, your hardware must support FBOs, FP32 Textures and Shaders. Normally increases the performance by a factor of 4x-5x" type="RichBool" value="false" name="useGPU" description="Use GPU acceleration"/>
-  <Param tooltip="Defines the depth texture size used to compute occlusion from each point of view. Higher values means better accuracy usually with low impact on performance" type="RichInt" value="512" name="depthTexSize" description="Depth texture size(should be 2^n)"/>
+  <Param name="occMode" description="Occlusion mode:" value="0" enum_val0="per-Vertex" enum_val1="per-Face (deprecated)" type="RichEnum" enum_cardinality="2" tooltip="Occlusion may be calculated per-vertex or per-face, color and quality will be saved in the chosen component."/>
+  <Param name="dirBias" description="Directional Bias [0..1]" value="0" type="RichFloat" tooltip="The balance between a uniform and a directionally biased set of lighting direction&lt;br>: - 0 means light came only uniformly from any direction&lt;br> - 1 means that all the light cames from the specified cone of directions &lt;br> - other values mix the two set of lighting directions "/>
+  <Param name="reqViews" description="Requested views" value="128" type="RichInt" tooltip="Number of different views uniformly placed around the mesh. More views means better accuracy at the cost of increased calculation time"/>
+  <Param name="coneDir" description="Lighting Direction" x="0" y="1" z="0" type="RichPoint3f" tooltip="Number of different views placed around the mesh. More views means better accuracy at the cost of increased calculation time"/>
+  <Param name="coneAngle" description="Cone amplitude" value="30" type="RichFloat" tooltip="Number of different views uniformly placed around the mesh. More views means better accuracy at the cost of increased calculation time"/>
+  <Param name="useGPU" description="Use GPU acceleration" value="false" type="RichBool" tooltip="Only works for per-vertex AO. In order to use GPU-Mode, your hardware must support FBOs, FP32 Textures and Shaders. Normally increases the performance by a factor of 4x-5x"/>
+  <Param name="depthTexSize" description="Depth texture size(should be 2^n)" value="512" type="RichInt" tooltip="Defines the depth texture size used to compute occlusion from each point of view. Higher values means better accuracy usually with low impact on performance"/>
  </filter>
  <filter name="Transform: Rotate">
-  <Param tooltip="Choose a method" enum_val0="X axis" enum_val1="Y axis" enum_val2="Z axis" type="RichEnum" enum_val3="custom axis" value="0" name="rotAxis" enum_cardinality="4" description="Rotation on:"/>
-  <Param tooltip="Choose a method" enum_val0="origin" enum_val1="barycenter" enum_val2="custom point" type="RichEnum" value="0" name="rotCenter" enum_cardinality="3" description="Center of rotation:"/>
-  <Param tooltip="Angle of rotation (in &lt;b>degree&lt;/b>). If snapping is enable this vaule is rounded according to the snap value" min="-360" max="360" type="RichDynamicFloat" value="-90" name="angle" description="Rotation Angle"/>
-  <Param x="0" y="0" z="0" tooltip="This rotation axis is used only if the 'custom axis' option is chosen." type="RichPoint3f" name="customAxis" description="Custom axis"/>
-  <Param x="0" y="0" z="0" tooltip="This rotation center is used only if the 'custom point' option is chosen." type="RichPoint3f" name="customCenter" description="Custom center"/>
-  <Param tooltip="If selected, before starting the filter will remove anyy unreference vertex (for which curvature values are not defined)" type="RichBool" value="false" name="snapFlag" description="Snap angle"/>
-  <Param tooltip="This value is used to snap the rotation angle (i.e. if the snapping value is 30, 227 becomes 210)." type="RichFloat" value="30" name="snapAngle" description="Snapping Value"/>
-  <Param tooltip="The transformation is explicitly applied, and the vertex coordinates are actually changed" type="RichBool" value="true" name="Freeze" description="Freeze Matrix"/>
-  <Param tooltip="If selected the filter will be applied to all visible mesh layers" type="RichBool" value="false" name="allLayers" description="Apply to all visible Layers"/>
+  <Param name="rotAxis" description="Rotation on:" value="0" enum_val0="X axis" enum_val1="Y axis" enum_val2="Z axis" enum_val3="custom axis" type="RichEnum" enum_cardinality="4" tooltip="Choose a method"/>
+  <Param name="rotCenter" description="Center of rotation:" value="0" enum_val0="origin" enum_val1="barycenter" enum_val2="custom point" type="RichEnum" enum_cardinality="3" tooltip="Choose a method"/>
+  <Param name="angle" description="Rotation Angle" value="-90" type="RichDynamicFloat" tooltip="Angle of rotation (in &lt;b>degree&lt;/b>). If snapping is enable this vaule is rounded according to the snap value" min="-360" max="360"/>
+  <Param name="customAxis" description="Custom axis" x="0" y="0" z="0" type="RichPoint3f" tooltip="This rotation axis is used only if the 'custom axis' option is chosen."/>
+  <Param name="customCenter" description="Custom center" x="0" y="0" z="0" type="RichPoint3f" tooltip="This rotation center is used only if the 'custom point' option is chosen."/>
+  <Param name="snapFlag" description="Snap angle" value="false" type="RichBool" tooltip="If selected, before starting the filter will remove anyy unreference vertex (for which curvature values are not defined)"/>
+  <Param name="snapAngle" description="Snapping Value" value="30" type="RichFloat" tooltip="This value is used to snap the rotation angle (i.e. if the snapping value is 30, 227 becomes 210)."/>
+  <Param name="Freeze" description="Freeze Matrix" value="true" type="RichBool" tooltip="The transformation is explicitly applied, and the vertex coordinates are actually changed"/>
+  <Param name="allLayers" description="Apply to all visible Layers" value="false" type="RichBool" tooltip="If selected the filter will be applied to all visible mesh layers"/>
+ </filter>
+ <filter name="Random Face Color"/>
+ <filter name="Transfer: Vertex Attributes to Texture (1 or 2 meshes)">
+  <Param name="sourceMesh" description="Source Mesh" value="0" type="RichMesh" tooltip="The mesh that contains the source data that we want to transfer"/>
+  <Param name="targetMesh" description="Target Mesh" value="0" type="RichMesh" tooltip="The mesh whose texture will be filled according to source mesh data"/>
+  <Param name="AttributeEnum" description="Color Data Source" value="0" enum_val0="Vertex Color" enum_val1="Vertex Normal" enum_val2="Vertex Quality" enum_val3="Texture Color" type="RichEnum" enum_cardinality="4" tooltip="Choose what attribute has to be transferred onto the target texture. You can choos bettween Per vertex attributes (clor,normal,quality) or to transfer color information from source mesh texture"/>
+  <Param name="upperBound" description="Max Dist Search" value="0.02847" type="RichAbsPerc" tooltip="Sample points for which we do not find anything whithin this distance are rejected and not considered for recovering data" min="0" max="1.42352"/>
+  <Param name="textName" description="Texture file" value="shape-null_tex.png" type="RichString" tooltip="The texture file to be created"/>
+  <Param name="textW" description="Texture width (px)" value="1024" type="RichInt" tooltip="The texture width"/>
+  <Param name="textH" description="Texture height (px)" value="1024" type="RichInt" tooltip="The texture height"/>
+  <Param name="overwrite" description="Overwrite Target Mesh Texture" value="false" type="RichBool" tooltip="if target mesh has a texture will be overwritten (with provided texture dimension)"/>
+  <Param name="assign" description="Assign Texture" value="false" type="RichBool" tooltip="assign the newly created texture to target mesh"/>
+  <Param name="pullpush" description="Fill texture" value="true" type="RichBool" tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black"/>
  </filter>
 </FilterScript>

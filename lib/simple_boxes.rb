@@ -6,17 +6,56 @@ class SimpleBoxes < GameLoop
 
     @size = 1.0
     @cube = Cube.new(@size, @size, @size, 1.0)
-    @shapes = []
+    @shapes = {}
     16.times { |i|
-      @shapes << Model.new("resources/shape-#{i}.obj", "resources/shape-#{i}_tex.png", 1.0)
+      ii = begin
+        case i
+          when 1
+            8
+          when 2
+            7
+          when 3
+            9
+          when 4
+            6
+          when 5
+            12
+          when 6
+            11
+          when 7
+            3
+          when 8
+            5
+          when 9
+            13
+          when 10
+            14
+          when 11
+            4
+          when 12
+            10
+          when 13
+            1
+          when 14
+            2
+          when 15
+            0
+        else
+          nil
+        end
+      end
+
+      if ii
+        @shapes[i] = Model.new("resources/shape-#{ii}.obj", "resources/shape-#{ii}_tex.png", 1.0)
+      end
     }
 
     # generate a 10x10 orthogonal maze and print it to the console
-    @maze = Theseus::OrthogonalMaze.generate(:width => 10, :height => 10, :braid => 100, :weave => 10, :wrap => "xy")
+    @maze = Theseus::OrthogonalMaze.generate(:width => 5, :height => 5, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
 
-    puts @maze.to_s(:mode => :lines)
+    #puts @maze.to_s(:mode => :lines)
 
-    lookat(1, 5.0, 3.0, 2.0, 1.0, 1.0, 1.0, 60.0)
+    lookat(1, 5.0, 0.5, 2.0, 1.0, 1.0, 1.0, 60.0)
     first_person!
   end
 
@@ -37,6 +76,8 @@ class SimpleBoxes < GameLoop
             draw_maze(x, y)
           end
         end
+
+        @looped = true
       }
 
       twod {
@@ -54,9 +95,17 @@ class SimpleBoxes < GameLoop
 
     primary = (cell & Theseus::Maze::PRIMARY)
 
-    primary = 13
-    @shapes[primary].deltap(x, 0, y)
-    @shapes[primary].draw(true)
+    unless @looped
+      #puts primary, Theseus::Formatters::ASCII::Orthogonal::UTF8_LINES[primary]
+    end
+
+    if shape = @shapes[primary]
+      @shapes[primary].deltap(x, 0, y)
+      @shapes[primary].draw(false)
+    else
+      puts primary, Theseus::Formatters::ASCII::Orthogonal::UTF8_LINES[primary]
+      raise "wtF"
+    end
 
 =begin
     px, py = x * 2, y
