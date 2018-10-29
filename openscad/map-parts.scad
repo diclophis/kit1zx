@@ -1,4 +1,5 @@
-// CSG.scad - Basic example of CSG usage
+// maze parts
+
 outer_size = 1.0;
 cut_size = outer_size * 0.5;
 inner_size = outer_size * 1.0;
@@ -222,10 +223,10 @@ module pathway(direction) {
     }
 }
 
-for (offset=[0:15]) {
-    translate([(offset*(outer_size+0)),0,0]) {
-        pathway(offset);
-    }
-}
+//for (offset=[0:15]) {
+//    translate([(offset*(outer_size+0)),0,0]) {
+//        pathway(offset);
+//    }
+//}
 
-//pathway(14);
+pathway(shape);
