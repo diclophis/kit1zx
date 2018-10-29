@@ -56,30 +56,4 @@
   <Param type="RichBool" tooltip="assign the newly created texture" name="assign" description="Assign texture" value="false"/>
   <Param type="RichBool" tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" name="pullpush" description="Fill texture" value="true"/>
  </filter>
- <filter name="Transfer Color: Face to Vertex"/>
- <filter name="Transfer: Vertex Color to Texture">
-  <Param type="RichString" tooltip="The texture file to be created" name="textName" description="Texture file" value="shape-null_tex.png"/>
-  <Param type="RichInt" tooltip="The texture width" name="textW" description="Texture width (px)" value="1024"/>
-  <Param type="RichInt" tooltip="The texture height" name="textH" description="Texture height (px)" value="1024"/>
-  <Param type="RichBool" tooltip="if current mesh has a texture will be overwritten (with provided texture dimension)" name="overwrite" description="Overwrite texture" value="false"/>
-  <Param type="RichBool" tooltip="assign the newly created texture" name="assign" description="Assign texture" value="false"/>
-  <Param type="RichBool" tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" name="pullpush" description="Fill texture" value="true"/>
- </filter>
- <filter name="Transfer: Vertex Color to Texture">
-  <Param type="RichString" tooltip="The texture file to be created" name="textName" description="Texture file" value="shape-null_tex.png"/>
-  <Param type="RichInt" tooltip="The texture width" name="textW" description="Texture width (px)" value="1024"/>
-  <Param type="RichInt" tooltip="The texture height" name="textH" description="Texture height (px)" value="1024"/>
-  <Param type="RichBool" tooltip="if current mesh has a texture will be overwritten (with provided texture dimension)" name="overwrite" description="Overwrite texture" value="false"/>
-  <Param type="RichBool" tooltip="assign the newly created texture" name="assign" description="Assign texture" value="false"/>
-  <Param type="RichBool" tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" name="pullpush" description="Fill texture" value="true"/>
- </filter>
- <filter name="Transfer Color: Face to Vertex"/>
- <filter name="Transfer: Vertex Color to Texture">
-  <Param type="RichString" tooltip="The texture file to be created" name="textName" description="Texture file" value="shape-null_tex.png"/>
-  <Param type="RichInt" tooltip="The texture width" name="textW" description="Texture width (px)" value="1024"/>
-  <Param type="RichInt" tooltip="The texture height" name="textH" description="Texture height (px)" value="1024"/>
-  <Param type="RichBool" tooltip="if current mesh has a texture will be overwritten (with provided texture dimension)" name="overwrite" description="Overwrite texture" value="false"/>
-  <Param type="RichBool" tooltip="assign the newly created texture" name="assign" description="Assign texture" value="false"/>
-  <Param type="RichBool" tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" name="pullpush" description="Fill texture" value="true"/>
- </filter>
 </FilterScript>
