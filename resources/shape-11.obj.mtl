@@ -1,0 +1,140 @@
+#
+# Wavefront material file
+# Converted by Meshlab Group
+#
+
+newmtl material_0
+Ka 0.200000 0.200000 0.200000
+Kd 0.454902 1.000000 0.000000
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_1
+Ka 0.200000 0.200000 0.200000
+Kd 0.000000 1.000000 0.701961
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_2
+Ka 0.200000 0.200000 0.200000
+Kd 1.000000 0.000000 0.000000
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_3
+Ka 0.200000 0.200000 0.200000
+Kd 0.000000 0.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_4
+Ka 0.200000 0.200000 0.200000
+Kd 0.000000 0.996078 0.082353
+Ks 1.000000 1.000000 1.000000
+Tr 0.996078
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_5
+Ka 0.200000 0.200000 0.200000
+Kd 0.145098 1.000000 0.000000
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_6
+Ka 0.200000 0.200000 0.200000
+Kd 0.466667 1.000000 0.000000
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_7
+Ka 0.200000 0.200000 0.200000
+Kd 0.062745 1.000000 0.000000
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_8
+Ka 0.200000 0.200000 0.200000
+Kd 1.000000 0.682353 0.000000
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_9
+Ka 0.200000 0.200000 0.200000
+Kd 0.000000 1.000000 0.854902
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_10
+Ka 0.200000 0.200000 0.200000
+Kd 0.000000 1.000000 0.631373
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_11
+Ka 0.200000 0.200000 0.200000
+Kd 0.690196 1.000000 0.000000
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_12
+Ka 0.200000 0.200000 0.200000
+Kd 0.000000 0.364706 1.000000
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_13
+Ka 0.200000 0.200000 0.200000
+Kd 0.000000 0.623529 1.000000
+Ks 1.000000 1.000000 1.000000
+Tr 1.000000
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
+newmtl material_14
+Ka 0.200000 0.200000 0.200000
+Kd 0.000000 0.623529 0.996078
+Ks 1.000000 1.000000 1.000000
+Tr 0.996078
+illum 2
+Ns 0.000000
+map_Kd shape-null_tex.png
+
