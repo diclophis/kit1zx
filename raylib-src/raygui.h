@@ -108,7 +108,7 @@
     #include "raylib.h"
 #endif
 
-// #define RAYGUI_STATIC
+#define RAYGUI_STATIC
 #ifdef RAYGUI_STATIC
     #define RAYGUIDEF static            // Functions just visible to module including this file
 #else

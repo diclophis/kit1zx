@@ -51,7 +51,7 @@ class SimpleBoxes < GameLoop
     }
 
     # generate a 10x10 orthogonal maze and print it to the console
-    @maze = Theseus::OrthogonalMaze.generate(:width => 1000, :height => 1000, :braid => 100, :weave => 100, :wrap => "xy", :sparse => 1)
+    @maze = Theseus::OrthogonalMaze.generate(:width => 10, :height => 10, :braid => 100, :weave => 100, :wrap => "xy", :sparse => 1)
 
     #puts @maze.to_s(:mode => :lines)
 
