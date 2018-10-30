@@ -4,8 +4,8 @@ class SimpleBoxes < GameLoop
   def initialize
     super
 
-    @size = 1.0
-    @cube = Cube.new(@size, @size, @size, 1.0)
+    @size = 1
+
     @shapes = {}
     16.times { |i|
       ii = begin
@@ -21,9 +21,9 @@ class SimpleBoxes < GameLoop
           when 5
             12
           when 6
-            11
-          when 7
             3
+          when 7
+            11
           when 8
             5
           when 9
@@ -51,9 +51,7 @@ class SimpleBoxes < GameLoop
     }
 
     # generate a 10x10 orthogonal maze and print it to the console
-    @maze = Theseus::OrthogonalMaze.generate(:width => 1000, :height => 1000, :braid => 100, :weave => 100, :wrap => "xy", :sparse => 1)
-
-    #puts @maze.to_s(:mode => :lines)
+    @maze = Theseus::OrthogonalMaze.generate(:width => 33, :height => 33, :braid => 100, :weave => 100, :wrap => "xy", :sparse => 10)
 
     lookat(1, 5.0, 1.75, 2.0, 1.0, 1.0, 1.0, 45.0)
     first_person!
@@ -64,11 +62,6 @@ class SimpleBoxes < GameLoop
     drawmode {
       threed {
         #draw_grid(33, @size * 2.0)
-        #1.times { |i|
-        #  @cube.deltap((Math.sin(global_time * 5.0) * 5.0) - 2.5, 1.0, Math.cos(global_time) * 5.0)
-        #  @cube.draw(false)
-        #  global_time += 0.03
-        #}
 
         @maze.height.times do |y|
           length = @maze.row_length(y)
@@ -82,9 +75,6 @@ class SimpleBoxes < GameLoop
 
       twod {
         #draw_fps(10, 10)
-
-        ##TODO:!!!!!!
-        #@cube.label(@pointer, global_time.to_i.to_s)
       }
     }
   end
