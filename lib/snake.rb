@@ -21,6 +21,8 @@ class Snake < GameLoop
     @draw_count = 0
     @player_txt = ""
 
+    @toggle = -1
+
     @global_time = 0
 
     @size = 1.0
@@ -46,16 +48,6 @@ class Snake < GameLoop
           @global_counter += 1
 
           #@window.log!(result)
-=begin
-        {
-          "Type"=>"event", "EmitterId"=>"32375fb2-e302-11e8-9196-d200a4519001",
-          "ReceiverId"=>"32375fb2-e302-11e8-9196-d200a4519001",
-          "FromCoord"=>{"X"=>4, "Y"=>2},
-          "ToCoord"=>{"X"=>4, "Y"=>1},
-          "EventType"=>"move",
-          "Timestamp"=>"2018-11-07 18:59:31.008949189 -0800 PST m=+73.642901896"
-        }
-=end
           coord = [result["FromCoord"]["X"], result["FromCoord"]["Y"]].join(",")
           to_coord = [result["ToCoord"]["X"], result["ToCoord"]["Y"]].join(",")
 
@@ -63,19 +55,45 @@ class Snake < GameLoop
 
           if item && item["Object"] && item["Object"]["Type"] && item["Object"]["Type"] == "player" && item["Object"]["Id"] == result["EmitterId"]
             player_that_moved = item.delete("Object")
+            @global_state["coordinates"][to_coord] ||= {}
+            @global_state["coordinates"][to_coord]["Object"] = player_that_moved
+          end
 
+          #  player_that_moved = item.delete("Object")
 ####################################
+          #  @global_state["coordinates"][to_coord] = player_that_moved
+          #  @window.log!(result)
+          #end
 
-            @global_state["coordinates"][to_coord] = player_that_moved
+          #{"Type" => "foo", "From" => global_time, "To" => -global_time}
+
+          if result["EmitterId"] != @global_state["playerId"] 
+            move_left = {
+              "Type" => "MoveEvent",
+              #"EmitterId" => @global_state["playerId"],
+              #"ReceiverId" => @global_state["playerId"],
+              "From" => @global_state["globalPlayerLocation"],
+              "To" => {"X" => @global_state["globalPlayerLocation"]["X"], "Y" => (@global_state["globalPlayerLocation"]["Y"] + @toggle) }
+              #"EventType" => "move",
+              #"Timestamp" => "2018-11-07 18:59:31.008949189 -0800 PST m=+73.642901896"
+            }
+
+            @toggle *= -1
+
+            @socket_stream.write(move_left)
+          else
+            @global_state["lastGlobalPlayerLocation"] = result["globalPlayerLocation"]
+            @global_state["globalPlayerLocation"] = result["globalPlayerLocation"]
           end
         end
 
-        #socket_stream.write({"Type" => "foo", "From" => global_time, "To" => -global_time})
         #if !global_state["globalPlayerLocation"]
 
         if result["globalPlayerLocation"]
+          @window.log!(result)
           @global_state["lastGlobalPlayerLocation"] = result["globalPlayerLocation"]
           @global_state["globalPlayerLocation"] = result["globalPlayerLocation"]
+          @global_state["playerId"] = result["playerId"]
         end
 
         #else
