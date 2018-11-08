@@ -27,19 +27,19 @@ class PlatformSpecificBits < PlatformBits
       self.update
     }
 
-    #@all_connections = []
+    @all_connections = []
   end
 
   def socket_klass
     WslaySocketStream
   end
 
-  #def create_websocket_connection(&block)
-  #  ss = WslaySocketStream.new(self, block)
-  #  @all_connections << ss
-  #  ss.connect!
-  #  ss
-  #end
+  def create_websocket_connection(&block)
+    ss = WslaySocketStream.new(self, block)
+    @all_connections << ss
+    ss.connect!
+    ss
+  end
 
   def log!(*args)
     @stdout.write(args.inspect + "\n") {

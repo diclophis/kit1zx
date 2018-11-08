@@ -985,7 +985,7 @@ int main(int argc, char** argv) {
   eval_static_libs(mrb, wslay_socket_stream, uv_io, NULL);
 #endif
 
-  eval_static_libs(mrb, simple_boxes, main_menu, NULL);
+  eval_static_libs(mrb, snake, simple_boxes, main_menu, NULL);
 
   eval_static_libs(mrb, window, NULL);
 
