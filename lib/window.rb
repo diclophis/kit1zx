@@ -20,7 +20,7 @@ class Window < PlatformSpecificBits
   end
 end
 
-show! Window.new("window", 512, 512, 0)
+show! Window.new("window", 512, 512, 15)
 
 #maze = maze.to_unicursal
 

@@ -43,12 +43,32 @@ class Snake < GameLoop
     @socket_stream = @window.create_websocket_connection { |bytes|
       process_as_msgpack_stream(bytes) { |result|
         if result["Type"] && result["Type"] == "event"
-          @window.log!(result)
+          @global_counter += 1
+
+          #@window.log!(result)
+=begin
+        {
+          "Type"=>"event", "EmitterId"=>"32375fb2-e302-11e8-9196-d200a4519001",
+          "ReceiverId"=>"32375fb2-e302-11e8-9196-d200a4519001",
+          "FromCoord"=>{"X"=>4, "Y"=>2},
+          "ToCoord"=>{"X"=>4, "Y"=>1},
+          "EventType"=>"move",
+          "Timestamp"=>"2018-11-07 18:59:31.008949189 -0800 PST m=+73.642901896"
+        }
+=end
+          coord = [result["FromCoord"]["X"], result["FromCoord"]["Y"]].join(",")
+          to_coord = [result["ToCoord"]["X"], result["ToCoord"]["Y"]].join(",")
+
+          item = @global_state["coordinates"][coord]
+
+          if item && item["Object"] && item["Object"]["Type"] && item["Object"]["Type"] == "player" && item["Object"]["Id"] == result["EmitterId"]
+            player_that_moved = item.delete("Object")
+
+####################################
+
+            @global_state["coordinates"][to_coord] = player_that_moved
+          end
         end
-
-        #[{"Type"=>"event", "EmitterId"=>"32375fb2-e302-11e8-9196-d200a4519001", "ReceiverId"=>"32375fb2-e302-11e8-9196-d200a4519001", "FromCoord"=>{"X"=>4, "Y"=>2}, "ToCoord"=>{"X"=>4, "Y"=>1}, "EventType"=>"move", "Timestamp"=>"2018-11-07 18:59:31.008949189 -0800 PST m=+73.642901896"}]
-
-        @global_counter += 1
 
         #socket_stream.write({"Type" => "foo", "From" => global_time, "To" => -global_time})
         #if !global_state["globalPlayerLocation"]
@@ -79,12 +99,13 @@ class Snake < GameLoop
       if @player_position == nil && @last_player_position == nil
         @player_position = [0.0, 0.0, 0.0]
         @last_player_position = [0.0, 0.0, 0.0]
-        @window.log!(:got_ps, @player_position)
       end
 
       @player_position[0] = @global_state["globalPlayerLocation"]["X"]
       @player_position[2] = @global_state["globalPlayerLocation"]["Y"]
       @player_txt = "#{@global_counter.to_s} #{@player_position} #{@move_vector.inspect}"
+
+      #@window.log!(:got_ps, @player_position)
     end
 
     deltax = 0.0
@@ -164,9 +185,9 @@ class Snake < GameLoop
       twod {
         draw_fps(10, 10)
 
-        #if player_position
-        #  player.label(player_txt)
-        #end
+        if @player_position
+          @player.label(@pointer, @player_txt)
+        end
       }
     }
   end
