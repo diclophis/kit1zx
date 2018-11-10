@@ -1,8 +1,10 @@
 #
 
 class SimpleBoxes < GameLoop
-  def initialize
-    super
+  def initialize(*args)
+    super(*args)
+
+    @window = args[0]
 
     @size = 1
 
@@ -51,7 +53,9 @@ class SimpleBoxes < GameLoop
     }
 
     # generate a 10x10 orthogonal maze and print it to the console
-    @maze = Theseus::OrthogonalMaze.generate(:width => 33, :height => 33, :braid => 100, :weave => 100, :wrap => "xy", :sparse => 10)
+    @maze = Theseus::OrthogonalMaze.generate(:width => 10, :height => 10, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
+
+    @window.puts! @maze.to_s(:mode => :lines)
 
     lookat(1, 5.0, 1.75, 2.0, 1.0, 1.0, 1.0, 45.0)
     first_person!
@@ -74,7 +78,7 @@ class SimpleBoxes < GameLoop
       }
 
       twod {
-        #draw_fps(10, 10)
+        draw_fps(10, 10)
       }
     }
   end

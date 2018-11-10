@@ -5,8 +5,10 @@ class PlatformSpecificBits < PlatformBits
     super(*args)
 
     #TODO: make stdin abstraction???
-    #@stdin = UV::Pipe.new
-    #@stdin.open(0)
+    @stdin = UV::Pipe.new
+    @stdin.open(0)
+    @stdin.read_stop
+
     #@stdin.read_start do |buf|
     #  if buf.is_a?(UVError)
     #    log!(buf)
@@ -52,9 +54,15 @@ class PlatformSpecificBits < PlatformBits
   end
 
   def spindown!
+    log! :spindown
+
     @idle.unref if @idle
     @stdin.unref if @stdin
     @stdout.unref if @stdout
+
+    #tty = UV::TTY.new(0, 0)
+    #tty.set_mode(1)
+    #tty.reset_mode
     
     #@all_connections.each { |ss|
     #  ss.disconnect!

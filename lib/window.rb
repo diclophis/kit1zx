@@ -5,18 +5,25 @@ class Window < PlatformSpecificBits
     super(*args)
 
     #@main_menu = MainMenu.new
-    #@simple_boxes = SimpleBoxes.new
-    @snake = Snake.new(self)
+    @simple_boxes = SimpleBoxes.new(self)
+    #@snake = Snake.new(self)
   end
 
   def play(global_time, delta_time)
-    @snake.play(global_time, delta_time)
+    #@snake.play(global_time, delta_time)
 
     #if 0 == ((global_time * 0.33).to_i % 2)
-      #@simple_boxes.play(global_time, delta_time)
+      @simple_boxes.play(global_time, delta_time)
     #else
     #  @main_menu.play(global_time, delta_time)
     #end
+  end
+
+  def spindown!
+    log! :foop
+    @simple_boxes = nil
+    GC.start
+    super
   end
 end
 

@@ -270,7 +270,7 @@ static mrb_value platform_bits_initialize(mrb_state* mrb, mrb_value self)
 
   InitWindow(screenWidth, screenHeight, c_game_name);
 
-  SetExitKey(0);
+  //SetExitKey(0);
 
 #ifdef PLATFORM_DESKTOP
   //SetWindowPosition((GetMonitorWidth() - GetScreenWidth())/2, ((GetMonitorHeight() - GetScreenHeight())/2)+1);
@@ -427,6 +427,7 @@ static mrb_value platform_bits_update(mrb_state* mrb, mrb_value self) {
 #ifdef PLATFORM_DESKTOP
   if (WindowShouldClose()) {
     mrb_funcall(mrb, self, "spindown!", 0, NULL);
+    return mrb_nil_value();
   }
 #endif
 
@@ -518,8 +519,6 @@ static mrb_value game_loop_first_person(mrb_state* mrb, mrb_value self)
   if (!p_data) {
     mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
   }
-
-  fprintf(stderr, "wtf!!!\n");
 
   SetCameraMode(p_data->camera, CAMERA_FIRST_PERSON);
 
@@ -700,13 +699,25 @@ static mrb_value model_initialize(mrb_state* mrb, mrb_value self)
 
 
 static void model_data_destructor(mrb_state *mrb, void *p_) {
-  model_data_s *pd = (model_data_s *)p_;
+  fprintf(stderr, "deconstruct!!!\n");
+
+  //mrb_value data_value;
+  
+  //data_value = mrb_iv_get(mrb, (mrb_value)p_, mrb_intern_lit(mrb, "@pointer"));
+
+  model_data_s *p_data = p_;
+
+  //Data_Get_Struct(mrb, data_value, &model_data_type, p_data);
+  if (!p_data) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "Could not access @pointer");
+  }
+  //model_data_s *pd = (model_data_s *)p_;
 
   //// De-Initialization
-  UnloadTexture(pd->texture);     // Unload texture
-  UnloadModel(pd->model);         // Unload model
+  UnloadTexture(p_data->texture);     // Unload texture
+  //UnloadModel(pd->model);         // Unload model
 
-  mrb_free(mrb, pd);
+  mrb_free(mrb, p_);
 };
 
 
@@ -904,6 +915,8 @@ mrb_value global_show(mrb_state* mrb, mrb_value self) {
   mrb_funcall(mrb, global_platform_bits, "spinlock!", 0, NULL);
 #endif
 
+  fprintf(stderr, "CloseWindow\n");
+
   //TODO: move this to window class somehow
   CloseWindow(); // Close window and OpenGL context
 
@@ -939,7 +952,7 @@ int main(int argc, char** argv) {
 
   // class GameLoop
   struct RClass *game_class = mrb_define_class(mrb, "GameLoop", mrb->object_class);
-  mrb_define_method(mrb, game_class, "initialize", game_loop_initialize, MRB_ARGS_NONE());
+  mrb_define_method(mrb, game_class, "initialize", game_loop_initialize, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, game_class, "lookat", game_loop_lookat, MRB_ARGS_REQ(8));
   mrb_define_method(mrb, game_class, "first_person!", game_loop_first_person, MRB_ARGS_NONE());
   mrb_define_method(mrb, game_class, "draw_grid", game_loop_draw_grid, MRB_ARGS_REQ(2));
@@ -990,6 +1003,9 @@ int main(int argc, char** argv) {
   eval_static_libs(mrb, window, NULL);
 
   mrb_close(mrb);
+
+  //complete shitshow bug with bash on linux
+  fcntl(0, F_SETFL, fcntl(0, F_GETFL) & ~O_NONBLOCK);
 
   fprintf(stderr, "exiting ... \n");
 

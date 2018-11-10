@@ -4,8 +4,6 @@ class Snake < GameLoop
   def initialize(window)
     super
 
-    @window = window
-
     @global_state = {}
     @global_state["coordinates"] = {}
 

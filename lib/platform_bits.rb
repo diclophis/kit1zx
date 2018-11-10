@@ -26,6 +26,10 @@ class PlatformBits
     puts (args.inspect)
   end
 
+  def puts!(*args)
+    puts(*args)
+  end
+
   def spinlock!
     puts :spinlock
   end
