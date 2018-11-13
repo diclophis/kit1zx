@@ -57,12 +57,16 @@ class SimpleBoxes < GameLoop
     srand(2)
 
     # generate a 10x10 orthogonal maze and print it to the console
-    @maze = Theseus::OrthogonalMaze.generate(:width => 20, :height => 20, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
+    @maze = Theseus::OrthogonalMaze.generate(:width => 200, :height => 200, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
 
-    @window.puts! @maze.to_s(:mode => :lines)
+    #@window.puts! @maze.to_s(:mode => :lines)
 
-    lookat(1, 5.0, 2.0, 2.0, 1.0, 1.0, 1.0, 45.0)
-    #first_person!
+    @cube = Cube.new(@size, @size, @size, 0.5)
+
+    @player_position = [0.0,0.0,0.0]
+    @camera_position = [0.0,6.0,0.0]
+
+    lookat(1, *@camera_position, *@player_position, 45.0)
   end
 
   def play(global_time, delta_time)
@@ -72,14 +76,39 @@ class SimpleBoxes < GameLoop
     
         arrow_keys = keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
 
-        puts arrow_keys.inspect
+        speed = (7.0 * delta_time)
 
-        @maze.height.times do |y|
-          length = @maze.row_length(y)
-          length.times do |x|
-            draw_maze(x, y)
+        arrow_keys.each do |arrow_key|
+          case arrow_key
+            when KEY_W
+              @player_position[2] += speed
+            when KEY_S
+              @player_position[2] -= speed
+            when KEY_A
+              @player_position[0] += speed
+            when KEY_D
+              @player_position[0] -= speed
           end
         end
+
+        @camera_position[0] = @player_position[0]-0.01
+        @camera_position[2] = @player_position[2]-5.0
+
+        lookat(1, *@camera_position, *@player_position, 45.0)
+
+        px = @player_position[0].to_i
+        py = @player_position[2].to_i
+
+        ((px-10)..(px+10)).each do |x|
+          ((py-10)..(py+10)).each do |y|
+            if x<200 && y<200
+              draw_maze(x,y)
+            end
+          end
+        end
+
+        @cube.deltap(@player_position[0], @player_position[1], @player_position[2])
+        @cube.draw(false)
 
         @looped = true
       }
@@ -99,6 +128,7 @@ class SimpleBoxes < GameLoop
     unless @looped
       #puts primary, Theseus::Formatters::ASCII::Orthogonal::UTF8_LINES[primary]
     end
+
 
     if shape = @shapes[primary]
       @shapes[primary].deltap(x, 0, y)
