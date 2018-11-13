@@ -4,7 +4,7 @@
   <Param type="RichAbsPerc" value="0.00042706" min="0" name="Threshold" max="0.02"/>
  </filter>
  <filter name="Per Face Quality according to Triangle shape and aspect ratio">
-  <Param enum_val0="area/max side" enum_val1="inradius/circumradius" enum_cardinality="6" enum_val2="mean ratio" enum_val3="Area" type="RichEnum" value="0" enum_val4="Texture Angle Distortion" enum_val5="Texture Area Distortion" name="Metric"/>
+  <Param enum_val0="area/max side" enum_val1="inradius/circumradius" enum_cardinality="6" enum_val2="mean ratio" enum_val3="Area" type="RichEnum" value="2" enum_val4="Texture Angle Distortion" enum_val5="Texture Area Distortion" name="Metric"/>
  </filter>
  <filter name="Colorize by face Quality">
   <Param type="RichFloat" value="0" name="minVal"/>
