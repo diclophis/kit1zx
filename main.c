@@ -205,8 +205,8 @@ static mrb_value game_loop_mousep(mrb_state* mrb, mrb_value self)
 
 static mrb_value game_loop_keyspressed(mrb_state* mrb, mrb_value self)
 {
-  mrb_ary_set(mrb, pressedkeys, 0, mrb_nil_value());
-  mrb_ary_set(mrb, pressedkeys, 1, mrb_nil_value());
+  //mrb_ary_set(mrb, pressedkeys, 0, mrb_nil_value());
+  //mrb_ary_set(mrb, pressedkeys, 1, mrb_nil_value());
 
   mrb_int argc;
   mrb_value *checkkeys;
@@ -223,6 +223,8 @@ static mrb_value game_loop_keyspressed(mrb_state* mrb, mrb_value self)
   }
 
   int rc = 0;
+
+  mrb_ary_clear(mrb, pressedkeys);
 
   for (int i=0; i<argc; i++) {
     mrb_value key_to_check = checkkeys[i];
