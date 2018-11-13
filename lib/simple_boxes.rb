@@ -23,9 +23,9 @@ class SimpleBoxes < GameLoop
           when 5
             12
           when 6
-            3
-          when 7
             11
+          when 7
+            3
           when 8
             5
           when 9
@@ -46,18 +46,22 @@ class SimpleBoxes < GameLoop
           nil
         end
       end
+      
+      #UTF8_LINES = [" ", "╵", "╷", "│", "╶", "└", "┌", "├", "╴", "┘", "┐", "┤", "─", "┴", "┬", "┼"]
 
       if ii
         @shapes[i] = Model.new("resources/shape-#{ii}.obj", "resources/shape-#{ii}_tex.png", 1.0)
       end
     }
 
+    srand(2)
+
     # generate a 10x10 orthogonal maze and print it to the console
-    @maze = Theseus::OrthogonalMaze.generate(:width => 10, :height => 10, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
+    @maze = Theseus::OrthogonalMaze.generate(:width => 20, :height => 20, :braid => 100, :weave => 100, :wrap => "xy", :sparse => 0)
 
     @window.puts! @maze.to_s(:mode => :lines)
 
-    lookat(1, 5.0, 1.75, 2.0, 1.0, 1.0, 1.0, 45.0)
+    lookat(1, 5.0, 10.0, 2.0, 1.0, 1.0, 1.0, 45.0)
     first_person!
   end
 
