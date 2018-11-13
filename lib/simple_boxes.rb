@@ -57,19 +57,22 @@ class SimpleBoxes < GameLoop
     srand(2)
 
     # generate a 10x10 orthogonal maze and print it to the console
-    @maze = Theseus::OrthogonalMaze.generate(:width => 20, :height => 20, :braid => 100, :weave => 100, :wrap => "xy", :sparse => 0)
+    @maze = Theseus::OrthogonalMaze.generate(:width => 20, :height => 20, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
 
     @window.puts! @maze.to_s(:mode => :lines)
 
-    lookat(1, 5.0, 10.0, 2.0, 1.0, 1.0, 1.0, 45.0)
-    first_person!
+    lookat(1, 5.0, 2.0, 2.0, 1.0, 1.0, 1.0, 45.0)
+    #first_person!
   end
 
   def play(global_time, delta_time)
-
     drawmode {
       threed {
-        #draw_grid(33, @size * 2.0)
+        #draw_grid(33, @size)
+    
+        arrow_keys = keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
+
+        puts arrow_keys.inspect
 
         @maze.height.times do |y|
           length = @maze.row_length(y)
