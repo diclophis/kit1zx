@@ -49,10 +49,13 @@
 #include "window.h"
 #include "socket_stream.h"
 #include "platform_bits.h"
+
 #ifdef PLATFORM_DESKTOP
 #include "uv_io.h"
 #include "wslay_socket_stream.h"
 #endif
+
+#include "world_simulation.h"
 
 
 // other stuff
@@ -1001,6 +1004,8 @@ int main(int argc, char** argv) {
 #endif
 
   eval_static_libs(mrb, snake, simple_boxes, main_menu, NULL);
+
+  eval_static_libs(mrb, world_simulation, NULL);
 
   eval_static_libs(mrb, window, NULL);
 

@@ -1,19 +1,20 @@
 #
 
 class MainMenu < GameLoop
-  def play(global_time, delta_time)
+  def initialize(*args)
+    super(*args)
+
+    @hero = args[0]
+
     lookat(0, 0.0, 500.0, 0.0, 0.0, 0.0, 0.01, 200.0)
+  end
 
+  def play(global_time, delta_time)
     drawmode {
-      threed {
-      }
-
       twod {
-        button(150.0, 150.0, 100.0, 100.0, "foo") {
-          puts :click
+        button(0.0, 0.0, 250.0, 20.0, @hero.experience_button) {
+          @hero.intensify_experience!
         }
-
-        draw_fps(10, 10)
       }
     }
   end
