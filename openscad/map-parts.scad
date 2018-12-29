@@ -1,9 +1,8 @@
 // maze parts
 
 outer_size = 1.0;
-cut_size = outer_size * 0.5;
+cut_size = outer_size * 0.4;
 inner_size = outer_size * 1.0;
-core_size = outer_size / 1.015;
 path_size = outer_size * 0.25;
 inner_path_size = path_size * 0.75;
 fudge = 0.05 * outer_size;
@@ -224,10 +223,10 @@ module pathway(direction) {
     }
 }
 
-//for (offset=[0:15]) {
-//    translate([(offset*(outer_size+0)),0,0]) {
-//        pathway(offset);
-//    }
-//}
+for (offset=[0:15]) {
+    translate([(offset*(outer_size+0)),0,0]) {
+        pathway(offset);
+    }
+}
 
-pathway(shape);
+//pathway(shape);

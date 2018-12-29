@@ -4,11 +4,11 @@ class Window < PlatformSpecificBits
   def initialize(*args)
     super(*args)
 
-    @world = World.new
+    #@world = World.new
 
-    @main_menu = MainMenu.new(@world.hero)
+    #@main_menu = MainMenu.new(@world.hero)
 
-    #@simple_boxes = SimpleBoxes.new(self)
+    @simple_boxes = SimpleBoxes.new(self)
     #@snake = Snake.new(self)
     #@cheese = ""
   end
@@ -17,12 +17,12 @@ class Window < PlatformSpecificBits
     #@snake.play(global_time, delta_time)
 
     #if 0 == ((global_time * 0.33).to_i % 2)
-      #@simple_boxes.play(global_time, delta_time)
+      @simple_boxes.play(global_time, delta_time)
     #else
 
-      @world.play(global_time, delta_time)
+      #@world.play(global_time, delta_time)
 
-      @main_menu.play(global_time, delta_time)
+      #@main_menu.play(global_time, delta_time)
     #end
   end
 
@@ -34,7 +34,7 @@ class Window < PlatformSpecificBits
   end
 end
 
-show! Window.new("window", 512, 512, 0)
+show! Window.new("window", 512, 512, 60)
 
 #maze = maze.to_unicursal
 
