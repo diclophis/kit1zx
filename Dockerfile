@@ -1,3 +1,5 @@
+FROM static-vim-dockerfile:latest
+
 FROM ubuntu:bionic-20180526
 
 ENV LC_ALL C.UTF-8
@@ -7,6 +9,8 @@ ENV LANGUAGE en_US.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
 
 USER root
+
+COPY --from=0 /var/tmp/build/vim-src/src/vim /var/lib/vim-static
 
 COPY bootstrap.sh /var/tmp/bootstrap.sh
 RUN /var/tmp/bootstrap.sh

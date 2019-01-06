@@ -13,6 +13,7 @@ MRuby::Build.new do |conf|
   conf.gem :core => "mruby-random"
   conf.gem :core => "mruby-io"
   conf.gem :core => "mruby-enum-ext"
+  conf.gem :core => "mruby-struct"
 
   conf.gem :github => "Asmod4n/mruby-simplemsgpack"
 

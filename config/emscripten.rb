@@ -1,5 +1,7 @@
 #
 
+EMSDK_VERSION="1.38.21"
+
 require_relative './mruby.rb'
 
 MRuby::CrossBuild.new('emscripten') do |conf|
@@ -13,10 +15,11 @@ MRuby::CrossBuild.new('emscripten') do |conf|
   conf.gem :core => "mruby-random"
   conf.gem :core => "mruby-io"
   conf.gem :core => "mruby-enum-ext"
+  conf.gem :core => "mruby-struct"
 
   conf.gem :github => "Asmod4n/mruby-simplemsgpack"
 
-  conf.cc.command = '/root/emsdk/emscripten/1.38.14/emcc'
-  conf.linker.command = '/root/emsdk/emscripten/1.38.14/emcc'
-  conf.archiver.command = '/root/emsdk/emscripten/1.38.14/emar'
+  conf.cc.command = "/root/emsdk/emscripten/#{EMSDK_VERSION}/emcc"
+  conf.linker.command = "/root/emsdk/emscripten/#{EMSDK_VERSION}/emcc"
+  conf.archiver.command = "/root/emsdk/emscripten/#{EMSDK_VERSION}/emar"
 end
