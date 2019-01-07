@@ -11,6 +11,8 @@ apt-get update \
        python2.7 nodejs cmake \
        default-jre \
        bison \
+       libssl-dev \
+       bash-static \
        automake build-essential libtool curl bison libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev xinit openbox \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 

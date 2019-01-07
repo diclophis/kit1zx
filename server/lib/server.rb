@@ -88,7 +88,7 @@ class Connection
       @offset = self.phr.parse_request(self.ss)
       case @offset
       when Fixnum
-        #log!("ASDASDASDAS #{phr.path}")
+        log!(:get, phr.path)
 
         case phr.path
         when "/debug"
@@ -105,7 +105,8 @@ class Connection
             filename = "/index.html"
           end
 
-          required_prefix = "/home/jon/workspace/kit1zx/server/"
+          #required_prefix = "/home/jon/workspace/kit1zx/server/"
+          required_prefix = "/var/tmp/kit1zx/server/"
 
           UV::FS.realpath("#{required_prefix}#{filename}") { |resolved_filename|
             if resolved_filename.is_a?(UVError) || !resolved_filename.start_with?(required_prefix)
@@ -220,8 +221,11 @@ class Connection
     ps = UV::Process.new({
       #'file' => 'factor',
       #'args' => [],
-      'file' => 'bash',
-      'args' => [],
+      #'file' => 'sh',
+      #'args' => [],
+      'file' => "/usr/sbin/chroot",
+      'args' => ["/var/tmp/chroot", "/bin/sh"],
+      #'args' => ["/var/tmp/chroot", "/bin/vim-static"],
       #'file' => 'nc',
       #'args' => ["localhost", "12345"],
       #'args' => ["towel.blinkenlights.nl", "23"],
@@ -272,8 +276,8 @@ end
 
 class Server
   def initialize
-    host = '127.0.0.1'
-    port = 8081
+    host = '0.0.0.0'
+    port = 8000
     @address = UV.ip4_addr(host, port)
 
     @server = UV::TCP.new

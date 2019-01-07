@@ -4,6 +4,7 @@ EMSDK_VERSION="1.38.21"
 
 require_relative './mruby.rb'
 
+
 MRuby::CrossBuild.new('emscripten') do |conf|
   # load specific toolchain settings
   toolchain :clang
