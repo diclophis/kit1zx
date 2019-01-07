@@ -32,12 +32,17 @@ class Connection
     @pos_x = 0
     @pos_y = 0
     @pos_t = 1
+
+    self.ss = ""
+    self.last_buf = nil
+    self.processing_handshake = true
+
+    self.phr = Phr.new
   end
 
   def disconnect!
     self.timer.stop if self.timer
     self.socket.unref if self.socket
-    log!("x")
   end
 
   def handle_bytes!(b)
@@ -49,49 +54,21 @@ class Connection
         case phr.path
         when "/"
           filename = "/var/tmp/big.data"
+
+          #TODO: remove opend files
           fd = UV::FS::open(filename, UV::FS::O_RDONLY, UV::FS::S_IREAD)
           file_size =  fd.stat.size
           sent = 0
 
-          #@pfd = UV::Pipe.new(true)
-          #@pfd.open(@fd.fd)
-
           header = "HTTP/1.1 200 OK\r\nContent-Length: #{file_size}\r\nTransfer-Coding: chunked\r\n\r\n"
           self.socket.write(header)
 
-          #@pfd.read_start { |b|
-          #  #if b && b.is_a?(UVError)
-          #  #  log!(:wtf1, b)
-          #  #else
-          #  #  if b && b.is_a?(String)
-          #  #    self.socket.write(b) {
-          #  #      false
-          #  #    }
-          #  #  end
-          #  #end
-          #  true
-          #}
-
-          max_chunk = (self.socket.recv_buffer_size / 4).to_i #(1024 * 8)
+          max_chunk = (self.socket.recv_buffer_size / 4).to_i
           sending = false
 
           idle = UV::Idle.new
           idle.start do |x|
-          #  #$stdout.write(self.phr.headers.inspect)
-          #  #while f.active? && self.socket.active?
-          #  self.socket.write(f.read)
-          #  #end
-          #  #self.socket.close
-            #if b = fd.read
-            #  self.socket.write(b) {
-            #    false
-            #  }
-            #end
-
             if (sent < file_size)
-
-              #log!("tick-send") #$stdout.write(".")
-
               left = file_size - sent
               if left > max_chunk
                 left = max_chunk
@@ -104,54 +81,22 @@ class Connection
                   UV::FS::sendfile(self.socket.fileno, fd, bsent, left) { |xyx|
                     if xyx.is_a?(UVError)
                       max_chunk = ((max_chunk / 2) + 1).to_i
-
-                      #log!(:xyx, xyx)
-
                       sending = false
                     else
                       sending = false
-                      #log!("before-after", xyx, bsent, sent, left, file_size)
                       sent += xyx.to_i
                     end
                   }
                 end
               rescue UVError #resource temporarily unavailable
                 max_chunk = ((max_chunk / 2) + 1).to_i
-
                 sending = false
-
-                #log!(:stalld)
               end
             else
-              log!("tick-idle")
-
               self.socket.close
               idle.stop
             end
           end
-
-          #f.sendfile(self.socket)
-          #UV::FS::sendfile(self.socket, f, 0, f.stat.size)
-          #UV::FS::O_RDONLY, UV::FS::S_IREAD)
-
-          #while sent < file_size
-          #  left = file_size - sent
-          #  if left > 1024
-          #    left = 1024
-          #  end
-
-          #  UV::FS::sendfile(self.socket.fileno, f, sent, left)
-          #  #{
-          #  #  false
-          #  #}
-
-          #  sent += left
-          #end
-
-          #self.socket.write(f.read) do |a|
-          #  $stdout.write(a.inspect)
-          #  #self.socket.close
-          #end
 
           log!("CHEESE", header.inspect)
         else
@@ -235,6 +180,16 @@ class Connection
     self.socket.write("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: #{key}\r\n\r\n")
     #self.socket.write("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n")
   end
+
+  def on_read(b)
+    if b && b.is_a?(UVError)
+      self.disconnect!
+    else
+      if b && b.is_a?(String)
+        self.handle_bytes!(b)
+      end
+    end
+  end
 end
 
 class Server
@@ -246,20 +201,20 @@ class Server
     @server = UV::TCP.new
     @server.bind(@address)
     @server.listen(1) { |connection_error|
-      if connection_error
-        log!(connection_error)
-      else
-        self.create_connection!
-      end
+      self.on_connection(connection_error)
     }
+  end
+
+  def on_connection(connection_error)
+    if connection_error
+      log!(connection_error)
+    else
+      self.create_connection!
+    end
   end
 
   def create_connection!
     nc = Connection.new
-
-    nc.ss = ""
-    nc.last_buf = nil
-    nc.processing_handshake = true
 
     #nc.wslay_callbacks = Wslay::Event::Callbacks.new
 
@@ -321,32 +276,12 @@ class Server
 
     #nc.client = Wslay::Event::Context::Server.new nc.wslay_callbacks
 
-    nc.phr = Phr.new
 
-    on_read_start = Proc.new { |b|
-      log!(:on_read_start, b)
-      if b && b.is_a?(UVError)
-        nc.disconnect!
-      else
-        if b && b.is_a?(String)
-          log!(b)
-          nc.handle_bytes!(b)
-        end
-      end
-    }
-
-    #on_connect = Proc.new { |connection_broken_status|
-    #  if connection_broken_status
-    #    $stdout.write([:broken, connection_broken_status].inspect)
-    #  else
-    #    #@t.stop
-    #    #write_ws_request!
-    #    #reset_handshake!
-    #  end
-    #}
 
     nc.socket = @server.accept
-    nc.socket.read_start(&on_read_start)
+    nc.socket.read_start { |b|
+      nc.on_read(b)
+    }
   end
 
   def spinlock!
