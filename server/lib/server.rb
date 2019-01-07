@@ -273,13 +273,14 @@ class Connection
     ##  #$stdout.write("done tick #{outg.inspect}")
     #}
 
-stdin_tty = UV::Pipe.new(0)
-stdout_tty = UV::Pipe.new(0)
-stderr_tty = UV::Pipe.new(0)
+            stdin_tty = UV::Pipe.new(0)
+            stdout_tty = UV::Pipe.new(0)
+            stderr_tty = UV::Pipe.new(0)
 
             ps = UV::Process.new({
               'file' => 'htop',
-              'args' => [] ,
+              'args' => ["-d0.1"],
+              #TODO: proper env cleanup
               #'env' => {
               #},
               stdio: [stdin_tty, stdout_tty, stderr_tty]

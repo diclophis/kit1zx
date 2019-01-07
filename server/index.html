@@ -4,13 +4,11 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>kit1zx</title>
-    <style>
-      body { background-color: black; margin: 0; }
-      canvas { height: 100%; position: absolute; }
-    </style>
+    <link rel="stylesheet" href="xterm-dist/xterm.css" />
   </head>
   <body>
-    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    <div id="terminal"></div>
+    <script type='text/javascript' src='xterm-dist/xterm.js'></script>
     <script type='text/javascript' src='index.js'></script>
     <!-- {{{ SCRIPT }}} -->
   </body>

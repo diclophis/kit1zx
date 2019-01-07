@@ -13,6 +13,9 @@ window.startConnection = function(wsUrl) {
     window.conn.onopen = function (event) {
       console.log(event);
 
+      window.terminal = new Terminal();
+      window.terminal.open(document.getElementById("terminal"));
+
       window.onbeforeunload = function() {
         window.conn.onclose = function () {};
         window.conn.close();
@@ -24,7 +27,11 @@ window.startConnection = function(wsUrl) {
     };
 
     window.conn.onmessage = function (event) {
-      console.log(event);
+      //console.log(event.data);
+      var stringBits = String.fromCharCode.apply(null, new Uint8Array(event.data));
+
+      window.terminal.write(stringBits);
+
       /*
       origData = event.data;
       typedData = new Uint8Array(origData);
