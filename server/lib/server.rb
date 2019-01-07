@@ -36,7 +36,7 @@ class Connection
     self.socket = socket
 
     self.ss = ""
-    self.last_buf = nil
+    self.last_buf = ""
     self.processing_handshake = true
 
     self.phr = Phr.new
@@ -91,7 +91,7 @@ class Connection
       end
     end
 
-    log!("CHEESE", header.inspect)
+    #log!("CHEESE", header.inspect)
   end
 
   def handle_bytes!(b)
@@ -100,7 +100,7 @@ class Connection
       @offset = self.phr.parse_request(self.ss)
       case @offset
       when Fixnum
-        log!("ASDASDASDAS #{phr.path}")
+        #log!("ASDASDASDAS #{phr.path}")
 
         case phr.path
         when "/debug"
@@ -172,6 +172,10 @@ class Connection
   end
 
   def upgrade_to_websocket!
+            stdin_tty = UV::Pipe.new(0)
+            stdout_tty = UV::Pipe.new(0)
+            stderr_tty = UV::Pipe.new(0)
+
     self.wslay_callbacks = Wslay::Event::Callbacks.new
 
     self.wslay_callbacks.recv_callback do |buf, len|
@@ -181,9 +185,15 @@ class Connection
       # or else return a mruby String or a object which can be converted into a String via to_str
       # and be up to len bytes long
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when there is nothing to read
-      throw_away_buf = self.last_buf.dup
-      self.last_buf = nil
-      throw_away_buf
+      log!("SDSD", self.last_buf, buf, len, buf.to_s)
+
+      if self.last_buf
+        throw_away_buf = self.last_buf.dup
+        self.last_buf = nil
+        throw_away_buf
+      else
+        nil
+      end
     end
 
     #TODO: this is where the ws msgs are recvd
@@ -198,23 +208,31 @@ class Connection
       # :abnormal_closure, :invalid_frame_payload_data, :policy_violation, :message_too_big, :mandatory_ext,
       # :internal_server_error, :tls_handshake
       # to_str => returns the message revieced
+
+      log!("INBOUND", msg)
+
       if msg[:opcode] == :binary_frame
         #self.feed_state!(msg[:msg])
         #$stdout.write(msg[:msg].inspect)
 
-        bytes = msg[:msg]
 
-        all_bits_to_consider = (@left_over_bits || "") + bytes
-        all_l = all_bits_to_consider.length
+        stdin_tty.write(msg) {
+          false
+        }
 
-        small_subset_to_consider = all_bits_to_consider[0, 40960]
-        considered_subset_length = small_subset_to_consider.length
+        #bytes = msg[:msg]
 
-        unpacked_length = MessagePack.unpack(small_subset_to_consider) do |result|
-          log!(result) if result
-        end
+        #all_bits_to_consider = (@left_over_bits || "") + bytes
+        #all_l = all_bits_to_consider.length
 
-        @left_over_bits = all_bits_to_consider[unpacked_length, all_l]
+        #small_subset_to_consider = all_bits_to_consider[0, 40960]
+        #considered_subset_length = small_subset_to_consider.length
+
+        #unpacked_length = MessagePack.unpack(small_subset_to_consider) do |result|
+        #  log!(result) if result
+        #end
+
+        #@left_over_bits = all_bits_to_consider[unpacked_length, all_l]
       end
     end
 
@@ -273,13 +291,11 @@ class Connection
     ##  #$stdout.write("done tick #{outg.inspect}")
     #}
 
-            stdin_tty = UV::Pipe.new(0)
-            stdout_tty = UV::Pipe.new(0)
-            stderr_tty = UV::Pipe.new(0)
-
             ps = UV::Process.new({
-              'file' => 'htop',
-              'args' => ["-d0.1"],
+              'file' => 'bash',
+              'args' => ["-i"],
+              #'file' => 'htop',
+              #'args' => ["-d0.1"],
               #TODO: proper env cleanup
               #'env' => {
               #},
@@ -299,6 +315,8 @@ class Connection
 						end
 
 						stdout_tty.read_start do |bout|
+              #log!("out:", bout)
+
 							#begin
 							#	if bout
 							#		sputs bout
@@ -318,17 +336,17 @@ class Connection
 
 #@ps.kill(0)
 
-
-
     self.processing_handshake = false
+    log!("bbbbbb", self.last_buf)
     self.last_buf = self.ss[@offset..-1] #TODO: rescope offset
+    log!("sdsdsdsd", self.last_buf)
     proto_ok = (self.ws.recv != :proto)
     unless proto_ok
       #$stdout.write(:wslay_handshake_proto_error)
       self.socket.close
     end
 
-    #$stdout.write("done handshake")
+    log!("done handshake")
   end
 end
 

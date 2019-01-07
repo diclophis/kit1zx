@@ -1,5 +1,21 @@
 /* */
 
+function ab2str(buf) {
+  return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+
+function str2ab(str) {
+  var buf = new ArrayBuffer(str.length); // 2 bytes for each char
+  var bufView = new Uint8Array(buf);
+
+  for (var i=0, strLen=str.length; i < strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+
+  return buf;
+}
+
+
 window.startConnection = function(wsUrl) {
   if (window["WebSocket"]) {
     //TODO: this goes in the client/shell.js later
@@ -16,6 +32,10 @@ window.startConnection = function(wsUrl) {
       window.terminal = new Terminal();
       window.terminal.open(document.getElementById("terminal"));
 
+      window.terminal.on('data', function(termInputData) {
+        window.conn.send(str2ab(termInputData));
+      });
+
       window.onbeforeunload = function() {
         window.conn.onclose = function () {};
         window.conn.close();
@@ -28,8 +48,7 @@ window.startConnection = function(wsUrl) {
 
     window.conn.onmessage = function (event) {
       //console.log(event.data);
-      var stringBits = String.fromCharCode.apply(null, new Uint8Array(event.data));
-
+      var stringBits = ab2str(event.data); //String.fromCharCode.apply(null, new Uint8Array(event.data));
       window.terminal.write(stringBits);
 
       /*
