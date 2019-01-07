@@ -1,23 +1,18 @@
 #
 
-
 def Integer(f)
   f.to_i
 end
-
 
 $stdout = UV::Pipe.new
 $stdout.open(1)
 $stdout.read_stop
 
-  def log!(*args)
-    $stdout.write(args.inspect + "\n") {
-      false
-    }
-  end
-
-#$did_handle_bytes = 0
-#$did_timer = 0
+def log!(*args)
+  $stdout.write(args.inspect + "\n") {
+    false
+  }
+end
 
 class Connection
   attr_accessor :last_buf,
@@ -26,14 +21,9 @@ class Connection
                 :phr,
                 :processing_handshake,
                 :ss,
-                :socket,
-                :timer
+                :socket
 
   def initialize(socket)
-    @pos_x = 0
-    @pos_y = 0
-    @pos_t = 1
-
     self.socket = socket
 
     self.ss = ""
@@ -44,55 +34,52 @@ class Connection
   end
 
   def disconnect!
-    self.timer.stop if self.timer
     self.socket.unref if self.socket
   end
 
   def serve_static_file!(filename)
-    #TODO: remove opend files
+    #TODO: close opened files
     fd = UV::FS::open(filename, UV::FS::O_RDONLY, UV::FS::S_IREAD)
     file_size =  fd.stat.size
     sent = 0
 
     header = "HTTP/1.1 200 OK\r\nContent-Length: #{file_size}\r\nTransfer-Coding: chunked\r\n\r\n"
-    self.socket.write(header)
+    self.socket.write(header) {
+      max_chunk = (self.socket.recv_buffer_size / 4).to_i
+      sending = false
 
-    max_chunk = (self.socket.recv_buffer_size / 4).to_i
-    sending = false
-
-    idle = UV::Idle.new
-    idle.start do |x|
-      if (sent < file_size)
-        left = file_size - sent
-        if left > max_chunk
-          left = max_chunk
-        end
-
-        begin
-          if !sending
-            bsent = sent
-            sending = true
-            UV::FS::sendfile(self.socket.fileno, fd, bsent, left) { |xyx|
-              if xyx.is_a?(UVError)
-                max_chunk = ((max_chunk / 2) + 1).to_i
-                sending = false
-              else
-                sending = false
-                sent += xyx.to_i
-              end
-            }
+      idle = UV::Idle.new
+      idle.start do |x|
+        if (sent < file_size)
+          left = file_size - sent
+          if left > max_chunk
+            left = max_chunk
           end
-        rescue UVError #resource temporarily unavailable
-          max_chunk = ((max_chunk / 2) + 1).to_i
-          sending = false
-        end
-      else
-        self.socket.close
-        idle.stop
-      end
-    end
 
-    #log!("CHEESE", header.inspect)
+          begin
+            if !sending
+              bsent = sent
+              sending = true
+              UV::FS::sendfile(self.socket.fileno, fd, bsent, left) { |xyx|
+                if xyx.is_a?(UVError)
+                  max_chunk = ((max_chunk / 2) + 1).to_i
+                  sending = false
+                else
+                  sending = false
+                  sent += xyx.to_i
+                end
+              }
+            end
+          rescue UVError #resource temporarily unavailable
+            max_chunk = ((max_chunk / 2) + 1).to_i
+            sending = false
+          end
+        else
+          self.socket.close
+          idle.stop
+        end
+      end
+    }
   end
 
   def handle_bytes!(b)
@@ -108,7 +95,6 @@ class Connection
           serve_static_file!("/var/tmp/big.data")
 
         when "/wss"
-          log!("WSSSSS")
           upgrade_to_websocket!
 
         else
@@ -123,28 +109,26 @@ class Connection
 
           UV::FS.realpath("#{required_prefix}#{filename}") { |resolved_filename|
             if resolved_filename.is_a?(UVError) || !resolved_filename.start_with?(required_prefix)
-              self.socket.write("HTTP/1.1 404 Not Found\r\nConnection: Close\r\nContent-Length: 0\r\n\r\n")
-              self.socket.close
+              self.socket.write("HTTP/1.1 404 Not Found\r\nConnection: Close\r\nContent-Length: 0\r\n\r\n") {
+                self.socket.close
+              }
             else
-              log!(resolved_filename)
-              #"/", "/index.html"
               serve_static_file!(resolved_filename)
             end
           }
         end
       when :incomplete
-        #$stdout.write("incomplete")
+        log!("incomplete")
       when :parser_error
-        #$stdout.write([:parser_error, offset].inspect)
+        log!(:parser_error, offset)
       end
     else
-      #log!("doing non-handshake byte transfer\n")
-
-      self.last_buf = b
-      proto_ok = (self.ws.recv != :proto)
-      unless proto_ok
-        #$stdout.write("wslay_handshake_proto_error")
-        self.socket.close
+      if self.ws
+        self.last_buf = b
+        proto_ok = (self.ws.recv != :proto)
+        unless proto_ok
+          self.socket.close
+        end
       end
     end
   end
@@ -152,14 +136,7 @@ class Connection
   def write_ws_response!(sec_websocket_key)
     key = WebSocket.create_accept(sec_websocket_key)
 
-    #B64.encode(Sysrandom.buf(16)).chomp!
-    #The Sec-WebSocket-Accept part is interesting.
-    #The server must derive it from the Sec-WebSocket-Key that the ws sent.
-    #To get it, concatenate the ws's Sec-WebSocket-Key and "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" together
-    #(it's a "magic string"), take the SHA-1 hash of the result, and return the base64 encoding of the hash.
-
     self.socket.write("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: #{key}\r\n\r\n")
-    #self.socket.write("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n")
   end
 
   def read_bytes_safely(b)
@@ -173,9 +150,9 @@ class Connection
   end
 
   def upgrade_to_websocket!
-            stdin_tty = UV::Pipe.new(false)
-            stdout_tty = UV::Pipe.new(false)
-            stderr_tty = UV::Pipe.new(false)
+    stdin_tty = UV::Pipe.new(false)
+    stdout_tty = UV::Pipe.new(false)
+    stderr_tty = UV::Pipe.new(false)
 
     self.wslay_callbacks = Wslay::Event::Callbacks.new
 
@@ -210,52 +187,24 @@ class Connection
       # :internal_server_error, :tls_handshake
       # to_str => returns the message revieced
 
-
       if msg[:opcode] == :binary_frame
-        #self.feed_state!(msg[:msg])
-        #$stdout.write(msg[:msg].inspect)
-
-        log!("INBOUND", msg)
+        #log!("INBOUND", msg)
 
         stdin_tty.write(msg) {
           false
         }
-
-        #bytes = msg[:msg]
-
-        #all_bits_to_consider = (@left_over_bits || "") + bytes
-        #all_l = all_bits_to_consider.length
-
-        #small_subset_to_consider = all_bits_to_consider[0, 40960]
-        #considered_subset_length = small_subset_to_consider.length
-
-        #unpacked_length = MessagePack.unpack(small_subset_to_consider) do |result|
-        #  log!(result) if result
-        #end
-
-        #@left_over_bits = all_bits_to_consider[unpacked_length, all_l]
       end
     end
 
     self.wslay_callbacks.send_callback do |buf|
       # when there is data to send, you have to return the bytes send here
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when sending would block
-      #begin
-        self.socket.try_write(buf)
-      #rescue UVError => e
-      #  #self.disconnect!
-      #  raise Errno::EAGAIN
-      #  0
-      #end
+      self.socket.try_write(buf)
     end
 
     self.ws = Wslay::Event::Context::Server.new self.wslay_callbacks
 
-    #$stdout.write(self.phr.headers.inspect)
-
-    #$did_handle_bytes += 1
-
-    #TODO???
+    #TODO??? !!!
     #unless WebSocket.create_accept(key).securecmp(phr.headers.to_h.fetch('sec-websocket-accept'))
     #   raise Error, "Handshake failure"
     #end
@@ -268,118 +217,56 @@ class Connection
 
     self.write_ws_response!(sec_websocket_key)
 
-    #TODO: messagepack serializer.....
-    #self.timer = UV::Timer.new
-    #self.timer.start(1000, 1000) {
-    #  #$stdout.write(".")
-    #  #$did_timer += 1
-    #  if @pos_t > 0
-    #    @pos_t *= -1
-    #    @pos_x += 1
-    #  else
-    #    @pos_t *= -1
-    #    @pos_y += 1
-    #  end
-    #  msg = MessagePack.pack({"globalPlayerLocation"=>{"X"=>@pos_x, "Y"=>@pos_y}})
-    ##  #msg = ("cheese" * 1024)
-    ##  #$stdout.write("doing #{msg.inspect} tick")
-    #  begin
-    #    self.ws.queue_msg(msg, :binary_frame)
-    #    outg = self.ws.send
-    #  rescue Wslay::Err => e
-    #    self.disconnect!
-    #  end
-    ##  #$stdout.write("done tick #{outg.inspect}")
-    #}
+    ps = UV::Process.new({
+      #'file' => 'factor',
+      #'args' => [],
+      'file' => 'bash',
+      'args' => [],
+      #'file' => 'nc',
+      #'args' => ["localhost", "12345"],
+      #'args' => ["towel.blinkenlights.nl", "23"],
+      #'file' => 'htop',
+      #'args' => ["-d0.1"],
+      #TODO: proper env cleanup!!
+      'env' => ['TERM=xterm-256color'],
+    })
 
-#xyz = PTY.getpty
-#@a_tty = UV::TTY.new(xyz, 1)
+    ps.stdin_pipe = stdin_tty
+    ps.stdout_pipe = stdout_tty
+    ps.stderr_pipe = stderr_tty
 
-#log!(:xyz, xyz, a_tty.fileno)
-
-            ##a_tty = UV::TTY.new(0, 1)
-            #@a_tty.reset_mode
-            #@a_tty.set_mode(UV::TTY::MODE_NORMAL)
-
-            ps = UV::Process.new({
-              #'file' => 'factor',
-              #'args' => [],
-              'file' => 'bash',
-              'args' => [],
-              #'file' => 'nc',
-              #'args' => ["localhost", "12345"],
-              #'args' => ["towel.blinkenlights.nl", "23"],
-              #'file' => 'htop',
-              #'args' => ["-d0.1"],
-              #TODO: proper env cleanup
-              'env' => ['TERM=xterm-256color'],
-              #'create_terminal' => true,
-              #'stdio' => [stdin_tty, stdout_tty, stderr_tty]
-            })
-
-            #UV::Pipe.new(1).open(@other_tty.fileno)
-
-            #che = stdin_tty.open(a_tty.fileno)
-
-            #che = UV::TTY.new(1, 1)
-            #stdout_tty.open(che.fileno)
-
-            #stdin_tty.open(xyz)
-            #stdin_tty.connect("/dev/ptmx")
-
-            #stderr_tty.open(a_tty.fileno)
-
-            ps.stdin_pipe = stdin_tty
-            ps.stdout_pipe = stdout_tty #UV::Pipe.new(0)
-            ps.stderr_pipe = stderr_tty #UV::Pipe.new(0)
-
-            ps.spawn do |sig|
-              log!("exit #{sig}")
-            end
-
-						stderr_tty.read_start do |bbbb|
-							log!(:stderr, bbbb)
-							if bbbb.is_a?(UVError)
-								log!("badout #{bbbb}")
-							elsif bbbb
-                self.ws.queue_msg(bbbb, :binary_frame)
-                outg = self.ws.send
-							end
-						end
-
-						stdout_tty.read_start do |bout|
-              #log!("out:", bout)
-
-							#begin
-							#	if bout
-							#		sputs bout
-							#		c.write("data: " + {'raw' => bout.codepoints}.to_json + "\n\n")
-							#	end
-							#rescue UVError => uv_error
-							#	# puts uv_error.inspect
-							#	c.shutdown
-							#end
-							if bout.is_a?(UVError)
-								log!("badout #{bout}")
-							elsif bout
-                self.ws.queue_msg(bout, :binary_frame)
-                outg = self.ws.send
-							end
-						end
-
-#@ps.kill(0)
-
-    self.processing_handshake = false
-    log!("bbbbbb", self.last_buf)
-    self.last_buf = self.ss[@offset..-1] #TODO: rescope offset
-    log!("sdsdsdsd", self.last_buf)
-    proto_ok = (self.ws.recv != :proto)
-    unless proto_ok
-      #$stdout.write(:wslay_handshake_proto_error)
-      self.socket.close
+    ps.spawn do |sig|
+      log!("exit #{sig}")
     end
 
-    log!("done handshake")
+    stderr_tty.read_start do |bbbb|
+      if bbbb.is_a?(UVError)
+        log!(:baderr, bbbb)
+      elsif bbbb && bbbb.length > 0
+        self.ws.queue_msg(bbbb, :binary_frame)
+        outg = self.ws.send
+      end
+    end
+
+    stdout_tty.read_start do |bout|
+      if bout.is_a?(UVError)
+        log!(:badout, bout)
+      elsif bout
+        self.ws.queue_msg(bout, :binary_frame)
+        outg = self.ws.send
+      end
+    end
+
+    #TODO???
+    #@ps.kill(0)
+
+    self.processing_handshake = false
+    self.last_buf = self.ss[@offset..-1] #TODO: rescope offset
+    proto_ok = (self.ws.recv != :proto)
+    unless proto_ok
+      log!(:wss_handshake_error)
+      self.socket.close
+    end
   end
 end
 
@@ -419,11 +306,6 @@ class Server
     UV::run
   end
 end
-
-#t = UV::Timer.new
-#t.start(500, 500) {
-#  $stdout.write(".#{$pos_x}")
-#}
 
 server = Server.new
 server.spinlock!
