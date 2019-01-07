@@ -108,6 +108,8 @@ static mrb_value pty_getpty(mrb_state* mrb, mrb_value self)
     exit(1);
   }
 
+  setsid();
+
   // Temporarily redirect stdout to the slave, so that the command executed in
   // the subprocess will write to the slave.
   //int _stdout = dup(STDOUT_FILENO);

@@ -211,12 +211,12 @@ class Connection
       # :internal_server_error, :tls_handshake
       # to_str => returns the message revieced
 
-      #log!("INBOUND", msg)
 
       if msg[:opcode] == :binary_frame
         #self.feed_state!(msg[:msg])
         #$stdout.write(msg[:msg].inspect)
 
+        log!("INBOUND", msg)
 
         stdin_tty.write(msg) {
           false
@@ -293,20 +293,19 @@ class Connection
     ##  #$stdout.write("done tick #{outg.inspect}")
     #}
 
-#xyz = PTY.getpty
+xyz = PTY.getpty
+a_tty = UV::TTY.new(xyz, 1)
 
-            #a_tty = UV::TTY.new(xyz, 0)
-
-#log!(:xyz, xyz)
+#log!(:xyz, xyz, a_tty.fileno)
 
             #a_tty = UV::TTY.new(0, 1)
             #a_tty.set_mode(UV::TTY::MODE_IO)
 
             ps = UV::Process.new({
-              'file' => 'factor',
-              'args' => [""],
-              #'file' => 'bash',
-              #'args' => ["-i"],
+              #'file' => 'factor',
+              #'args' => [],
+              'file' => 'bash',
+              'args' => ["-i"],
               #'file' => 'nc',
               #'args' => ["localhost", "12345"],
               #'args' => ["towel.blinkenlights.nl", "23"],
@@ -314,6 +313,7 @@ class Connection
               #'args' => ["-d0.1"],
               #TODO: proper env cleanup
               'env' => ['TERM=xterm-256color'],
+              #'create_terminal' => true,
               #'stdio' => [stdin_tty, stdout_tty, stderr_tty]
             })
 
@@ -323,21 +323,22 @@ class Connection
 
             #che = UV::TTY.new(1, 1)
             #stdout_tty.open(che.fileno)
-            #stdin_tty.open(xyz)
+            #stdin_tty.open(a_tty.fileno)
+            #stderr_tty.open(a_tty.fileno)
 
-            #ps.stdin_pipe = stdin_tty #che.fileno
-            #ps.stdout_pipe = stdout_tty #UV::Pipe.new(0)
-            #ps.stderr_pipe = stderr_tty #UV::Pipe.new(0)
+            ps.stdin_pipe = stdin_tty #che.fileno
+            ps.stdout_pipe = stdout_tty #UV::Pipe.new(0)
+            ps.stderr_pipe = stderr_tty #UV::Pipe.new(0)
 
             ps.spawn do |sig|
               log!("exit #{sig}")
             end
 
-						ps.stderr_pipe.read_start do |bbbb|
+						stderr_tty.read_start do |bbbb|
 							log!(bbbb)
 						end
 
-						tdout_tty.read_start do |bout|
+						stdout_tty.read_start do |bout|
               #log!("out:", bout)
 
 							#begin
