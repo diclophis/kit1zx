@@ -173,9 +173,8 @@ class Connection
   end
 
   def upgrade_to_websocket!
-            #stdin_tty = UV::Pipe.new(false)
+            stdin_tty = UV::Pipe.new(false)
             stdout_tty = UV::Pipe.new(false)
-            #stdout_tty = UV::TTY.new(1, 1)
             stderr_tty = UV::Pipe.new(false)
 
     self.wslay_callbacks = Wslay::Event::Callbacks.new
@@ -218,7 +217,7 @@ class Connection
 
         log!("INBOUND", msg)
 
-        @a_tty.write(msg) {
+        stdin_tty.write(msg) {
           false
         }
 
@@ -293,22 +292,22 @@ class Connection
     ##  #$stdout.write("done tick #{outg.inspect}")
     #}
 
-xyz = PTY.getpty
-@a_tty = UV::TTY.new(xyz, 1)
+#xyz = PTY.getpty
+#@a_tty = UV::TTY.new(xyz, 1)
 
 #log!(:xyz, xyz, a_tty.fileno)
 
-            #a_tty = UV::TTY.new(0, 1)
-            @a_tty.reset_mode
-            @a_tty.set_mode(UV::TTY::MODE_NORMAL)
+            ##a_tty = UV::TTY.new(0, 1)
+            #@a_tty.reset_mode
+            #@a_tty.set_mode(UV::TTY::MODE_NORMAL)
 
             ps = UV::Process.new({
               #'file' => 'factor',
               #'args' => [],
-              #'file' => 'bash',
-              #'args' => ["-x"],
-              'file' => 'nc',
-              'args' => ["localhost", "12345"],
+              'file' => 'bash',
+              'args' => [],
+              #'file' => 'nc',
+              #'args' => ["localhost", "12345"],
               #'args' => ["towel.blinkenlights.nl", "23"],
               #'file' => 'htop',
               #'args' => ["-d0.1"],
@@ -330,7 +329,7 @@ xyz = PTY.getpty
 
             #stderr_tty.open(a_tty.fileno)
 
-            ps.stdin_pipe = @a_tty #che.fileno
+            ps.stdin_pipe = stdin_tty
             ps.stdout_pipe = stdout_tty #UV::Pipe.new(0)
             ps.stderr_pipe = stderr_tty #UV::Pipe.new(0)
 

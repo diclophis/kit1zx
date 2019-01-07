@@ -112,9 +112,9 @@ static mrb_value pty_getpty(mrb_state* mrb, mrb_value self)
 
   setsid();
 
-  if (ioctl(slave, TIOCSCTTY, NULL) < 0) {
-    exit(1);
-  }
+  //if (ioctl(slave, TIOCSCTTY, NULL) < 0) {
+  //  exit(1);
+  //}
 
 
 
