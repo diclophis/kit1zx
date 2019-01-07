@@ -173,7 +173,7 @@ class Connection
   end
 
   def upgrade_to_websocket!
-            stdin_tty = UV::Pipe.new(false)
+            #stdin_tty = UV::Pipe.new(false)
             stdout_tty = UV::Pipe.new(false)
             #stdout_tty = UV::TTY.new(1, 1)
             stderr_tty = UV::Pipe.new(false)
@@ -218,7 +218,7 @@ class Connection
 
         log!("INBOUND", msg)
 
-        stdin_tty.write(msg) {
+        @a_tty.write(msg) {
           false
         }
 
@@ -294,20 +294,21 @@ class Connection
     #}
 
 xyz = PTY.getpty
-a_tty = UV::TTY.new(xyz, 1)
+@a_tty = UV::TTY.new(xyz, 1)
 
 #log!(:xyz, xyz, a_tty.fileno)
 
             #a_tty = UV::TTY.new(0, 1)
-            #a_tty.set_mode(UV::TTY::MODE_IO)
+            @a_tty.reset_mode
+            @a_tty.set_mode(UV::TTY::MODE_NORMAL)
 
             ps = UV::Process.new({
               #'file' => 'factor',
               #'args' => [],
-              'file' => 'bash',
-              'args' => ["-i"],
-              #'file' => 'nc',
-              #'args' => ["localhost", "12345"],
+              #'file' => 'bash',
+              #'args' => ["-x"],
+              'file' => 'nc',
+              'args' => ["localhost", "12345"],
               #'args' => ["towel.blinkenlights.nl", "23"],
               #'file' => 'htop',
               #'args' => ["-d0.1"],
@@ -323,10 +324,13 @@ a_tty = UV::TTY.new(xyz, 1)
 
             #che = UV::TTY.new(1, 1)
             #stdout_tty.open(che.fileno)
-            #stdin_tty.open(a_tty.fileno)
+
+            #stdin_tty.open(xyz)
+            #stdin_tty.connect("/dev/ptmx")
+
             #stderr_tty.open(a_tty.fileno)
 
-            ps.stdin_pipe = stdin_tty #che.fileno
+            ps.stdin_pipe = @a_tty #che.fileno
             ps.stdout_pipe = stdout_tty #UV::Pipe.new(0)
             ps.stderr_pipe = stderr_tty #UV::Pipe.new(0)
 
@@ -335,7 +339,13 @@ a_tty = UV::TTY.new(xyz, 1)
             end
 
 						stderr_tty.read_start do |bbbb|
-							log!(bbbb)
+							log!(:stderr, bbbb)
+							if bbbb.is_a?(UVError)
+								log!("badout #{bbbb}")
+							elsif bbbb
+                self.ws.queue_msg(bbbb, :binary_frame)
+                outg = self.ws.send
+							end
 						end
 
 						stdout_tty.read_start do |bout|

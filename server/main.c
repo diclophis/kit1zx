@@ -108,7 +108,16 @@ static mrb_value pty_getpty(mrb_state* mrb, mrb_value self)
     exit(1);
   }
 
+  //master = posix_openpt(O_RDWR);
+
   setsid();
+
+  if (ioctl(slave, TIOCSCTTY, NULL) < 0) {
+    exit(1);
+  }
+
+
+
 
   // Temporarily redirect stdout to the slave, so that the command executed in
   // the subprocess will write to the slave.
