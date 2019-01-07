@@ -1,5 +1,6 @@
 #
 
+
 def Integer(f)
   f.to_i
 end
@@ -137,7 +138,7 @@ class Connection
         #$stdout.write([:parser_error, offset].inspect)
       end
     else
-      log!("doing non-handshake byte transfer\n")
+      #log!("doing non-handshake byte transfer\n")
 
       self.last_buf = b
       proto_ok = (self.ws.recv != :proto)
@@ -172,9 +173,10 @@ class Connection
   end
 
   def upgrade_to_websocket!
-            stdin_tty = UV::Pipe.new(0)
-            stdout_tty = UV::Pipe.new(0)
-            stderr_tty = UV::Pipe.new(0)
+            stdin_tty = UV::Pipe.new(false)
+            stdout_tty = UV::Pipe.new(false)
+            #stdout_tty = UV::TTY.new(1, 1)
+            stderr_tty = UV::Pipe.new(false)
 
     self.wslay_callbacks = Wslay::Event::Callbacks.new
 
@@ -185,7 +187,7 @@ class Connection
       # or else return a mruby String or a object which can be converted into a String via to_str
       # and be up to len bytes long
       # the I/O object must be in non blocking mode and raise EAGAIN/EWOULDBLOCK when there is nothing to read
-      log!("SDSD", self.last_buf, buf, len, buf.to_s)
+      #log!("SDSD", self.last_buf, buf, len, buf.to_s)
 
       if self.last_buf
         throw_away_buf = self.last_buf.dup
@@ -209,7 +211,7 @@ class Connection
       # :internal_server_error, :tls_handshake
       # to_str => returns the message revieced
 
-      log!("INBOUND", msg)
+      #log!("INBOUND", msg)
 
       if msg[:opcode] == :binary_frame
         #self.feed_state!(msg[:msg])
@@ -291,30 +293,51 @@ class Connection
     ##  #$stdout.write("done tick #{outg.inspect}")
     #}
 
+#xyz = PTY.getpty
+
+            #a_tty = UV::TTY.new(xyz, 0)
+
+#log!(:xyz, xyz)
+
+            #a_tty = UV::TTY.new(0, 1)
+            #a_tty.set_mode(UV::TTY::MODE_IO)
+
             ps = UV::Process.new({
-              'file' => 'bash',
-              'args' => ["-i"],
+              'file' => 'factor',
+              'args' => [""],
+              #'file' => 'bash',
+              #'args' => ["-i"],
+              #'file' => 'nc',
+              #'args' => ["localhost", "12345"],
+              #'args' => ["towel.blinkenlights.nl", "23"],
               #'file' => 'htop',
               #'args' => ["-d0.1"],
               #TODO: proper env cleanup
-              #'env' => {
-              #},
-              stdio: [stdin_tty, stdout_tty, stderr_tty]
+              'env' => ['TERM=xterm-256color'],
+              #'stdio' => [stdin_tty, stdout_tty, stderr_tty]
             })
 
-            #ps.stdin_pipe = other_tty #UV::Pipe.new(1).open(@other_tty.fileno)
-            #ps.stdout_pipe = other_tty #UV::Pipe.new(0)
-            #ps.stderr_pipe = other_err #UV::Pipe.new(0)
+            #UV::Pipe.new(1).open(@other_tty.fileno)
+
+            #che = stdin_tty.open(a_tty.fileno)
+
+            #che = UV::TTY.new(1, 1)
+            #stdout_tty.open(che.fileno)
+            #stdin_tty.open(xyz)
+
+            #ps.stdin_pipe = stdin_tty #che.fileno
+            #ps.stdout_pipe = stdout_tty #UV::Pipe.new(0)
+            #ps.stderr_pipe = stderr_tty #UV::Pipe.new(0)
 
             ps.spawn do |sig|
               log!("exit #{sig}")
             end
 
-						stderr_tty.read_start do |bbbb|
+						ps.stderr_pipe.read_start do |bbbb|
 							log!(bbbb)
 						end
 
-						stdout_tty.read_start do |bout|
+						tdout_tty.read_start do |bout|
               #log!("out:", bout)
 
 							#begin
@@ -382,6 +405,7 @@ class Server
   end
 
   def spinlock!
+    UV.disable_stdio_inheritance
     UV::run
   end
 end

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-
+#include <pty.h>
 
 #include <mruby.h>
 #include <mruby/array.h>
@@ -92,6 +92,60 @@ static void eval_static_libs(mrb_state* mrb, ...) {
 }
 
 
+
+static mrb_value pty_getpty(mrb_state* mrb, mrb_value self)
+{
+    //mrb_value res;
+    //struct pty_info info;
+    //struct pty_info thinfo;
+
+  struct winsize w = {21, 82, 0, 0};
+
+  int master;
+  int slave;
+
+  if (openpty(&master, &slave, NULL, NULL, &w) < 0) {
+    exit(1);
+  }
+
+  // Temporarily redirect stdout to the slave, so that the command executed in
+  // the subprocess will write to the slave.
+  //int _stdout = dup(STDOUT_FILENO);
+  //dup2(slave, STDOUT_FILENO);
+
+
+/*
+    rb_io_t *wfptr,*rfptr;
+    VALUE rport = rb_obj_alloc(rb_cFile);
+    VALUE wport = rb_obj_alloc(rb_cFile);
+    char SlaveName[DEVICELEN];
+    MakeOpenFile(rport, rfptr);
+    MakeOpenFile(wport, wfptr);
+    establishShell(argc, argv, &info, SlaveName);
+    rfptr->mode = rb_io_mode_flags("r");
+    rfptr->f = fdopen(info.fd, "r");
+    rfptr->path = strdup(SlaveName);
+    wfptr->mode = rb_io_mode_flags("w") | FMODE_SYNC;
+    wfptr->f = fdopen(dup(info.fd), "w");
+    wfptr->path = strdup(SlaveName);
+    res = rb_ary_new2(3);
+    rb_ary_store(res,0,(VALUE)rport);
+    rb_ary_store(res,1,(VALUE)wport);
+    rb_ary_store(res,2,INT2FIX(info.child_pid));
+    thinfo.thread = rb_thread_create(pty_syswait, (void*)&info);
+    thinfo.child_pid = info.child_pid;
+    rb_thread_schedule();
+    if (rb_block_given_p()) {
+	rb_ensure(rb_yield, res, pty_finalize_syswait, (VALUE)&thinfo);
+	return Qnil;
+    }
+    return res;
+*/
+
+  return mrb_fixnum_value(master);
+}
+
+
 int main(int argc, char** argv) {
   mrb_state *mrb;
   struct mrb_parser_state *ret;
@@ -113,6 +167,10 @@ int main(int argc, char** argv) {
   struct RClass *websocket_mod = mrb_define_module(mrb, "WebSocket");
   mrb_define_class_under(mrb, websocket_mod, "Error", E_RUNTIME_ERROR);
   mrb_define_module_function(mrb, websocket_mod, "create_accept", mrb_websocket_create_accept, MRB_ARGS_REQ(1));
+
+
+  struct RClass *cPTY = mrb_define_module(mrb, "PTY");
+  mrb_define_module_function(mrb, cPTY, "getpty", pty_getpty, MRB_ARGS_NONE());
 
   mrb_define_global_const(mrb, "ARGV", args);
 

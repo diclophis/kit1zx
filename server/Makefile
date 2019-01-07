@@ -15,7 +15,7 @@ static_ruby_headers = $(patsubst %,$(build)/%, $(patsubst lib/%.rb,%.h, $(wildca
 objects += $(mruby_static_lib)
 
 #LDFLAGS=-lm -lpthread -ldl -L/usr/local/Cellar/openssl/1.0.2p/lib -lssl -lcrypto
-LDFLAGS=-lm -lpthread -ldl -lssl -lcrypto
+LDFLAGS=-lm -lpthread -ldl -lssl -lcrypto -lutil
 
 CFLAGS=-Os -std=c99 -I../mruby/include -I../mruby/build/mrbgems/mruby-b64/include -I$(build) #-I/usr/local/Cellar/openssl/1.0.2p/include
 
