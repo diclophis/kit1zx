@@ -49,40 +49,104 @@ class Connection
         case phr.path
         when "/"
           filename = "/var/tmp/big.data"
-          f = UV::FS::open(filename, UV::FS::O_RDONLY, UV::FS::S_IREAD)
-          header = "HTTP/1.1 200 OK\r\nContent-Length: #{f.stat.size}\r\nTransfer-Coding: chunked\r\n\r\n"
+          fd = UV::FS::open(filename, UV::FS::O_RDONLY, UV::FS::S_IREAD)
+          file_size =  fd.stat.size
+          sent = 0
+
+          #@pfd = UV::Pipe.new(true)
+          #@pfd.open(@fd.fd)
+
+          header = "HTTP/1.1 200 OK\r\nContent-Length: #{file_size}\r\nTransfer-Coding: chunked\r\n\r\n"
           self.socket.write(header)
 
-          #idle = UV::Idle.new
-          #idle.start do |x|
-          #  $stdout.write(".")
+          #@pfd.read_start { |b|
+          #  #if b && b.is_a?(UVError)
+          #  #  log!(:wtf1, b)
+          #  #else
+          #  #  if b && b.is_a?(String)
+          #  #    self.socket.write(b) {
+          #  #      false
+          #  #    }
+          #  #  end
+          #  #end
+          #  true
+          #}
+
+          max_chunk = (self.socket.recv_buffer_size / 4).to_i #(1024 * 8)
+          sending = false
+
+          idle = UV::Idle.new
+          idle.start do |x|
           #  #$stdout.write(self.phr.headers.inspect)
           #  #while f.active? && self.socket.active?
           #  self.socket.write(f.read)
           #  #end
           #  #self.socket.close
-          #end
+            #if b = fd.read
+            #  self.socket.write(b) {
+            #    false
+            #  }
+            #end
+
+            if (sent < file_size)
+
+              #log!("tick-send") #$stdout.write(".")
+
+              left = file_size - sent
+              if left > max_chunk
+                left = max_chunk
+              end
+
+              begin
+                if !sending
+                  bsent = sent
+                  sending = true
+                  UV::FS::sendfile(self.socket.fileno, fd, bsent, left) { |xyx|
+                    if xyx.is_a?(UVError)
+                      max_chunk = ((max_chunk / 2) + 1).to_i
+
+                      #log!(:xyx, xyx)
+
+                      sending = false
+                    else
+                      sending = false
+                      #log!("before-after", xyx, bsent, sent, left, file_size)
+                      sent += xyx.to_i
+                    end
+                  }
+                end
+              rescue UVError #resource temporarily unavailable
+                max_chunk = ((max_chunk / 2) + 1).to_i
+
+                sending = false
+
+                #log!(:stalld)
+              end
+            else
+              log!("tick-idle")
+
+              self.socket.close
+              idle.stop
+            end
+          end
 
           #f.sendfile(self.socket)
           #UV::FS::sendfile(self.socket, f, 0, f.stat.size)
           #UV::FS::O_RDONLY, UV::FS::S_IREAD)
 
-          file_size =  f.stat.size
-          sent = 0
+          #while sent < file_size
+          #  left = file_size - sent
+          #  if left > 1024
+          #    left = 1024
+          #  end
 
-          while sent < file_size
-            left = file_size - sent
-            if left > 1024
-              left = 1024
-            end
+          #  UV::FS::sendfile(self.socket.fileno, f, sent, left)
+          #  #{
+          #  #  false
+          #  #}
 
-            UV::FS::sendfile(self.socket.fileno, f, sent, left)
-            #{
-            #  false
-            #}
-
-            sent += left
-          end
+          #  sent += left
+          #end
 
           #self.socket.write(f.read) do |a|
           #  $stdout.write(a.inspect)
