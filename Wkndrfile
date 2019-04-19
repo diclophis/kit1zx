@@ -1,0 +1,152 @@
+#
+
+Wkndr.play { |gl|
+
+  srand(2)
+
+  size = 1
+  shapes = {}
+
+  16.times { |i|
+    ii = begin
+      case i
+        when 1
+          8
+        when 2
+          7
+        when 3
+          9
+        when 4
+          6
+        when 5
+          12
+        when 6
+          11
+        when 7
+          3
+        when 8
+          5
+        when 9
+          13
+        when 10
+          14
+        when 11
+          4
+        when 12
+          10
+        when 13
+          1
+        when 14
+          2
+        when 15
+          0
+      else
+        nil
+      end
+    end
+    
+    if ii
+      shapes[i] = Model.new("resources/shape-#{ii}.obj", "resources/shape-#{ii}_tex.png", 1.0)
+    end
+  }
+
+  ## generate a 10x10 orthogonal maze and print it to the console
+  maze = Theseus::OrthogonalMaze.generate(:width => 10, :height => 10, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
+
+  log!(:MAZE, maze)
+
+  cube = Cube.new(size, size, size, 0.5)
+
+  player_position = [0.0,0.0,0.0]
+  camera_position = [0.0,6.0,0.0]
+
+  gl.lookat(1, *camera_position, *player_position, 45.0)
+
+  #gl.lookat(0, 50.0, 50.0, 100.0, 0.0, 0.0, 0.01, 200.0)
+ 
+  total_msg = 0
+
+  gl.event { |typed_msg|
+    total_msg += 1
+  }
+
+  gl.update { |global_time, delta_time|
+    gl.drawmode {
+      gl.threed {
+        arrow_keys = [] #keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
+        speed = (7.0 * delta_time)
+        arrow_keys.each do |arrow_key|
+          case arrow_key
+            when KEY_W
+              player_position[2] += speed
+            when KEY_S
+              player_position[2] -= speed
+            when KEY_A
+              player_position[0] += speed
+            when KEY_D
+              player_position[0] -= speed
+          end
+        end
+        camera_position[0] = player_position[0]-0.01
+        camera_position[2] = player_position[2]-5.0
+        gl.lookat(1, *camera_position, *player_position, 45.0)
+        px = player_position[0].to_i
+        py = player_position[2].to_i
+        ((px-10)..(px+10)).each do |x|
+          ((py-10)..(py+10)).each do |y|
+            if x>=0 && x<10 && y>=0 && y<10
+              #draw_maze(x,y)
+              cell = maze[x, y]
+              unless cell == 0
+                primary = (cell & Theseus::Maze::PRIMARY)
+                if shape = shapes[primary]
+                  shapes[primary].deltap(x, 0, y)
+                  shapes[primary].draw(false)
+                else
+                  #puts primary, Theseus::Formatters::ASCII::Orthogonal::UTF8_LINES[primary]
+                  #raise "wtF"
+                end
+              end
+            end
+          end
+        end
+        cube.deltap(player_position[0], player_position[1], player_position[2])
+        cube.draw(false)
+      }
+      gl.twod {
+        gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg}") {
+          gl.emit({"x" => "y"})
+        }
+      }
+    }
+  }
+}
+
+#Wkndr.play { |gl|
+#  gl.lookat(0, 50.0, 50.0, 100.0, 0.0, 0.0, 0.01, 200.0)
+# 
+#  total_msg = 0
+#  cube = Cube.new(1.0, 1.0, 1.0, 20.0)
+#  speed = 100.0
+#
+#  gl.event { |typed_msg|
+#    total_msg += 1
+#  }
+#
+#  gl.update { |global_time, delta_time|
+#    gl.drawmode {
+#      gl.threed {
+#        #gl.draw_grid(5.0, 25.0)
+#        cube.deltar(Math.sin(global_time * 1.0) * 3.0, Math.sin(-global_time) * 5.0, 1.0, global_time * speed)
+#        cube.draw(true)
+#      }
+#      gl.twod {
+#        #gl.draw_fps(0, 0)
+#        #gl.button(50.0, 50.0, 250.0, 20.0, "start %06.2f, %0.4f %d" % [global_time, delta_time, total_msg]) {
+#        gl.button(50.0, 50.0, 250.0, 20.0, "login test #{total_msg}") {
+#          gl.emit({"c" => "tty"})
+#        }
+#      }
+#    }
+#  }
+#}
