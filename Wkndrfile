@@ -50,8 +50,10 @@ Wkndr.play { |gl|
     end
   }
 
+  maze_s = 100
+
   ## generate a 10x10 orthogonal maze and print it to the console
-  maze = Theseus::OrthogonalMaze.generate(:width => 10, :height => 10, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
+  maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
 
   log!(:MAZE, maze)
 
@@ -73,7 +75,7 @@ Wkndr.play { |gl|
   gl.update { |global_time, delta_time|
     gl.drawmode {
       gl.threed {
-        arrow_keys = [] #keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
+        arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
         speed = (7.0 * delta_time)
         arrow_keys.each do |arrow_key|
           case arrow_key
@@ -94,7 +96,7 @@ Wkndr.play { |gl|
         py = player_position[2].to_i
         ((px-10)..(px+10)).each do |x|
           ((py-10)..(py+10)).each do |y|
-            if x>=0 && x<10 && y>=0 && y<10
+            if x>=0 && x<maze_s && y>=0 && y<maze_s
               #draw_maze(x,y)
               cell = maze[x, y]
               unless cell == 0
