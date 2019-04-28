@@ -1,7 +1,6 @@
 #
 
 Wkndr.play { |gl|
-
   srand(2)
 
   size = 1
@@ -89,9 +88,11 @@ Wkndr.play { |gl|
               player_position[0] -= speed
           end
         end
+
         camera_position[0] = player_position[0]-0.01
         camera_position[2] = player_position[2]-5.0
         gl.lookat(1, *camera_position, *player_position, 45.0)
+
         px = player_position[0].to_i
         py = player_position[2].to_i
         ((px-10)..(px+10)).each do |x|
@@ -112,6 +113,7 @@ Wkndr.play { |gl|
             end
           end
         end
+
         cube.deltap(player_position[0], player_position[1], player_position[2])
         cube.draw(false)
       }
