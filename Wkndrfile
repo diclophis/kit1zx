@@ -49,7 +49,7 @@ Wkndr.play { |gl|
     end
   }
 
-  maze_s = 1024
+  maze_s = 100
 
   ## generate a 10x10 orthogonal maze and print it to the console
   maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
@@ -66,8 +66,6 @@ Wkndr.play { |gl|
 
   gl.lookat(1, *camera_position, *player_position, fovy)
 
-  #gl.lookat(0, 50.0, 50.0, 100.0, 0.0, 0.0, 0.01, 200.0)
- 
   total_msg = 0
 
   gl.event { |typed_msg|
@@ -77,75 +75,68 @@ Wkndr.play { |gl|
   gl.update { |global_time, delta_time|
     gl.drawmode {
       gl.threed {
+        got_lr = got_ud = false
+
         arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
-        speed = (3.0) * (delta_time * 1.0)
+        speed = (25.0) * (delta_time * 1.0)
         arrow_keys.each do |arrow_key|
           case arrow_key
             when KEY_W
               player_velocity[2] += speed
+              got_ud = true
             when KEY_S
               player_velocity[2] -= speed
+              got_ud = true
             when KEY_A
               player_velocity[0] += speed
+              got_lr = true
             when KEY_D
               player_velocity[0] -= speed
+              got_lr = true
+          end
+
+          if player_velocity[2] > 4.0
+            player_velocity[2] = 4.0
+          end
+
+          if player_velocity[0] > 4.0
+            player_velocity[0] = 4.0
+          end
+
+          if player_velocity[0] < -4.0
+            player_velocity[0] = -4.0
+          end
+
+          if player_velocity[2] < -4.0
+            player_velocity[2] = -4.0
           end
         end
 
-        #some_slow_down_percent = 1.0 * (delta_time * 1.0)
-        #log!(delta_time, arrow_keys, player_velocity)
+        some_slow_down_percent = 1.0 - ((delta_time) * 10.0)
 
-          #if player_velocity[2] > 4.0
-          #  player_velocity[2] = 4.0
-          #end
+        if !got_ud
+          if player_velocity[2] > 0.1 || player_velocity[2] < -0.1
+            player_velocity[2] *= some_slow_down_percent
+          else
+            player_velocity[2] = 0
+          end
+        end
 
-          #if player_velocity[0] > 4.0
-          #  player_velocity[0] = 4.0
-          #end
-
-          #if player_velocity[2] < 0.01 && player_velocity[2] > -0.01
-          #  player_velocity[2] = 0
-          #end
-
-          #if player_velocity[0] < 0.01 && player_velocity[0] > -0.01
-          #  player_velocity[0] = 0
-          #end
-
-
-          # if arrow_keys.length == 0
-          #    player_velocity[2] *= some_slow_down_percent
-          #  end
-          #elsif player_velocity[2] < -4.0
-          #  player_velocity[2] = -4.0
-          #elsif player_velocity[2] < -0.01
-          #  if arrow_keys.length == 0
-          #    player_velocity[2] *= some_slow_down_percent
-          #  end
-          #else
-          #end
-
-          #elsif player_velocity[0] > 0.01
-          #  if arrow_keys.length == 0
-          #    player_velocity[0] *= some_slow_down_percent
-          #  end
-          #elsif player_velocity[0] < -4.0
-          #  player_velocity[0] = -4.0
-          #elsif player_velocity[0] < -0.01
-          #  if arrow_keys.length == 0
-          #    player_velocity[0] *= some_slow_down_percent
-          #  end
-          #else
-          #  player_velocity[0] = 0
-          #end
+        if !got_lr
+          if player_velocity[0] > 0.1 || player_velocity[0] < -0.1
+            player_velocity[0] *= some_slow_down_percent
+          else
+            player_velocity[0] = 0
+          end
+        end
 
         player_position[2] += player_velocity[2] * delta_time
         player_position[0] += player_velocity[0] * delta_time
 
         camera_position[0] = player_position[0] - (0.01 * player_velocity[0])
         camera_position[2] = player_position[2] - (0.01 * player_velocity[0]) - 5.0
-        #camera_position[2] = player_position[2]-5.0
 
-        camera_target = [player_position[0] + (0.1 * player_velocity[0]), player_position[1], player_position[2] + (0.1 * player_velocity[2])]
+        camera_target = [player_position[0] + (0.01 * player_velocity[0]), player_position[1], player_position[2] + (0.01 * player_velocity[2])]
 
         gl.lookat(1, *camera_position, *camera_target, fovy)
 
@@ -156,16 +147,12 @@ Wkndr.play { |gl|
         ((px-maze_draw_distance)..(px+maze_draw_distance)).each do |x|
           ((py-maze_draw_distance)..(py+maze_draw_distance)).each do |y|
             if x>=0 && x<maze_s && y>=0 && y<maze_s
-              #draw_maze(x,y)
               cell = maze[x, y]
               unless cell == 0
                 primary = (cell & Theseus::Maze::PRIMARY)
                 if shape = shapes[primary]
                   shapes[primary].deltap(x, 0, y)
                   shapes[primary].draw(false)
-                else
-                  #puts primary, Theseus::Formatters::ASCII::Orthogonal::UTF8_LINES[primary]
-                  #raise "wtF"
                 end
               end
             end
@@ -175,6 +162,7 @@ Wkndr.play { |gl|
         cube.deltap(player_position[0], player_position[1], player_position[2])
         cube.draw(false)
       }
+
       gl.twod {
         gl.draw_fps(0, 0)
         gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg}") {
@@ -184,32 +172,3 @@ Wkndr.play { |gl|
     }
   }
 }
-
-#Wkndr.play { |gl|
-#  gl.lookat(0, 50.0, 50.0, 100.0, 0.0, 0.0, 0.01, 200.0)
-# 
-#  total_msg = 0
-#  cube = Cube.new(1.0, 1.0, 1.0, 20.0)
-#  speed = 100.0
-#
-#  gl.event { |typed_msg|
-#    total_msg += 1
-#  }
-#
-#  gl.update { |global_time, delta_time|
-#    gl.drawmode {
-#      gl.threed {
-#        #gl.draw_grid(5.0, 25.0)
-#        cube.deltar(Math.sin(global_time * 1.0) * 3.0, Math.sin(-global_time) * 5.0, 1.0, global_time * speed)
-#        cube.draw(true)
-#      }
-#      gl.twod {
-#        #gl.draw_fps(0, 0)
-#        #gl.button(50.0, 50.0, 250.0, 20.0, "start %06.2f, %0.4f %d" % [global_time, delta_time, total_msg]) {
-#        gl.button(50.0, 50.0, 250.0, 20.0, "login test #{total_msg}") {
-#          gl.emit({"c" => "tty"})
-#        }
-#      }
-#    }
-#  }
-#}
