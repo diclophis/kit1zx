@@ -2,7 +2,7 @@
 
 //#version 330
 
-precision lowp float;
+precision mediump float;
 
 const int maxLights = 1;
 const vec3 viewDir = vec3(1.0);
@@ -144,7 +144,7 @@ void main()
     
     // Calculate specular texture color fetching or set to maximum specular value by default
     float spec = 1.0;
-    if (useSpecular == 1) spec = texture2D(texture2, fragTexCoord).r;
+    //if (useSpecular == 1) spec = texture2D(texture2, fragTexCoord).r;
 
     //for (int i = 0; i < maxLights; i++)
     //{
