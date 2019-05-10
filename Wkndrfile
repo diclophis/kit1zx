@@ -1,26 +1,124 @@
+##
 #
+#
+# Wkndr.play { |gl|
+#   #flower = Model.new("resources/Flower_Yellow_02.obj", "resources/Flower_Yellow_02.obj.mtl", 1.0)
+#   #flower = Model.new("resources/road-corner.obj", "resources/road-corner.mtl", 0.5)
+#   #flower = Model.new("resources/terrain.obj", "resources/terrain.obj.mtl", 0.5)
+#   flower = Model.new("resources/tri001.obj", "", 1.0)
+#   #flower = Model.new("resources/cube.obj", "resources/cube.obj.mtl", 1.0)
+#   #flower.deltas(2.0, 2.0, 2.0)
+# #    end
+# #  }
+# #
+# #  maze_s = 100
+# #
+# #  ## generate a 10x10 orthogonal maze and print it to the console
+# #  maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
+# #
+# #  log!(:MAZE, maze)
+# #
+#   size = 1
+#   #cube = Cube.new(size, size, size, 1.0)
+# 
+#   player_position = [0.0,1.0,0.0]
+#   player_velocity = [0.0, 0.0, 0.0]
+#   camera_position = [100.0,150.0,100.0]
+#   fovy = 90.0
+# 
+#   gl.lookat(1, *camera_position, *player_position, fovy)
+# 
+#   total_msg = 0
+# 
+#   gl.event { |typed_msg|
+#     total_msg += 1
+#   }
+# 
+#   gl.update { |global_time, delta_time|
+#     gl.drawmode {
+#       gl.threed {
+#         #cube.deltap(player_position[0] + 0.1, player_position[1]+1, player_position[2] + 0.1)
+#         #cube.deltar(0, 1, 0, global_time * -50.0)
+#         #cube.draw(false)
+# 
+#         flower.deltap(player_position[0], player_position[1], player_position[2])
+#         flower.deltar(0, 1, 0, global_time * 100.0)
+#         flower.draw(true)
+#       }
+# 
+#       gl.twod {
+#         gl.draw_fps(0, 0)
+#         gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg}") {
+#           gl.emit({"x" => "y"})
+#         }
+#       }
+#     }
+#   }
+# }
 
 Wkndr.play { |gl|
-  #flower = Model.new("resources/Flower_Yellow_02.obj", "resources/Flower_Yellow_02.obj.mtl", 2.0)
-  flower = Model.new("resources/road-corner.obj", "resources/road-corner.mtl", 0.5)
-  #flower.deltas(2.0, 2.0, 2.0)
-#    end
-#  }
-#
-#  maze_s = 100
-#
-#  ## generate a 10x10 orthogonal maze and print it to the console
-#  maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
-#
-#  log!(:MAZE, maze)
-#
-  size = 1
+  srand(2)
+
+  size = 0.1
+  shapes = {}
+
+  16.times { |i|
+    ii = begin
+      case i
+        when 1
+          8
+        when 2
+          7
+        when 3
+          9
+        when 4
+          6
+        when 5
+          12
+        when 6
+          11
+        when 7
+          3
+        when 8
+          5
+        when 9
+          13
+        when 10
+          14
+        when 11
+          4
+        when 12
+          10
+        when 13
+          1
+        when 14
+          2
+        when 15
+          0
+      else
+        nil
+      end
+    end
+    
+    if ii
+      shapes[i] = Model.new("resources/shape-#{ii}.obj", "resources/shape-#{ii}_tex.png", 1.0)
+    end
+  }
+
+  maze_s = 100
+
+  ## generate a 10x10 orthogonal maze and print it to the console
+  maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
+
+  log!(:MAZE, maze)
+
   cube = Cube.new(size, size, size, 0.5)
 
   player_position = [0.0,1.0,0.0]
   player_velocity = [0.0, 0.0, 0.0]
-  camera_position = [100.0,33.0,100.0]
-  fovy = 3.0
+  camera_position = [0.0,6.0,0.0]
+
+  fovy = 18.0
 
   gl.lookat(1, *camera_position, *player_position, fovy)
 
@@ -33,13 +131,92 @@ Wkndr.play { |gl|
   gl.update { |global_time, delta_time|
     gl.drawmode {
       gl.threed {
-        cube.deltap(player_position[0] + 0.1, player_position[1]+1, player_position[2] + 0.1)
-        cube.deltar(0, 1, 0, global_time * -50.0)
-        cube.draw(true)
+        got_lr = got_ud = false
 
-        flower.deltap(player_position[0], player_position[1], player_position[2])
-        flower.deltar(0, 1, 0, global_time * 100.0)
-        flower.draw(true)
+        arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
+        speed = (25.0) * (delta_time * 1.0)
+        arrow_keys.each do |arrow_key|
+          case arrow_key
+            when KEY_W
+              player_velocity[2] += speed
+              got_ud = true
+            when KEY_S
+              player_velocity[2] -= speed
+              got_ud = true
+            when KEY_A
+              player_velocity[0] += speed
+              got_lr = true
+            when KEY_D
+              player_velocity[0] -= speed
+              got_lr = true
+          end
+
+          if player_velocity[2] > 4.0
+            player_velocity[2] = 4.0
+          end
+
+          if player_velocity[0] > 4.0
+            player_velocity[0] = 4.0
+          end
+
+          if player_velocity[0] < -4.0
+            player_velocity[0] = -4.0
+          end
+
+          if player_velocity[2] < -4.0
+            player_velocity[2] = -4.0
+          end
+        end
+
+        some_slow_down_percent = 1.0 - ((delta_time) * 10.0)
+
+        if !got_ud
+          if player_velocity[2] > 0.1 || player_velocity[2] < -0.1
+            player_velocity[2] *= some_slow_down_percent
+          else
+            player_velocity[2] = 0
+          end
+        end
+
+        if !got_lr
+          if player_velocity[0] > 0.1 || player_velocity[0] < -0.1
+            player_velocity[0] *= some_slow_down_percent
+          else
+            player_velocity[0] = 0
+          end
+        end
+
+        player_position[2] += player_velocity[2] * delta_time
+        player_position[0] += player_velocity[0] * delta_time
+
+        camera_position[0] = player_position[0] - (0.01 * player_velocity[0])
+        camera_position[2] = player_position[2] - (0.01 * player_velocity[0]) - 5.0
+
+        camera_target = [player_position[0] + (0.01 * player_velocity[0]), player_position[1], player_position[2] + (0.01 * player_velocity[2])]
+
+        gl.lookat(1, *camera_position, *camera_target, fovy)
+
+        maze_draw_distance = 6
+
+        px = player_position[0].to_i
+        py = player_position[2].to_i
+        ((px-maze_draw_distance)..(px+maze_draw_distance)).each do |x|
+          ((py-maze_draw_distance)..(py+maze_draw_distance)).each do |y|
+            if x>=0 && x<maze_s && y>=0 && y<maze_s
+              cell = maze[x, y]
+              unless cell == 0
+                primary = (cell & Theseus::Maze::PRIMARY)
+                if shape = shapes[primary]
+                  shapes[primary].deltap(x, 0, y)
+                  shapes[primary].draw(false)
+                end
+              end
+            end
+          end
+        end
+
+        cube.deltap(player_position[0], player_position[1], player_position[2])
+        cube.draw(false)
       }
 
       gl.twod {
@@ -51,176 +228,3 @@ Wkndr.play { |gl|
     }
   }
 }
-
-#Wkndr.play { |gl|
-#  srand(2)
-#
-#  size = 0.1
-#  shapes = {}
-#
-#  16.times { |i|
-#    ii = begin
-#      case i
-#        when 1
-#          8
-#        when 2
-#          7
-#        when 3
-#          9
-#        when 4
-#          6
-#        when 5
-#          12
-#        when 6
-#          11
-#        when 7
-#          3
-#        when 8
-#          5
-#        when 9
-#          13
-#        when 10
-#          14
-#        when 11
-#          4
-#        when 12
-#          10
-#        when 13
-#          1
-#        when 14
-#          2
-#        when 15
-#          0
-#      else
-#        nil
-#      end
-#    end
-#    
-#    if ii
-#      shapes[i] = Model.new("resources/shape-#{ii}.obj", "resources/shape-#{ii}_tex.png", 1.0)
-#    end
-#  }
-#
-#  maze_s = 100
-#
-#  ## generate a 10x10 orthogonal maze and print it to the console
-#  maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
-#
-#  log!(:MAZE, maze)
-#
-#  cube = Cube.new(size, size, size, 0.5)
-#
-#  player_position = [0.0,1.0,0.0]
-#  player_velocity = [0.0, 0.0, 0.0]
-#  camera_position = [0.0,6.0,0.0]
-#
-#  fovy = 18.0
-#
-#  gl.lookat(1, *camera_position, *player_position, fovy)
-#
-#  total_msg = 0
-#
-#  gl.event { |typed_msg|
-#    total_msg += 1
-#  }
-#
-#  gl.update { |global_time, delta_time|
-#    gl.drawmode {
-#      gl.threed {
-#        got_lr = got_ud = false
-#
-#        arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
-#        speed = (25.0) * (delta_time * 1.0)
-#        arrow_keys.each do |arrow_key|
-#          case arrow_key
-#            when KEY_W
-#              player_velocity[2] += speed
-#              got_ud = true
-#            when KEY_S
-#              player_velocity[2] -= speed
-#              got_ud = true
-#            when KEY_A
-#              player_velocity[0] += speed
-#              got_lr = true
-#            when KEY_D
-#              player_velocity[0] -= speed
-#              got_lr = true
-#          end
-#
-#          if player_velocity[2] > 4.0
-#            player_velocity[2] = 4.0
-#          end
-#
-#          if player_velocity[0] > 4.0
-#            player_velocity[0] = 4.0
-#          end
-#
-#          if player_velocity[0] < -4.0
-#            player_velocity[0] = -4.0
-#          end
-#
-#          if player_velocity[2] < -4.0
-#            player_velocity[2] = -4.0
-#          end
-#        end
-#
-#        some_slow_down_percent = 1.0 - ((delta_time) * 10.0)
-#
-#        if !got_ud
-#          if player_velocity[2] > 0.1 || player_velocity[2] < -0.1
-#            player_velocity[2] *= some_slow_down_percent
-#          else
-#            player_velocity[2] = 0
-#          end
-#        end
-#
-#        if !got_lr
-#          if player_velocity[0] > 0.1 || player_velocity[0] < -0.1
-#            player_velocity[0] *= some_slow_down_percent
-#          else
-#            player_velocity[0] = 0
-#          end
-#        end
-#
-#        player_position[2] += player_velocity[2] * delta_time
-#        player_position[0] += player_velocity[0] * delta_time
-#
-#        camera_position[0] = player_position[0] - (0.01 * player_velocity[0])
-#        camera_position[2] = player_position[2] - (0.01 * player_velocity[0]) - 5.0
-#
-#        camera_target = [player_position[0] + (0.01 * player_velocity[0]), player_position[1], player_position[2] + (0.01 * player_velocity[2])]
-#
-#        gl.lookat(1, *camera_position, *camera_target, fovy)
-#
-#        maze_draw_distance = 6
-#
-#        px = player_position[0].to_i
-#        py = player_position[2].to_i
-#        ((px-maze_draw_distance)..(px+maze_draw_distance)).each do |x|
-#          ((py-maze_draw_distance)..(py+maze_draw_distance)).each do |y|
-#            if x>=0 && x<maze_s && y>=0 && y<maze_s
-#              cell = maze[x, y]
-#              unless cell == 0
-#                primary = (cell & Theseus::Maze::PRIMARY)
-#                if shape = shapes[primary]
-#                  shapes[primary].deltap(x, 0, y)
-#                  shapes[primary].draw(false)
-#                end
-#              end
-#            end
-#          end
-#        end
-#
-#        cube.deltap(player_position[0], player_position[1], player_position[2])
-#        cube.draw(false)
-#      }
-#
-#      gl.twod {
-#        gl.draw_fps(0, 0)
-#        gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg}") {
-#          gl.emit({"x" => "y"})
-#        }
-#      }
-#    }
-#  }
-#}
