@@ -9,7 +9,7 @@
 # Faces: 186
 #
 ####
-mtllib ./road-corner.obj.mtl
+mtllib ./resources/road-corner.obj.mtl
 
 vn -1.570795 0.000000 1.570798
 v -3.999996 -1.000000 4.000000 0.619608 0.466667 0.345098

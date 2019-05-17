@@ -9,7 +9,7 @@
 # Faces: 88
 #
 ####
-mtllib ./Flower_Yellow_02.obj.mtl
+mtllib ./resources/Flower_Yellow_02.mtl
 
 vn 0.000000 0.000000 0.000000
 v 0.421797 -0.411585 0.000000 0.294118 0.529412 0.427451
