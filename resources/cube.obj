@@ -9,7 +9,8 @@
 # Faces: 12
 #
 ####
-mtllib resources/cube.obj.mtl
+mtllib ./resources/cube.obj.mtl
+#mtllib cube.obj.mtl
 
 vn -0.408248 0.408248 0.816497
 v 0.000000 2.000000 2.000000 0.000000 0.000000 1.000000

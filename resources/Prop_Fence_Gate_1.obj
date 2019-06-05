@@ -1,4 +1,4 @@
-mtllib Prop_Fence_Gate_1.mtl
+mtllib ./resources/Prop_Fence_Gate_1.mtl
 o object1
 g object1
 v 0.37500000 0.00000000 0.55000000

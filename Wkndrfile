@@ -10,12 +10,12 @@ Wkndr.play { |gl|
   #gl.lookat(0, *camera_position, *player_position, fovy)
   gl.lookat(0, 50.0, 50.0, 100.0, 0.0, 0.0, 0.01, 200.0)
 
-  flower = Model.new("resources/Flower_Yellow_02.obj", "resources/Flower_Yellow_02.obj.mtl", 5.0)
-  #flower = Model.new("resources/road-corner.obj", "resources/road-corner.mtl", 0.5)
+  #flower = Model.new("resources/Flower_Yellow_02.obj", "", 25.0)
+  #flower = Model.new("resources/road-corner.obj", "resources/road-corner.mtl", 10.0)
   #flower = Model.new("resources/Prop_Fence_Gate_1.obj", "", 33.0)
   #flower = Model.new("resources/terrain.obj", "resources/terrain.obj.mtl", 0.00001)
-  #flower = Model.new("resources/tri001.obj", "", 1.0)
-  #flower = Model.new("resources/cube.obj", "resources/cube.obj.mtl", 1.0)
+  flower = Model.new("resources/tri001.obj", "", 20.0)
+  #flower = Model.new("resources/cube.obj", "", 10.0)
   #flower.deltas(2.0, 2.0, 2.0)
 #    end
 #  }
@@ -40,13 +40,13 @@ Wkndr.play { |gl|
     gl.drawmode {
       gl.threed {
         #cube.deltap(player_position[0] + 0.1, player_position[1]+(33.3*Math.sin(global_time * 0.33)), player_position[2] + 0.1)
-        cube.deltar(0, 1, 0, global_time * -50.0)
+        #cube.deltar(0, 1, 0, global_time * -50.0)
         #cube.deltar(1.0, 1.0, 1.0, global_time * 100.0)
-        cube.draw(false)
+        #cube.draw(false)
 
         #flower.deltas(0.0001, 0.0001, 0.0001)
         #flower.deltap(player_position[0], player_position[1], player_position[2])
-        flower.deltar(1, 1, 0, global_time * 100.0)
+        flower.deltar(1, 1, global_time * 100.0, global_time * 100.0)
         flower.draw(false)
       }
 
