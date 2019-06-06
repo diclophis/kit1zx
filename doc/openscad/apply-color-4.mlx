@@ -1,0 +1,71 @@
+<!DOCTYPE FilterScript>
+<FilterScript>
+ <filter name="Per Face Quality according to Triangle shape and aspect ratio">
+  <Param tooltip="Choose a metric to compute triangle quality." enum_val2="mean ratio" enum_val3="Area" value="2" enum_val4="Texture Angle Distortion" enum_val5="Texture Area Distortion" enum_val6="Planarity (abs plane dist)" description="Metric:" enum_val7="Planarity (relative)" type="RichEnum" enum_cardinality="8" name="Metric" enum_val0="area/max side" enum_val1="inradius/circumradius"/>
+ </filter>
+ <filter name="Colorize by face Quality">
+  <Param tooltip="The value that will be mapped with the lower end of the scale (blue)" value="0.143" description="Min" type="RichFloat" name="minVal"/>
+  <Param tooltip="The value that will be mapped with the upper end of the scale (red)" value="0.866" description="Max" type="RichFloat" name="maxVal"/>
+  <Param tooltip="If not zero this value will be used for a percentile cropping of the quality values.&lt;br> If this parameter is set to a value&lt;i>P&lt;/i> then the two values &lt;i>V_min,V_max&lt;/i> for which &lt;i>P&lt;/i>% of the vertices have a quality &lt;b>lower or greater than &lt;i>V_min,V_max&lt;/i> are used as min/max values for clamping.&lt;br>&lt;br> The automated percentile cropping is very useful for automatically discarding outliers." value="0" description="Percentile Crop [0..100]" type="RichDynamicFloat" min="0" max="100" name="perc"/>
+  <Param tooltip="If true the min max range will be enlarged to be symmertic (so that green is always Zero)" value="false" description="Zero Simmetric" type="RichBool" name="zeroSym"/>
+ </filter>
+ <filter name="Transfer Color: Face to Vertex"/>
+ <filter name="Parametrization: Trivial Per-Triangle">
+  <Param tooltip="Indicates how many triangles have to be put on each line (every quad contains two triangles)&#xa;Leave 0 for automatic calculation" value="0" description="Quads per line" type="RichInt" name="sidedim"/>
+  <Param tooltip="Gives an indication on how big the texture is" value="1024" description="Texture Dimension (px)" type="RichInt" name="textdim"/>
+  <Param tooltip="Specifies how many pixels to be left between triangles in parametrization domain" value="2" description="Inter-Triangle border (px)" type="RichInt" name="border"/>
+  <Param tooltip="Choose space optimizing to map smaller faces into smaller triangles in parametrizazion domain" value="1" description="Method" type="RichEnum" enum_cardinality="2" name="method" enum_val0="Basic" enum_val1="Space-optimizing"/>
+ </filter>
+ <filter name="Ambient Occlusion">
+  <Param tooltip="Occlusion may be calculated per-vertex or per-face, color and quality will be saved in the chosen component." value="0" description="Occlusion mode:" type="RichEnum" enum_cardinality="2" name="occMode" enum_val0="per-Vertex" enum_val1="per-Face (deprecated)"/>
+  <Param tooltip="The balance between a uniform and a directionally biased set of lighting direction&lt;br>: - 0 means light came only uniformly from any direction&lt;br> - 1 means that all the light cames from the specified cone of directions &lt;br> - other values mix the two set of lighting directions " value="0" description="Directional Bias [0..1]" type="RichFloat" name="dirBias"/>
+  <Param tooltip="Number of different views uniformly placed around the mesh. More views means better accuracy at the cost of increased calculation time" value="128" description="Requested views" type="RichInt" name="reqViews"/>
+  <Param tooltip="Number of different views placed around the mesh. More views means better accuracy at the cost of increased calculation time" description="Lighting Direction" type="RichPoint3f" x="0" y="1" name="coneDir" z="0"/>
+  <Param tooltip="Number of different views uniformly placed around the mesh. More views means better accuracy at the cost of increased calculation time" value="30" description="Cone amplitude" type="RichFloat" name="coneAngle"/>
+  <Param tooltip="Only works for per-vertex AO. In order to use GPU-Mode, your hardware must support FBOs, FP32 Textures and Shaders. Normally increases the performance by a factor of 4x-5x" value="false" description="Use GPU acceleration" type="RichBool" name="useGPU"/>
+  <Param tooltip="Defines the depth texture size used to compute occlusion from each point of view. Higher values means better accuracy usually with low impact on performance" value="512" description="Depth texture size(should be 2^n)" type="RichInt" name="depthTexSize"/>
+ </filter>
+ <filter name="Transform: Rotate">
+  <Param tooltip="Choose a method" enum_val2="Z axis" enum_val3="custom axis" value="0" description="Rotation on:" type="RichEnum" enum_cardinality="4" name="rotAxis" enum_val0="X axis" enum_val1="Y axis"/>
+  <Param tooltip="Choose a method" enum_val2="custom point" value="0" description="Center of rotation:" type="RichEnum" enum_cardinality="3" name="rotCenter" enum_val0="origin" enum_val1="barycenter"/>
+  <Param tooltip="Angle of rotation (in &lt;b>degree&lt;/b>). If snapping is enable this vaule is rounded according to the snap value" value="-90" description="Rotation Angle" type="RichDynamicFloat" min="-360" max="360" name="angle"/>
+  <Param tooltip="This rotation axis is used only if the 'custom axis' option is chosen." description="Custom axis" type="RichPoint3f" x="0" y="0" name="customAxis" z="0"/>
+  <Param tooltip="This rotation center is used only if the 'custom point' option is chosen." description="Custom center" type="RichPoint3f" x="0" y="0" name="customCenter" z="0"/>
+  <Param tooltip="If selected, before starting the filter will remove anyy unreference vertex (for which curvature values are not defined)" value="false" description="Snap angle" type="RichBool" name="snapFlag"/>
+  <Param tooltip="This value is used to snap the rotation angle (i.e. if the snapping value is 30, 227 becomes 210)." value="30" description="Snapping Value" type="RichFloat" name="snapAngle"/>
+  <Param tooltip="The transformation is explicitly applied, and the vertex coordinates are actually changed" value="true" description="Freeze Matrix" type="RichBool" name="Freeze"/>
+  <Param tooltip="If selected the filter will be applied to all visible mesh layers" value="false" description="Apply to all visible Layers" type="RichBool" name="allLayers"/>
+ </filter>
+ <filter name="Random Face Color"/>
+ <filter name="Transfer: Vertex Attributes to Texture (1 or 2 meshes)">
+  <Param tooltip="" value="0" description="" type="RichMesh" name="sourceMesh"/>
+  <Param tooltip="" value="0" description="" type="RichMesh" name="targetMesh"/>
+  <Param tooltip="Choose what attribute has to be transferred onto the target texture. You can choos bettween Per vertex attributes (clor,normal,quality) or to transfer color information from source mesh texture" enum_val2="Vertex Quality" enum_val3="Texture Color" value="0" description="Color Data Source" type="RichEnum" enum_cardinality="4" name="AttributeEnum" enum_val0="Vertex Color" enum_val1="Vertex Normal"/>
+  <Param tooltip="Sample points for which we do not find anything whithin this distance are rejected and not considered for recovering data" value="0.02847" description="Max Dist Search" type="RichAbsPerc" min="0" max="1.42352" name="upperBound"/>
+  <Param tooltip="The texture file to be created" value="shape-null_tex.png" description="Texture file" type="RichString" name="textName"/>
+  <Param tooltip="The texture width" value="1024" description="Texture width (px)" type="RichInt" name="textW"/>
+  <Param tooltip="The texture height" value="1024" description="Texture height (px)" type="RichInt" name="textH"/>
+  <Param tooltip="if target mesh has a texture will be overwritten (with provided texture dimension)" value="false" description="Overwrite Target Mesh Texture" type="RichBool" name="overwrite"/>
+  <Param tooltip="assign the newly created texture to target mesh" value="false" description="Assign Texture" type="RichBool" name="assign"/>
+  <Param tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" value="true" description="Fill texture" type="RichBool" name="pullpush"/>
+ </filter>
+ <filter name="Random Face Color"/>
+ <filter name="Transfer: Vertex Color to Texture">
+  <Param tooltip="The texture file to be created" value="shape-null_tex.png" description="Texture file" type="RichString" name="textName"/>
+  <Param tooltip="The texture width" value="1024" description="Texture width (px)" type="RichInt" name="textW"/>
+  <Param tooltip="The texture height" value="1024" description="Texture height (px)" type="RichInt" name="textH"/>
+  <Param tooltip="if current mesh has a texture will be overwritten (with provided texture dimension)" value="false" description="Overwrite texture" type="RichBool" name="overwrite"/>
+  <Param tooltip="assign the newly created texture" value="false" description="Assign texture" type="RichBool" name="assign"/>
+  <Param tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" value="true" description="Fill texture" type="RichBool" name="pullpush"/>
+ </filter>
+ <filter name="Random Face Color"/>
+ <filter name="Transfer Color: Face to Vertex"/>
+ <filter name="Transfer: Vertex Color to Texture">
+  <Param tooltip="The texture file to be created" value="shape-null_tex.png" description="Texture file" type="RichString" name="textName"/>
+  <Param tooltip="The texture width" value="1024" description="Texture width (px)" type="RichInt" name="textW"/>
+  <Param tooltip="The texture height" value="1024" description="Texture height (px)" type="RichInt" name="textH"/>
+  <Param tooltip="if current mesh has a texture will be overwritten (with provided texture dimension)" value="false" description="Overwrite texture" type="RichBool" name="overwrite"/>
+  <Param tooltip="assign the newly created texture" value="false" description="Assign texture" type="RichBool" name="assign"/>
+  <Param tooltip="if enabled the unmapped texture space is colored using a pull push filling algorithm, if false is set to black" value="true" description="Fill texture" type="RichBool" name="pullpush"/>
+ </filter>
+</FilterScript>

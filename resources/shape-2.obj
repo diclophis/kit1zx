@@ -9,7 +9,7 @@
 # Faces: 76
 #
 ####
-mtllib ./shape-2.obj.mtl
+mtllib ./resources/shape-2.obj.mtl
 
 vn -1.000000 0.000000 -0.000000
 vn -1.000000 0.000000 -0.000000

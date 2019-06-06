@@ -1,0 +1,39 @@
+<!DOCTYPE FilterScript>
+<FilterScript>
+<!--
+ <filter name="Merge Close Vertices">
+  <Param type="RichAbsPerc" value="0.00042706" min="0" name="Threshold" max="0.0142352"/>
+ </filter>
+ <filter name="Shape Diameter Function">
+  <Param enum_val0="On vertices" enum_val1="On Faces" enum_cardinality="2" type="RichEnum" value="1" name="onPrimitive"/>
+  <Param type="RichInt" value="128" name="numberRays"/>
+  <Param type="RichInt" value="512" name="DepthTextureSize"/>
+  <Param type="RichInt" value="10" name="peelingIteration"/>
+  <Param type="RichFloat" value="1e-07" name="peelingTolerance"/>
+  <Param type="RichFloat" value="120" name="coneAngle"/>
+  <Param type="RichBool" value="true" name="useVBO"/>
+  <Param type="RichBool" value="true" name="removeFalse"/>
+  <Param type="RichBool" value="false" name="removeOutliers"/>
+ </filter>
+ <filter name="Colorize by face Quality">
+  <Param type="RichFloat" value="0" name="minVal"/>
+  <Param type="RichFloat" value="1" name="maxVal"/>
+  <Param type="RichDynamicFloat" value="49" min="0" name="perc" max="100"/>
+  <Param type="RichBool" value="false" name="zeroSym"/>
+ </filter>
+ <filter name="Parametrization: Trivial Per-Triangle ">
+  <Param type="RichInt" value="0" name="sidedim"/>
+  <Param type="RichInt" value="1024" name="textdim"/>
+  <Param type="RichInt" value="2" name="border"/>
+  <Param enum_val0="Basic" enum_val1="Space-optimizing" enum_cardinality="2" type="RichEnum" value="1" name="method"/>
+ </filter>
+ <filter name="Vertex Color to Texture">
+  <Param type="RichString" value="shape-0_null.png" name="textName"/>
+  <Param type="RichInt" value="1024" name="textW"/>
+  <Param type="RichInt" value="1024" name="textH"/>
+  <Param type="RichBool" value="false" name="overwrite"/>
+  <Param type="RichBool" value="true" name="assign"/>
+  <Param type="RichBool" value="true" name="pullpush"/>
+ </filter>
+-->
+</FilterScript>
