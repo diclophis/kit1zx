@@ -1,3 +1,9 @@
+# [1.4.0] - 2019-06-14 - Jon Bardin
+
+do updates for stuff
+
+#######
+
 # [1.3.0] - 2019-01-12 - Jon Bardin
 
 Removed core system components to seperate proj
