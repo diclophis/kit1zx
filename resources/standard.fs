@@ -61,11 +61,11 @@ vec3 ComputeLightPoint(Light l, vec3 n, vec3 v, vec3 s)
     
     //////// Specular shading
     float spec = 0.0;
-    //if (diff > 0.0)
-    //{
-    //    vec3 h = normalize(-l.target + v);
-    //    spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3;
-    //}
+    if (diff > 0.0)
+    {
+        vec3 h = normalize(-l.target + v);
+        spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3;
+    }
 
     vec3 actualR = (diff*l.color.rgb + spec*s.rgb);
     return actualR;
@@ -86,11 +86,11 @@ vec3 ComputeLightDirectional(Light l, vec3 n, vec3 v, vec3 s)
 
     // Specular shading
     float spec = 0.0;
-    //if (diff > 0.0)
-    //{
-    //    vec3 h = normalize(lightDir + v);
-    //    spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3;
-    //}
+    if (diff > 0.0)
+    {
+        vec3 h = normalize(lightDir + v);
+        spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3;
+    }
     
     // Combine results
     return (diff*l.intensity*l.color.rgb + spec*s.rgb);
@@ -128,11 +128,11 @@ vec3 ComputeLightSpot(Light l, vec3 n, vec3 v, vec3 s)
     
     // Specular shading
     float spec = 0.0;
-    //if (diffAttenuation > 0.0)
-    //{
-    //    vec3 h = normalize(lightDir + v);
-    //    spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3; //s
-    //}
+    if (diffAttenuation > 0.0)
+    {
+        vec3 h = normalize(lightDir + v);
+        spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3; //s
+    }
     
     return (falloff*(diffAttenuation*l.color.rgb + spec*s.rgb));
 }
@@ -163,7 +163,12 @@ void main()
       }
   }
 
-  //finalColor = (vec4(lighting, 1.0)*((colDiffuse + vec4(specular, 1.0))*vec4(lightDot, 1.0)));
+  //finalColor = vec4(lighting, 1.0);
+
+  //*(vec4(specular, 1.0));
+  //finalColor = vec4(lighting, 1.0)*(vec4(specular, 1.0));
+
+  finalColor = (vec4(lighting, 1.0)*((colDiffuse + vec4(specular, 1.0))*vec4(lightDot, 1.0)));
   //finalColor = (vec4(lighting, 1.0)*((vec4(specular, 1.0))*vec4(lightDot, 1.0)));
   
   //brokefinalColor = vec4(texelColor.rgb*lighting*colDiffuse.rgb, texelColor.a*colDiffuse.a);
@@ -195,7 +200,8 @@ void main()
 
   //just texture
   //finalColor = texelColor;
+  //finalColor = specular;
 
   //just lighting
-  finalColor = vec4(lighting, 1.0);
+  //finalColor = vec4(lighting, 1.0);
 }
