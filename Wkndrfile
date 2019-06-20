@@ -1,64 +1,54 @@
-##
 #
-#
-#Wkndr.play { |gl|
-#  player_position = [0.0,1.0,0.0]
-#  player_velocity = [0.0, 0.0, 0.0]
-#  camera_position = [3.0,4.0,5.0]
-#  fovy = 45.0
-#
-#  #gl.lookat(0, *camera_position, *player_position, fovy)
-#  gl.lookat(0, 50.0, 50.0, 100.0, 0.0, 0.0, 0.01, 200.0)
-#
-#  #flower = Model.new("resources/Flower_Yellow_02.obj", "", 25.0)
-#  #flower = Model.new("resources/road-corner.obj", "resources/road-corner.mtl", 10.0)
-#  #flower = Model.new("resources/Prop_Fence_Gate_1.obj", "", 33.0)
-#  #flower = Model.new("resources/terrain.obj", "resources/terrain.obj.mtl", 0.00001)
-#  flower = Model.new("resources/tri001.obj", "", 20.0)
-#  #flower = Model.new("resources/cube.obj", "", 10.0)
-#  #flower.deltas(2.0, 2.0, 2.0)
-##    end
-##  }
-##
-##  maze_s = 100
-##
-##  ## generate a 10x10 orthogonal maze and print it to the console
-##  maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
-##
-##  log!(:MAZE, maze)
-##
-#  size = 1
-#  cube = Cube.new(size, size, size, 20.0)
-#
-#  total_msg = 0
-#
-#  gl.event { |typed_msg|
-#    total_msg += 1
-#  }
-#
-#  gl.update { |global_time, delta_time|
-#    gl.drawmode {
-#      gl.threed {
-#        #cube.deltap(player_position[0] + 0.1, player_position[1]+(33.3*Math.sin(global_time * 0.33)), player_position[2] + 0.1)
-#        #cube.deltar(0, 1, 0, global_time * -50.0)
-#        #cube.deltar(1.0, 1.0, 1.0, global_time * 100.0)
-#        #cube.draw(false)
-#
-#        #flower.deltas(0.0001, 0.0001, 0.0001)
-#        #flower.deltap(player_position[0], player_position[1], player_position[2])
-#        flower.deltar(1, 1, global_time * 100.0, global_time * 100.0)
-#        flower.draw(false)
-#      }
-#
-#      gl.twod {
-#        gl.draw_fps(0, 0)
-#        gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg}") {
-#          gl.emit({"x" => "y"})
-#        }
-#      }
-#    }
-#  }
-#}
+
+if true
+
+Wkndr.play { |gl|
+  player_position = [0.0,0.0,0.0]
+  camera_position = [11.0,7.0,13.0]
+  fovy = 45.0
+
+  gl.lookat(1, *camera_position, *player_position, fovy)
+
+  flowers = []
+
+  flowers << Model.new("resources/cube.obj", "", 1.0)
+  flowers << Model.new("resources/tri001.obj", "", 2.0)
+  flowers << Model.new("resources/road-corner.obj", "resources/road-corner.mtl", 1.33)
+  flowers << Model.new("resources/rando.obj", "", 1.0)
+  flowers << Model.new("resources/coin.obj", "", 2.0)
+
+  #flower = Model.new("resources/Prop_Fence_Gate_1.obj", "", 33.0)
+
+  total_msg = 0
+  flower_index = 0
+
+  gl.event { |typed_msg|
+    total_msg += 1
+  }
+
+  gl.update { |global_time, delta_time|
+    gl.drawmode {
+      gl.threed {
+        #flower.deltas(0.0001, 0.0001, 0.0001)
+        #flower.deltap(player_position[0], player_position[1], player_position[2])
+        flower = flowers[(flower_index) % flowers.length]
+
+        #flower.deltar(Math.cos(-global_time * 0.5), Math.sin(global_time), Math.cos(global_time * 1.0), global_time * 33.0)
+        flower.deltar(0, 1, 0, global_time * -100.0)
+        flower.draw(false)
+      }
+
+      gl.twod {
+        gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg}") {
+          gl.emit({"x" => "y"})
+          flower_index += 1
+        }
+      }
+    }
+  }
+}
+
+else
 
 Wkndr.play { |gl|
   srand(2)
@@ -109,7 +99,7 @@ Wkndr.play { |gl|
     end
   }
 
-  maze_s = 100
+  maze_s = 5
 
   ## generate a 10x10 orthogonal maze and print it to the console
   maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
@@ -120,7 +110,7 @@ Wkndr.play { |gl|
 
   player_position = [0.0,0.125,0.0]
   player_velocity = [0.0, 0.0, 0.0]
-  camera_position = [0.0,3.0,0.0]
+  camera_position = [0.0,4.0,0.0]
 
   fovy = 18.0
 
@@ -241,7 +231,6 @@ Wkndr.play { |gl|
       }
 
       gl.twod {
-        gl.draw_fps(0, 0)
         gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg}") {
           gl.emit({"x" => "y"})
         }
@@ -249,3 +238,5 @@ Wkndr.play { |gl|
     }
   }
 }
+
+end

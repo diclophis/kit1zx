@@ -9,7 +9,7 @@
 # Faces: 348
 #
 ####
-mtllib ./coin.obj.mtl
+mtllib ./resources/coin.obj.mtl
 
 vn 0.831697 0.029141 0.554465
 v 0.500000 0.000000 0.045455
