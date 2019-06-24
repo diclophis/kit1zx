@@ -223,10 +223,10 @@ module pathway(direction) {
     }
 }
 
-for (offset=[0:15]) {
-    translate([(offset*(outer_size+0)),0,0]) {
-        pathway(offset);
-    }
-}
+//for (offset=[0:15]) {
+//    translate([(offset*(outer_size+0)),0,0]) {
+//        pathway(offset);
+//    }
+//}
 
-//pathway(shape);
+pathway(shape);
