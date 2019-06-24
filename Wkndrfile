@@ -11,8 +11,8 @@ Wkndr.play { |gl|
 
   flowers = []
 
-  flowers << Model.new("resources/cube.obj", "", 1.0)
   flowers << Model.new("resources/tri001.obj", "", 2.0)
+  flowers << Model.new("resources/cube.obj", "", 1.0)
   flowers << Model.new("resources/road-corner.obj", "resources/road-corner.mtl", 1.33)
   flowers << Model.new("resources/rando.obj", "", 1.0)
   flowers << Model.new("resources/coin.obj", "", 2.0)
@@ -39,6 +39,7 @@ Wkndr.play { |gl|
       }
 
       gl.twod {
+        gl.draw_fps(0, 0)
         gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg}") {
           gl.emit({"x" => "y"})
           flower_index += 1

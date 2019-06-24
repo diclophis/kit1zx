@@ -1,4 +1,4 @@
-#version 330
+precision lowp float;
 
 // Input vertex attributes (from vertex shader)
 in vec3 fragPosition;
@@ -43,104 +43,112 @@ uniform vec4 ambient;
 uniform vec3 viewPos;
 uniform mat4 matModel;
 
-const float glossiness = 0.1;
+const float glossiness = 0.0001;
 //const vec4 colSpecular = vec4(1.0, 1.0, 1.0, 1.0);
 
 vec3 ComputeLightPoint(Light l, vec3 n, vec3 v, vec3 s)
 {
-    vec3 surfacePos = vec3(vec4(fragPosition, 1.0));
-    vec3 surfaceToLight = l.position - surfacePos;
+    //vec3 surfacePos = vec3(vec4(fragPosition, 1.0));
+    //vec3 surfaceToLight = l.position - surfacePos;
 
-    //TODO: backport enhanced lighting model
-    //l.intensity = 1.0;
-    //l.radius = 2.0;
+    //// Diffuse shading
+    //float brightness = clamp(float(dot(n, surfaceToLight)/(length(surfaceToLight)*length(n))), 0.0, 1.0);
+    //float diff = 1.0/dot(surfaceToLight/l.radius, surfaceToLight/l.radius)*brightness*l.intensity;
+    //
+    ////////// Specular shading
+    //float spec = 0.0;
+    //if (diff > 0.0)
+    //{
+    //    vec3 h = normalize(-l.target + v);
+    //    spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3;
+    //}
 
-    // Diffuse shading
-    float brightness = clamp(float(dot(n, surfaceToLight)/(length(surfaceToLight)*length(n))), 0.0, 1.0);
+    //vec3 actualR = (diff*l.color.rgb + spec*s.rgb);
+    //return actualR;
+
+    //calculate the vector from this pixels surface to the light source
+    vec3 surfaceToLight = l.position - fragPosition;
+
+    //calculate the cosine of the angle of incidence
+    float brightness = dot(n, surfaceToLight) / (length(surfaceToLight) * length(n));
+    //TODO: brightness = clamp(brightness, 0, 1);
+
+    //calculate final color of the pixel, based on:
+    // 1. The angle of incidence: brightness
+    // 2. The color/intensities of the light: light.intensities
+    // 3. The texture and texture coord: texture(tex, fragTexCoord)
     float diff = 1.0/dot(surfaceToLight/l.radius, surfaceToLight/l.radius)*brightness*l.intensity;
-    
-    //////// Specular shading
-    float spec = 0.0;
-    if (diff > 0.0)
-    {
-        vec3 h = normalize(-l.target + v);
-        spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3;
-    }
 
-    vec3 actualR = (diff*l.color.rgb + spec*s.rgb);
-    return actualR;
+    return (diff * l.color.rgb);
 }
 
 
 vec3 ComputeLightDirectional(Light l, vec3 n, vec3 v, vec3 s)
 {
-    //return vec3(1.0, 0, 1.0);
-
-    //vec3 lightDir = normalize(-l.target);
     vec3 lightDir = -normalize(l.target - l.position);
 
-    //l.intensity = 1.0;
-
     // Diffuse shading
-    float diff = clamp(float(dot(n, lightDir)), 0.0, 1.0)*l.intensity;
+    //TODO: float diff = clamp(float(dot(n, lightDir)), 0.0, 1.0)*l.intensity;
+    float diff = (float(dot(n, lightDir)))*l.intensity;
 
-    // Specular shading
-    float spec = 0.0;
-    if (diff > 0.0)
-    {
-        vec3 h = normalize(lightDir + v);
-        spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3;
-    }
-    
-    // Combine results
-    return (diff*l.intensity*l.color.rgb + spec*s.rgb);
+    //// Specular shading
+    //float spec = 0.0;
+    //if (diff > 0.0)
+    //{
+    //    vec3 h = normalize(lightDir + v);
+    //    spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3;
+    //}
+    //
+    //// Combine results
+    //return (diff*l.intensity*l.color.rgb + spec*s.rgb);
+
+    return (diff * l.color.rgb);
 }
 
 
 vec3 ComputeLightSpot(Light l, vec3 n, vec3 v, vec3 s)
 {
     //vec3 surfacePos = vec3(modelMatrix*vec4(fragPosition, 1));
-
-    vec3 surfacePos = vec3(vec4(fragPosition, 1.0));
+    //vec3 surfacePos = vec3(vec4(fragPosition, 1.0));
     //vec3 lightToSurface = l.position - surfacePos;
-    vec3 lightToSurface = normalize(surfacePos - l.position);
 
-    //vec3 lightDir = normalize(-l.direction);
+    vec3 lightToSurface = normalize(fragPosition - l.position);
+
     vec3 lightDir = -normalize(l.target - l.position);
-    
-    //l.intensity = 1.00;
-    //l.coneAngle = 7.0;
 
     // Diffuse shading
-    float diff = clamp(float(dot(n, lightDir)), 0.0, 1.0)*l.intensity;
-    
+    //float diff = clamp(float(dot(n, lightDir)), 0.0, 1.0)*l.intensity;
+    float diff = (float(dot(n, lightDir)))*l.intensity;
+
     // Spot attenuation
-    float attenuation = clamp(float(dot(n, lightToSurface)), 0.0, 1.0);
+    //float attenuation = clamp(float(dot(n, lightToSurface)), 0.0, 1.0);
+    float attenuation = (float(dot(n, lightToSurface)));
     attenuation = dot(lightToSurface, -lightDir);
-    
+
     float lightToSurfaceAngle = degrees(acos(attenuation));
     if (lightToSurfaceAngle > l.coneAngle) attenuation = 0.0;
-    
+
     float falloff = (l.coneAngle - lightToSurfaceAngle)/l.coneAngle;
-    
+
     // Combine diffuse and attenuation
     float diffAttenuation = diff*attenuation;
-    
-    // Specular shading
-    float spec = 0.0;
-    if (diffAttenuation > 0.0)
-    {
-        vec3 h = normalize(lightDir + v);
-        spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3; //s
-    }
-    
-    return (falloff*(diffAttenuation*l.color.rgb + spec*s.rgb));
+
+    //// Specular shading
+    //float spec = 0.0;
+    //if (diffAttenuation > 0.0)
+    //{
+    //    vec3 h = normalize(lightDir + v);
+    //    spec = pow(abs(dot(n, h)), 3.0 + glossiness)*0.3; //s
+    //}
+    //+ spec*s.rgb));
+
+    return (falloff*(diffAttenuation*l.color.rgb));
 }
 
 
 void main()
 {
-  vec4 texelColor = vec4(0.0);
+  //vec4 texelColor = vec4(0.0);
   vec3 lighting = vec3(0.0);
   vec3 lightDot = vec3(0.0);
   vec3 specular = texture(texture0, fragTexCoord).rgb;
@@ -158,8 +166,8 @@ void main()
           else if(lights[i].type == LIGHT_DIRECTIONAL) lighting += ComputeLightDirectional(lights[i], n, v, specular);
           else if(lights[i].type == LIGHT_SPOT) lighting += ComputeLightSpot(lights[i], n, v, specular);
 
-          float NdotL = max(dot(n, lighting), 0.0);
-          lightDot += lights[i].color.rgb*NdotL;
+          //float NdotL = max(dot(n, lighting), 0.0);
+          //lightDot += lights[i].color.rgb*NdotL;
       }
   }
 
@@ -168,7 +176,7 @@ void main()
   //*(vec4(specular, 1.0));
   //finalColor = vec4(lighting, 1.0)*(vec4(specular, 1.0));
 
-  finalColor = (vec4(lighting, 1.0)*((colDiffuse + vec4(specular, 1.0))*vec4(lightDot, 1.0)));
+  //finalColor = (vec4(lighting, 1.0)*((colDiffuse + vec4(specular, 1.0))*vec4(lightDot, 1.0)));
   //finalColor = (vec4(lighting, 1.0)*((vec4(specular, 1.0))*vec4(lightDot, 1.0)));
   
   //brokefinalColor = vec4(texelColor.rgb*lighting*colDiffuse.rgb, texelColor.a*colDiffuse.a);
@@ -199,9 +207,18 @@ void main()
   //finalColor = ambient;
 
   //just texture
-  //finalColor = texelColor;
-  //finalColor = specular;
+  //finalColor = vec4(specular, 1.0);
 
   //just lighting
   //finalColor = vec4(lighting, 1.0);
+  
+  //finalColor = vec4(specular*lighting*colDiffuse.rgb, texelColor.a*colDiffuse.a);
+
+  //broken...
+  //finalColor = fragColor;
+
+  //no texture
+  finalColor = vec4(lighting, 1.0)*colDiffuse;
+
+  finalColor = vec4(lighting, 1.0)*(vec4(specular, 1.0)) * colDiffuse;
 }
