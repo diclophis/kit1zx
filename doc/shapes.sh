@@ -36,11 +36,12 @@ do
   #FOO="-om vc vf vq vn"
   #FOO=""
   #FOO="-om vc vf vq vn fc ff fq fn wc wn"
-  #FOO="-om vc vf vq vn vt fc ff fq fn wc wn wt"
+  FOO2="-om vc vf vq vn vt fc ff fq fn wc wn wt"
+  #FOO2="-om vc vf vq vn vt fc ff fq fn"
   FOO="-om vc vf vn fc ff fq fn"
   MESHARGS="-i resources/shape-${I}.stl -o resources/shape-${I}-mid.obj $FOO -s doc/openscad/$FILTERS"
   
-  MESHARGS_TWO="-i resources/shape-${I}-mid.obj -o resources/shape-${I}.obj $FOO -s doc/openscad/foop.mlx"
+  MESHARGS_TWO="-i resources/shape-${I}-mid.obj -o resources/shape-${I}.obj $FOO2 -s doc/openscad/foop.mlx"
 
   #MESHARGS="-d /var/tmp/d.log -l /var/tmp/l.log -i resources/shape-${I}.stl -o resources/shape-${I}.obj $FOO"
 
