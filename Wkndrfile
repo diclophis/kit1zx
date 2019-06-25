@@ -107,15 +107,14 @@ Wkndr.play { |gl|
   ## generate a 10x10 orthogonal maze and print it to the console
   maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
 
-  log!(:MAZE, maze)
-
   cube = Cube.new(size, size, size, 1.0)
 
   player_position = [0.0,0.125,0.0]
   player_velocity = [0.0, 0.0, 0.0]
-  camera_position = [0.0,4.0,0.0]
+  camera_position = [0.0,2.0,0.0]
 
-  fovy = 42.0
+  fovy = 40.0
+  maze_draw_distance = 1
 
   gl.lookat(1, *camera_position, *player_position, fovy)
 
@@ -203,14 +202,12 @@ Wkndr.play { |gl|
         player_position[2] += player_velocity[2] * delta_time
         player_position[0] += player_velocity[0] * delta_time
 
-        camera_position[0] = player_position[0] - (0.01)
-        camera_position[2] = player_position[2] - (3.00)
-        
+        camera_position[0] = player_position[0] + ((0.033) * player_velocity[0])
+        camera_position[2] = player_position[2] - (1.50)
+
         camera_target = [player_position[0] - (0.01), player_position[1], player_position[2] + (0.01)]
 
         gl.lookat(1, *camera_position, *camera_target, fovy)
-
-        maze_draw_distance = 6
 
         px = player_position[0].to_i
         py = player_position[2].to_i
@@ -234,6 +231,7 @@ Wkndr.play { |gl|
       }
 
       gl.twod {
+        gl.draw_fps(0, 0)
         gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg}") {
           gl.emit({"x" => "y"})
         }
