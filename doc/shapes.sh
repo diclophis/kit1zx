@@ -44,11 +44,11 @@ do
   #FOO2="-om vc vf vq vn vt fc ff fq fn wc wn wt"
   #MESHARGS_TWO="-i resources/shape-${I}-mid.obj -o resources/shape-${I}.obj $FOO2 -s doc/openscad/foop.mlx"
 
-  FOO="-om vn fn wn"
-  MESHARGS="-i resources/shape-${I}.stl -o resources/shape-${I}-mid.obj $FOO -s doc/openscad/$FILTERS"
+  FOO="-om vn"
+  MESHARGS="-l /var/tmp/mllog -i resources/shape-${I}.stl -o resources/shape-${I}-mid.obj $FOO -s doc/openscad/$FILTERS"
 
-  FOO2="-om vc vn vt fc fn wc wn wt"
-  MESHARGS_TWO="-i resources/shape-${I}-mid.obj -o resources/shape-${I}.obj $FOO2 -s doc/openscad/foop.mlx"
+  FOO2="-om vc vn vt fc wt"
+  MESHARGS_TWO="-l /var/tmp/mllog -i resources/shape-${I}-mid.obj -o resources/shape-${I}.obj $FOO2 -s doc/openscad/foop.mlx"
 
   $MESHLAB ${MESHARGS}
   $MESHLAB ${MESHARGS_TWO}
