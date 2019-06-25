@@ -1,20 +1,20 @@
 #
 
-if true
+if false
 
 Wkndr.play { |gl|
   player_position = [0.0,0.0,0.0]
-  camera_position = [11.0,7.0,13.0]
-  fovy = 45.0
+  camera_position = [7.0,7.0,9.0]
+  fovy = 30.0
 
   gl.lookat(1, *camera_position, *player_position, fovy)
 
   flowers = []
 
-  flowers << Model.new("resources/tri001.obj", "", 2.0)
-  flowers << Model.new("resources/cube.obj", "", 1.0)
-  flowers << Model.new("resources/road-corner.obj", "resources/road-corner.mtl", 1.33)
-  flowers << Model.new("resources/rando.obj", "", 1.0)
+  flowers << Model.new("resources/tri001.obj", "", 1.0)
+  flowers << Model.new("resources/cube.obj", "", 0.5)
+  flowers << Model.new("resources/road-corner.obj", "resources/road-corner.mtl", 0.76)
+  flowers << Model.new("resources/rando.obj", "", 0.76)
   flowers << Model.new("resources/coin.obj", "", 2.0)
 
   #flower = Model.new("resources/Prop_Fence_Gate_1.obj", "", 33.0)
@@ -96,11 +96,13 @@ Wkndr.play { |gl|
     end
     
     if ii
-      shapes[i] = Model.new("resources/shape-#{ii}.obj", "", 1.0)
+      shape_file = "resources/shape-#{ii}.obj"
+      #log!(:shape, shape_file)
+      shapes[i] = Model.new(shape_file, "", 1.0)
     end
   }
 
-  maze_s = 5
+  maze_s = 50
 
   ## generate a 10x10 orthogonal maze and print it to the console
   maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
@@ -113,7 +115,7 @@ Wkndr.play { |gl|
   player_velocity = [0.0, 0.0, 0.0]
   camera_position = [0.0,4.0,0.0]
 
-  fovy = 18.0
+  fovy = 42.0
 
   gl.lookat(1, *camera_position, *player_position, fovy)
 
