@@ -20,9 +20,11 @@
   <Param type="RichBool" value="true" name="Freeze"/>
   <Param type="RichBool" value="false" name="ToAll"/>
  </filter>
- <filter name="Random Face Color"/>
- <filter name="Transfer Color: Face to Vertex"/>
- <filter name="Colorize by border distance"/>
+ <filter name="Subdivision Surfaces: Midpoint">
+  <Param type="RichInt" value="1" name="Iterations"/>
+  <Param type="RichAbsPerc" value="1e-06" min="0" name="Threshold" max="1.42352"/>
+  <Param type="RichBool" value="false" name="Selected"/>
+ </filter>
  <filter name="Parametrization: Trivial Per-Triangle ">
   <Param type="RichInt" value="0" name="sidedim"/>
   <Param type="RichInt" value="1024" name="textdim"/>
@@ -31,8 +33,8 @@
  </filter>
  <filter name="Vertex Color to Texture">
   <Param type="RichString" value="shape-null_tex.png" name="textName"/>
-  <Param type="RichInt" value="32" name="textW"/>
-  <Param type="RichInt" value="32" name="textH"/>
+  <Param type="RichInt" value="1024" name="textW"/>
+  <Param type="RichInt" value="1024" name="textH"/>
   <Param type="RichBool" value="false" name="overwrite"/>
   <Param type="RichBool" value="true" name="assign"/>
   <Param type="RichBool" value="true" name="pullpush"/>
