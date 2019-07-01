@@ -56,6 +56,8 @@ Wkndr.play { |gl|
 
   size = 0.1
   shapes = {}
+  shape_translate_table = {}
+  enforce_bounds = true
 
   16.times { |i|
     ii = begin
@@ -96,25 +98,30 @@ Wkndr.play { |gl|
     end
     
     if ii
+      #ii = 0
+      shape_translate_table[i] = ii
       shape_file = "resources/shape-#{ii}.obj"
       #log!(:shape, shape_file)
       shapes[i] = Model.new(shape_file, "", 1.0)
     end
   }
 
-  maze_s = 50
+  maze_s = 100
+  braid = 0
+  weave = 0
+  sparse = 0
 
   ## generate a 10x10 orthogonal maze and print it to the console
-  maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => 0, :weave => 0, :wrap => "xy", :sparse => 0)
+  maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => braid, :weave => weave, :wrap => "xy", :sparse => 100)
 
   cube = Cube.new(size, size, size, 1.0)
 
   player_position = [0.0,0.125,0.0]
   player_velocity = [0.0, 0.0, 0.0]
-  camera_position = [0.0,2.0,0.0]
+  camera_position = [0.0,1.5,0.0]
 
-  fovy = 40.0
-  maze_draw_distance = 1
+  fovy = 60.0
+  maze_draw_distance = 3
 
   gl.lookat(1, *camera_position, *player_position, fovy)
 
@@ -124,13 +131,63 @@ Wkndr.play { |gl|
     total_msg += 1
   }
 
+  player_at_shape = ""
+
   gl.update { |global_time, delta_time|
     gl.drawmode {
       gl.threed {
         got_lr = got_ud = false
 
+        px = (player_position[0]).round.to_i
+        py = (player_position[2]).round.to_i
+        #log!(:pxpy, px, py)
+        player_at_shape_cell = maze[px, py]
+        player_at_shape = shape_translate_table[(player_at_shape_cell & Theseus::Maze::PRIMARY)]
+
+        allow_up = false
+        allow_down = false
+        allow_left = false
+        allow_right = false
+
+        case player_at_shape
+          when 0
+            allow_up = allow_down = allow_left = allow_right = true
+          when 1
+            allow_down = allow_left = allow_right = true
+          when 2
+            allow_up = allow_left = allow_right = true
+          when 3
+            allow_up = allow_down = allow_left = true
+          when 4
+            allow_up = allow_down = allow_right = true
+          when 5
+            allow_right = true
+          when 6
+            allow_left = true
+          when 7
+            allow_up = true
+          when 8
+            allow_down = true
+          when 9
+            allow_down = allow_up = true
+            #includes left right crossing bits
+          when 10
+            allow_left = allow_right = true
+          when 12
+            allow_down = allow_left = true
+          when 14
+            allow_right = true
+            allow_up = true
+          when 13
+            allow_down = allow_right = true
+          when 11
+            allow_up = allow_left = true
+        else
+        end
+
         arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
-        speed = (35.0) * (delta_time * 0.1)
+        speed = (37.0) * (delta_time * 0.1)
+
         arrow_keys.each do |arrow_key|
           case arrow_key
             when KEY_W
@@ -165,7 +222,33 @@ Wkndr.play { |gl|
           end
         end
 
-        some_slow_down_percent = 1.75
+        some_slow_down_percent = 1.85
+
+        at_up_down_limit = ((player_position[2] - py))
+        at_left_right_limit = ((player_position[0] - px))
+
+        within_left_right = !(at_left_right_limit.abs > 0.06)
+        within_up_down = !(at_up_down_limit.abs > 0.06)
+
+        if !within_left_right
+          if (at_left_right_limit < 0 && allow_right) && within_up_down
+          elsif (at_left_right_limit > 0 && allow_left) && within_up_down
+          else
+            if enforce_bounds
+              player_velocity[0] *= -1.1
+            end
+          end
+        end
+
+        if !within_up_down
+          if (at_up_down_limit > 0 && allow_up) && within_left_right
+          elsif (at_up_down_limit < 0 && allow_down) && within_left_right
+          else
+            if enforce_bounds
+              player_velocity[2] *= -1.1
+            end
+          end
+        end
 
         if !got_ud
           if player_velocity[2] > 0.15
@@ -203,14 +286,12 @@ Wkndr.play { |gl|
         player_position[0] += player_velocity[0] * delta_time
 
         camera_position[0] = player_position[0] + ((0.033) * player_velocity[0])
-        camera_position[2] = player_position[2] - (1.50)
+        camera_position[2] = player_position[2] - (1.0)
 
         camera_target = [player_position[0] - (0.01), player_position[1], player_position[2] + (0.01)]
 
         gl.lookat(1, *camera_position, *camera_target, fovy)
 
-        px = player_position[0].to_i
-        py = player_position[2].to_i
         ((px-maze_draw_distance)..(px+maze_draw_distance)).each do |x|
           ((py-maze_draw_distance)..(py+maze_draw_distance)).each do |y|
             if x>=0 && x<maze_s && y>=0 && y<maze_s
@@ -218,6 +299,8 @@ Wkndr.play { |gl|
               unless cell == 0
                 primary = (cell & Theseus::Maze::PRIMARY)
                 if shape = shapes[primary]
+
+                  
                   shapes[primary].deltap(x, 0, y)
                   shapes[primary].draw(false)
                 end
@@ -232,8 +315,9 @@ Wkndr.play { |gl|
 
       gl.twod {
         gl.draw_fps(0, 0)
-        gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg}") {
+        gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg} #{player_at_shape}") {
           gl.emit({"x" => "y"})
+          enforce_bounds = !enforce_bounds
         }
       }
     }
