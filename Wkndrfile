@@ -127,6 +127,8 @@ Wkndr.play { |gl|
 
   total_msg = 0
   player_at_shape = nil
+  at_left_right_limit = nil
+  at_up_down_limit = nil
 
   gl.event { |typed_msg|
     total_msg += 1
@@ -180,15 +182,15 @@ Wkndr.play { |gl|
             #includes left right crossing bits
           when 10
             allow_left = allow_right = true
+          when 11
+            allow_up = allow_left = true
           when 12
             allow_down = allow_left = true
+          when 13
+            allow_down = allow_right = true
           when 14
             allow_right = true
             allow_up = true
-          when 13
-            allow_down = allow_right = true
-          when 11
-            allow_up = allow_left = true
         else
         end
 
@@ -269,11 +271,11 @@ Wkndr.play { |gl|
         within_left_right = !(at_left_right_limit.abs > 0.06)
         within_up_down = !(at_up_down_limit.abs > 0.06)
 
-        going_left_and_can_go_left = within_left_right || (within_up_down && (at_left_right_limit > 0) && allow_left)
-        going_right_and_can_go_right = within_left_right || (within_up_down && (at_left_right_limit < 0) && allow_right)
+        going_left_and_can_go_left = (within_up_down && (at_left_right_limit > 0) && allow_left)
+        going_right_and_can_go_right = (within_up_down && (at_left_right_limit < 0) && allow_right)
 
-        going_up_and_can_go_up = within_up_down || (within_left_right && (at_up_down_limit > 0) && allow_up)
-        going_down_and_can_go_down = within_up_down || (within_left_right && (at_up_down_limit < 0) && allow_down)
+        going_up_and_can_go_up = (within_left_right && (at_up_down_limit > 0) && allow_up)
+        going_down_and_can_go_down = (within_left_right && (at_up_down_limit < 0) && allow_down)
 
         ##if (!within_left_right)
         ###&& !(within_left_right && pass_y)
@@ -287,31 +289,118 @@ Wkndr.play { |gl|
 
         enforce_x = enforce_y = false
 
-        if (going_left_and_can_go_left || going_right_and_can_go_right)
-        else
-          if player_velocity[0].abs > 0
-            #[:flip_x, -0.5000869081568322, -1, false, false]
-            #[:flip_x, nil, -0.5011129386967751, -1, false, false, "=", false, false]
-            #[:flip_x, nil, -0.5003200121841979, -1, false, false, "=", false, false]
+        #enforce_x = ((!within_left_right && (allow_up || allow_down)) && !(within_up_down && (allow_left || allow_right))) || (((at_left_right_limit > 0.04) && !allow_left) || ((at_left_right_limit < 0.04) && !allow_right))
+        #enforce_x = ((!within_left_right && (allow_up || allow_down))) || (((at_left_right_limit > 0.04) && !allow_left) || ((at_left_right_limit < 0.04) && !allow_right))
 
-#[:flip_x_AAA, 2, -0.553187692366191, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, true]
-#[:flip_x_BBB, 2, 0.553187692366191, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, true]
-#[:flop_y_AAA, 2, 1.263242925910164, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, false]
-#[:flop_y_BBB, 2, -1.263242925910164, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, false]
+        enforce_x = ((at_left_right_limit > 0.04) && !allow_left) || ((at_left_right_limit < -0.04) && !allow_right)
 
-            log!(:flip_x_AAA, player_at_shape, player_velocity[0], player_position[0], player_position[2], px, going_left_and_can_go_left, allow_left, "=", going_right_and_can_go_right, allow_right)
-            player_velocity[0] *= -1.0
-            log!(:flip_x_BBB, player_at_shape, player_velocity[0], player_position[0], player_position[2], px, going_left_and_can_go_left, allow_left, "=", going_right_and_can_go_right, allow_right)
+        #(!within_left_right && !going_left_and_can_go_left && !going_right_and_can_go_right) && !(within_left_right && (allow_up || allow_down))
+        enforce_y = false 
+        #(!within_up_down && !going_up_and_can_go_up && !going_down_and_can_go_down) && !(within_up_down && (allow_left || allow_right))
+
+#        if (going_left_and_can_go_left || going_right_and_can_go_right)
+#        else
+#          if player_velocity[0] != 0
+#            #[:flip_x, -0.5000869081568322, -1, false, false]
+#            #[:flip_x, nil, -0.5011129386967751, -1, false, false, "=", false, false]
+#            #[:flip_x, nil, -0.5003200121841979, -1, false, false, "=", false, false]
+#
+##[:flip_x_AAA, 2, -0.553187692366191, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, true]
+##[:flip_x_BBB, 2, 0.553187692366191, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, true]
+##[:flop_y_AAA, 2, 1.263242925910164, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, false]
+##[:flop_y_BBB, 2, -1.263242925910164, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, false]
+#            #log!(:flip_x_AAA, player_at_shape, player_velocity[0], player_position[0], player_position[2], px, going_left_and_can_go_left, allow_left, "=", going_right_and_can_go_right, allow_right)
+#            #player_velocity[0] *= -1.0
+#            #log!(:flip_x_BBB, player_at_shape, player_velocity[0], player_position[0], player_position[2], px, going_left_and_can_go_left, allow_left, "=", going_right_and_can_go_right, allow_right)
+#            enforce_x = true
+#          end
+#        end
+#
+#        if (going_up_and_can_go_up || going_down_and_can_go_down)
+#        else
+#          if player_velocity[2] != 0
+#            #log!(:flop_y_AAA, player_at_shape, player_velocity[2], player_position[0], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
+#            #player_velocity[2] *= -1.0
+#            #log!(:flop_y_BBB, player_at_shape, player_velocity[2], player_position[0], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
+#            enforce_y = true
+#          end
+#        end
+
+        if enforce_x || enforce_y
+          log!(:xxx)
+          line_x1 = 0.0
+          line_y1 = 0.0
+
+          line_x2 = 0.0
+          line_y2 = 0.0
+
+          if enforce_x #player_velocity[0].abs > player_velocity[2].abs
+            # left right
+            log!(:a111)
+
+            line_x1 = 0.0
+            line_y1 = -1.0
+
+            line_x2 = 0.0
+            line_y2 = 1.0
+          elsif enforce_y #player_velocity[0].abs < player_velocity[2].abs
+            log!(:b222)
+
+            line_x1 = -1.0
+            line_y1 = 0.0
+
+            line_x2 = 1.0
+            line_y2 = 0.0
+          #else
+          #  if ((player_velocity[0] > 0) && (player_velocity[2] > 0)) || ((player_velocity[0] < 0) && (player_velocity[2] < 0))
+          #    log!(:AAA)
+          #    line_x1 = -1.0
+          #    line_y1 = 1.0
+
+          #    line_x2 = 1.0
+          #    line_y2 = -1.0
+          #  else
+          #    log!(:BBB)
+          #    line_x1 = -1.0
+          #    line_y1 = -1.0
+
+          #    line_x2 = 1.0
+          #    line_y2 = 1.0
+          #  end
           end
-        end
 
-        if (going_up_and_can_go_up || going_down_and_can_go_down)
-        else
-          if player_velocity[2].abs > 0
-            log!(:flop_y_AAA, player_at_shape, player_velocity[2], player_position[0], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
-            player_velocity[2] *= -1.0
-            log!(:flop_y_BBB, player_at_shape, player_velocity[2], player_position[0], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
-          end
+          normalY = line_x2 - line_x1
+          normalX = line_y1 - line_y2
+          normalLength = Math.sqrt(normalX * normalX + normalY * normalY)
+
+          normalX = normalX / normalLength
+          normalY = normalY / normalLength
+
+          #rayTipX
+          iX = 0.0
+          iY = 0.0
+
+          rayTipX = player_velocity[0]
+          rayTipY = player_velocity[2]
+
+          rayX = rayTipX - iX
+          rayY = rayTipY - iY
+
+          dotProduct = (rayX * normalX) + (rayY * normalY)
+          dotNormalX = dotProduct * normalX
+          dotNormalY = dotProduct * normalY
+
+          reflectedRayTipX = rayTipX - (dotNormalX * 2)
+          reflectedRayTipY = rayTipY - (dotNormalY * 2)
+
+          #log!(:flop_AAA, player_at_shape, player_velocity[0], player_position[2], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
+          player_velocity[0] = reflectedRayTipX
+          player_velocity[2] = reflectedRayTipY
+          #log!(:flop_BBB, player_at_shape, player_velocity[0], player_position[2], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
+
+          #[:flop_AAA, 2, 0, -0.05999770552850488, -0.05999770552850488, 0, false, true, "=", false, false]
+          #[:flop_BBB, 2, 0.0, -0.05999770552850488, -0.05999770552850488, 0, false, true, "=", false, false]
+
         end
 
         #pass_x = pass_y = false
@@ -388,7 +477,7 @@ Wkndr.play { |gl|
       }
 
       gl.twod {
-        gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg} #{player_at_shape} #{player_position}") {
+        gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg} #{player_at_shape} #{at_up_down_limit} #{at_left_right_limit} #{player_position}") {
           gl.emit({"x" => "y"})
           enforce_bounds = !enforce_bounds
         }

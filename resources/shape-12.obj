@@ -9,7 +9,7 @@
 # Faces: 304
 #
 ####
-mtllib /resources/shape-12.obj.mtl
+mtllib /home/jon/workspace/kit1zx/resources/shape-12.obj.mtl
 
 vn -1.000000 0.000000 0.000000
 v -0.200000 -0.037500 0.125000 0.752941 0.752941 0.752941
