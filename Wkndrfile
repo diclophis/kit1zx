@@ -51,17 +51,11 @@ Wkndr.play { |gl|
 
 else
 
-Wkndr.play { |gl|
-
 class Foo
   def self.test_aabb(min_a, max_a, min_b, max_b)
     d1x = -min_b[0] - -max_a[0]
-    #d1y = min_b[1] - max_a[1]
-    #d1y = max_a[1] - min_b[1]
     d1y = -min_b[1] - -max_a[1]
     d2x = -min_a[0] - -max_b[0]
-    #d2y = min_a[1] - max_b[1]
-    #d2y = max_b[1] - min_a[1]
     d2y = -min_a[1] - -max_b[1]
 
     if (d1x > 0.0 || d1y > 0.0)
@@ -69,7 +63,6 @@ class Foo
     elsif (d2x > 0.0 || d2y > 0.0)
       return false
     else
-
       if (d2x - d1x).abs > (d2y - d1y).abs
         return :y
       else
@@ -79,6 +72,7 @@ class Foo
   end
 end
 
+Wkndr.play { |gl|
   srand(2)
 
   size = 0.1
@@ -156,6 +150,15 @@ end
   bottom_right_min = [-0.1, -0.1]
   bottom_right_max = [-1.1, -1.1]
 
+  no_left_min = [1.1, 0.1]
+  no_left_max = [0.1, -0.1]
+  no_right_min = [-0.1, 0.1]
+  no_right_max = [-1.1, -0.1]
+  no_up_min = [0.1, 1.1]
+  no_up_max = [-0.1, 0.1]
+  no_down_min = [0.1, -0.1]
+  no_down_max = [-0.1, -1.1]
+
   fovy = 60.0
   maze_draw_distance = 3
 
@@ -166,6 +169,12 @@ end
   at_left_right_limit = nil
   at_up_down_limit = nil
   player_min = player_max = [0, 0]
+  allow_up = false
+  allow_down = false
+  allow_left = false
+  allow_right = false
+  bounced = false
+  no_bounce_reset = 0
 
   gl.event { |typed_msg|
     total_msg += 1
@@ -175,61 +184,6 @@ end
     gl.drawmode {
       gl.threed {
         got_lr = got_ud = false
-
-        nx = player_position[0] + (player_velocity[0] * delta_time)
-        ny = player_position[2] + (player_velocity[2] * delta_time)
-
-        px = ((nx - 0).round)
-        py = ((ny - 0).round)
-        #log!(:pxpy, px, py)
-
-        allow_up = false
-        allow_down = false
-        allow_left = false
-        allow_right = false
-
-        player_at_shape = nil
-
-        if px>=0 && px<maze_s && py>=0 && py<maze_s
-          player_at_shape_cell = maze[px.to_i, py.to_i]
-          player_at_shape = shape_translate_table[(player_at_shape_cell & Theseus::Maze::PRIMARY)]
-        end
-
-        case player_at_shape
-          when 0
-            allow_up = allow_down = allow_left = allow_right = true
-          when 1
-            allow_down = allow_left = allow_right = true
-          when 2
-            allow_up = allow_left = allow_right = true
-          when 3
-            allow_up = allow_down = allow_left = true
-          when 4
-            allow_up = allow_down = allow_right = true
-          when 5
-            allow_right = true
-          when 6
-            allow_left = true
-          when 7
-            allow_up = true
-          when 8
-            allow_down = true
-          when 9
-            allow_down = allow_up = true
-            #includes left right crossing bits
-          when 10
-            allow_left = allow_right = true
-          when 11
-            allow_up = allow_left = true
-          when 12
-            allow_down = allow_left = true
-          when 13
-            allow_down = allow_right = true
-          when 14
-            allow_right = true
-            allow_up = true
-        else
-        end
 
         arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
         speed = (37.0) * (delta_time * 0.1)
@@ -302,6 +256,60 @@ end
           end
         end
 
+        nx = player_position[0] + (player_velocity[0] * delta_time)
+        ny = player_position[2] + (player_velocity[2] * delta_time)
+
+        px = ((nx - 0).round)
+        py = ((ny - 0).round)
+
+        allow_up = false
+        allow_down = false
+        allow_left = false
+        allow_right = false
+
+        player_at_shape = nil
+
+        if px>=0 && px<maze_s && py>=0 && py<maze_s
+          player_at_shape_cell = maze[px.to_i, py.to_i]
+          player_at_shape = shape_translate_table[(player_at_shape_cell & Theseus::Maze::PRIMARY)]
+        end
+
+        case player_at_shape
+          when 0
+            allow_up = allow_down = allow_left = allow_right = true
+          when 1
+            allow_down = allow_left = allow_right = true
+          when 2
+            allow_up = allow_left = allow_right = true
+          when 3
+            allow_up = allow_down = allow_left = true
+          when 4
+            allow_up = allow_down = allow_right = true
+          when 5
+            allow_right = true
+          when 6
+            allow_left = true
+          when 7
+            allow_up = true
+          when 8
+            allow_down = true
+          when 9
+            allow_down = allow_up = true
+            #includes left right crossing bits
+          when 10
+            allow_left = allow_right = true
+          when 11
+            allow_up = allow_left = true
+          when 12
+            allow_down = allow_left = true
+          when 13
+            allow_down = allow_right = true
+          when 14
+            allow_right = true
+            allow_up = true
+        else
+        end
+
         at_left_right_limit = ((nx - px))
         at_up_down_limit = ((ny - py))
 
@@ -321,10 +329,16 @@ end
         bounced ||= Foo.test_aabb(bottom_left_min, bottom_left_max, player_min, player_max)
         bounced ||= Foo.test_aabb(bottom_right_min, bottom_right_max, player_min, player_max)
         bounced ||= Foo.test_aabb(top_right_min, top_right_max, player_min, player_max)
-        #bounced = test_aabb.call(top_left_min, top_left_max, bottom_right_min, bottom_right_max)
-        #bounced = Foo.test_aabb(top_left_min, top_left_max, top_left_min, top_left_max)
 
-        if bounced
+        allow_left || (bounced ||= Foo.test_aabb(no_left_min, no_left_max, player_min, player_max))
+        allow_right || (bounced ||= Foo.test_aabb(no_right_min, no_right_max, player_min, player_max))
+        allow_up || (bounced ||= Foo.test_aabb(no_up_min, no_up_max, player_min, player_max))
+        allow_down || (bounced ||= Foo.test_aabb(no_down_min, no_down_max, player_min, player_max))
+
+        if bounced && no_bounce_reset > 2
+          no_bounce_reset = 0
+
+          # left to right
           lne_x1 = 0.0
           lne_y1 = -1.0
 
@@ -339,25 +353,13 @@ end
           lin_y2 = 0.0
           lines = []
           
-          #if player_velocity[0].abs >= player_velocity[2].abs
           if bounced == :y
-          #  log!(:a111)
             lines << [lne_x1, lne_y1, lne_x2, lne_y2]
           end
-          #
-          #if player_velocity[0].abs <= player_velocity[2].abs
+
           if bounced == :x
-          #  log!(:b222)
             lines << [lin_x1, lin_y1, lin_x2, lin_y2]
           end
-
-          #else
-          #  if rand > 0.5
-          #    lines << [lne_x1, lne_y1, lne_x2, lne_y2]
-          #  else
-          #    lines << [lin_x1, lin_y1, lin_x2, lin_y2]
-          #  end
-          #end
 
           lines.each do |line_x1, line_y1, line_x2, line_y2|
             normalY = line_x2 - line_x1
@@ -367,7 +369,6 @@ end
             normalX = normalX / normalLength
             normalY = normalY / normalLength
 
-            #rayTipX
             iX = 0.0
             iY = 0.0
 
@@ -384,28 +385,27 @@ end
             reflectedRayTipX = rayTipX - (dotNormalX * 2)
             reflectedRayTipY = rayTipY - (dotNormalY * 2)
 
-            #log!(:flop_AAA, player_at_shape, player_velocity[0], player_position[2], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
-            player_velocity[0] = reflectedRayTipX
-            player_velocity[2] = reflectedRayTipY
-            #log!(:flop_BBB, player_at_shape, player_velocity[0], player_position[2], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
-
-            #[:flop_AAA, 2, 0, -0.05999770552850488, -0.05999770552850488, 0, false, true, "=", false, false]
-            #[:flop_BBB, 2, 0.0, -0.05999770552850488, -0.05999770552850488, 0, false, true, "=", false, false]
+            player_velocity[0] = (reflectedRayTipX * 0.999)
+            player_velocity[2] = (reflectedRayTipY * 0.999)
           end
+        else
+          no_bounce_reset += 1
         end
 
         if !player_at_shape
           player_velocity[0] = 0
           player_velocity[2] = 0
         else
-          player_position[0] = nx
-          player_position[2] = ny
+          unless bounced
+            player_position[0] = nx
+            player_position[2] = ny
+          end
         end
 
         camera_position[0] = player_position[0] + ((0.033) * player_velocity[0])
         camera_position[2] = player_position[2] - (1.0)
 
-        camera_target = [player_position[0] - (0.01), player_position[1], player_position[2] + (0.01)]
+        camera_target = [player_position[0] + (player_velocity[0] * 0.001), player_position[1], player_position[2] + (player_velocity[2] * 0.001)]
 
         gl.lookat(1, *camera_position, *camera_target, fovy)
 
@@ -429,29 +429,49 @@ end
       }
 
       gl.twod {
-
-        aax = (player_min[0] - player_max[0]) * 150.0
-        aay = (player_min[1] - player_max[1]) * 150.0
-
-        gl.button(150.0 - (at_left_right_limit * 100.0) - (aax / 2.0), 150.0 - (at_up_down_limit * 100.0) - (aay / 2.0), aax, aay, "") {
-        }
-
-        gl.button(150.0 - (top_left_min[0] * 100), 150.0 - (top_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-        }
-
-        gl.button(150.0 - (bottom_left_min[0] * 100), 150.0 - (bottom_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-        }
-
-        gl.button(150.0 - (top_right_min[0] * 100), 150.0 - (top_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-        }
-
-        gl.button(150.0 - (bottom_right_min[0] * 100), 150.0 - (bottom_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-        }
-
-        #gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg} #{player_at_shape} #{at_up_down_limit} #{at_left_right_limit} #{player_position}") {
+        #gl.button(50.0, 50.0, 250.0, 20.0, "maze") {
         #  gl.emit({"x" => "y"})
         #  enforce_bounds = !enforce_bounds
-        #}
+
+        #unless no_bounce_reset
+        #  aax = (player_min[0] - player_max[0]) * 150.0
+        #  aay = (player_min[1] - player_max[1]) * 150.0
+
+        #  gl.button(150.0 - (at_left_right_limit * 100.0) - (aax / 2.0), 150.0 - (at_up_down_limit * 100.0) - (aay / 2.0), aax, aay, "") {
+        #  }
+
+        #  gl.button(150.0 - (top_left_min[0] * 100), 150.0 - (top_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        #  }
+
+        #  gl.button(150.0 - (bottom_left_min[0] * 100), 150.0 - (bottom_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        #  }
+
+        #  gl.button(150.0 - (top_right_min[0] * 100), 150.0 - (top_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        #  }
+
+        #  gl.button(150.0 - (bottom_right_min[0] * 100), 150.0 - (bottom_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        #  }
+
+        #  unless allow_left
+        #    gl.button(150.0 - (no_left_min[0] * 100), 150.0 - (no_left_min[1] * 100.0), 1.0 * 100.0, 0.2 * 100.0, "") {
+        #    }
+        #  end
+
+        #  unless allow_right
+        #    gl.button(150.0 - (no_right_min[0] * 100), 150.0 - (no_right_min[1] * 100.0), 1.0 * 100.0, 0.2 * 100.0, "") {
+        #    }
+        #  end
+
+        #  unless allow_up
+        #    gl.button(150.0 - (no_up_min[0] * 100), 150.0 - (no_up_min[1] * 100.0), 0.2 * 100.0, 1.0 * 100.0, "") {
+        #    }
+        #  end
+
+        #  unless allow_down
+        #    gl.button(150.0 - (no_down_min[0] * 100), 150.0 - (no_down_min[1] * 100.0), 0.2 * 100.0, 1.0 * 100.0, "") {
+        #    }
+        #  end
+        #end
       }
     }
   }
