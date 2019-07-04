@@ -52,6 +52,33 @@ Wkndr.play { |gl|
 else
 
 Wkndr.play { |gl|
+
+class Foo
+  def self.test_aabb(min_a, max_a, min_b, max_b)
+    d1x = -min_b[0] - -max_a[0]
+    #d1y = min_b[1] - max_a[1]
+    #d1y = max_a[1] - min_b[1]
+    d1y = -min_b[1] - -max_a[1]
+    d2x = -min_a[0] - -max_b[0]
+    #d2y = min_a[1] - max_b[1]
+    #d2y = max_b[1] - min_a[1]
+    d2y = -min_a[1] - -max_b[1]
+
+    if (d1x > 0.0 || d1y > 0.0)
+      return false
+    elsif (d2x > 0.0 || d2y > 0.0)
+      return false
+    else
+
+      if (d2x - d1x).abs > (d2y - d1y).abs
+        return :y
+      else
+        return :x
+      end
+    end
+  end
+end
+
   srand(2)
 
   size = 0.1
@@ -120,6 +147,15 @@ Wkndr.play { |gl|
   player_velocity = [0.0, 0.0, 0.0]
   camera_position = [0.0,1.5,0.0]
 
+  top_left_min = [1.1, 1.1]
+  top_left_max = [0.1, 0.1]
+  top_right_min = [-0.1, 1.1]
+  top_right_max = [-1.1, 0.1]
+  bottom_left_min = [1.1, -0.1]
+  bottom_left_max = [0.1, -1.1]
+  bottom_right_min = [-0.1, -0.1]
+  bottom_right_max = [-1.1, -1.1]
+
   fovy = 60.0
   maze_draw_distance = 3
 
@@ -129,6 +165,7 @@ Wkndr.play { |gl|
   player_at_shape = nil
   at_left_right_limit = nil
   at_up_down_limit = nil
+  player_min = player_max = [0, 0]
 
   gl.event { |typed_msg|
     total_msg += 1
@@ -268,177 +305,94 @@ Wkndr.play { |gl|
         at_left_right_limit = ((nx - px))
         at_up_down_limit = ((ny - py))
 
-        within_left_right = !(at_left_right_limit.abs > 0.06)
-        within_up_down = !(at_up_down_limit.abs > 0.06)
+        #within_left_right = !(at_left_right_limit.abs > 0.06)
+        #within_up_down = !(at_up_down_limit.abs > 0.06)
 
-        going_left_and_can_go_left = (within_up_down && (at_left_right_limit > 0) && allow_left)
-        going_right_and_can_go_right = (within_up_down && (at_left_right_limit < 0) && allow_right)
+        #going_left_and_can_go_left = (within_up_down && (at_left_right_limit > 0) && allow_left)
+        #going_right_and_can_go_right = (within_up_down && (at_left_right_limit < 0) && allow_right)
 
-        going_up_and_can_go_up = (within_left_right && (at_up_down_limit > 0) && allow_up)
-        going_down_and_can_go_down = (within_left_right && (at_up_down_limit < 0) && allow_down)
+        #going_up_and_can_go_up = (within_left_right && (at_up_down_limit > 0) && allow_up)
+        #going_down_and_can_go_down = (within_left_right && (at_up_down_limit < 0) && allow_down)
 
-        ##if (!within_left_right)
-        ###&& !(within_left_right && pass_y)
-        ###&& player_velocity[0].abs > 0.0 #|| (!within_left_right && pass_y)
-        ##  #if enforce_x
-        ##    log!(:flip_x)
-        ##    player_velocity[0] *= -1.0
-        ##  #end
-        ##end
-        #log!(:AAA, player_at_shape, player_position[0], px, going_left_and_can_go_left, allow_left, "=", going_right_and_can_go_right, allow_right)
+        player_min = [at_left_right_limit + 0.05, at_up_down_limit + 0.05]
+        player_max = [at_left_right_limit - 0.05, at_up_down_limit - 0.05]
+        
+        bounced = Foo.test_aabb(top_left_min, top_left_max, player_min, player_max)
+        bounced ||= Foo.test_aabb(bottom_left_min, bottom_left_max, player_min, player_max)
+        bounced ||= Foo.test_aabb(bottom_right_min, bottom_right_max, player_min, player_max)
+        bounced ||= Foo.test_aabb(top_right_min, top_right_max, player_min, player_max)
+        #bounced = test_aabb.call(top_left_min, top_left_max, bottom_right_min, bottom_right_max)
+        #bounced = Foo.test_aabb(top_left_min, top_left_max, top_left_min, top_left_max)
 
-        enforce_x = enforce_y = false
+        if bounced
+          lne_x1 = 0.0
+          lne_y1 = -1.0
 
-        #enforce_x = ((!within_left_right && (allow_up || allow_down)) && !(within_up_down && (allow_left || allow_right))) || (((at_left_right_limit > 0.04) && !allow_left) || ((at_left_right_limit < 0.04) && !allow_right))
-        #enforce_x = ((!within_left_right && (allow_up || allow_down))) || (((at_left_right_limit > 0.04) && !allow_left) || ((at_left_right_limit < 0.04) && !allow_right))
+          lne_x2 = 0.0
+          lne_y2 = 1.0
 
-        enforce_x = ((at_left_right_limit > 0.04) && !allow_left) || ((at_left_right_limit < -0.04) && !allow_right)
+          # up to down
+          lin_x1 = -1.0
+          lin_y1 = 0.0
 
-        #(!within_left_right && !going_left_and_can_go_left && !going_right_and_can_go_right) && !(within_left_right && (allow_up || allow_down))
-        enforce_y = false 
-        #(!within_up_down && !going_up_and_can_go_up && !going_down_and_can_go_down) && !(within_up_down && (allow_left || allow_right))
-
-#        if (going_left_and_can_go_left || going_right_and_can_go_right)
-#        else
-#          if player_velocity[0] != 0
-#            #[:flip_x, -0.5000869081568322, -1, false, false]
-#            #[:flip_x, nil, -0.5011129386967751, -1, false, false, "=", false, false]
-#            #[:flip_x, nil, -0.5003200121841979, -1, false, false, "=", false, false]
-#
-##[:flip_x_AAA, 2, -0.553187692366191, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, true]
-##[:flip_x_BBB, 2, 0.553187692366191, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, true]
-##[:flop_y_AAA, 2, 1.263242925910164, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, false]
-##[:flop_y_BBB, 2, -1.263242925910164, -0.05983971140090576, 0.3577733723312623, 0, false, true, "=", false, false]
-#            #log!(:flip_x_AAA, player_at_shape, player_velocity[0], player_position[0], player_position[2], px, going_left_and_can_go_left, allow_left, "=", going_right_and_can_go_right, allow_right)
-#            #player_velocity[0] *= -1.0
-#            #log!(:flip_x_BBB, player_at_shape, player_velocity[0], player_position[0], player_position[2], px, going_left_and_can_go_left, allow_left, "=", going_right_and_can_go_right, allow_right)
-#            enforce_x = true
-#          end
-#        end
-#
-#        if (going_up_and_can_go_up || going_down_and_can_go_down)
-#        else
-#          if player_velocity[2] != 0
-#            #log!(:flop_y_AAA, player_at_shape, player_velocity[2], player_position[0], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
-#            #player_velocity[2] *= -1.0
-#            #log!(:flop_y_BBB, player_at_shape, player_velocity[2], player_position[0], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
-#            enforce_y = true
-#          end
-#        end
-
-        if enforce_x || enforce_y
-          log!(:xxx)
-          line_x1 = 0.0
-          line_y1 = 0.0
-
-          line_x2 = 0.0
-          line_y2 = 0.0
-
-          if enforce_x #player_velocity[0].abs > player_velocity[2].abs
-            # left right
-            log!(:a111)
-
-            line_x1 = 0.0
-            line_y1 = -1.0
-
-            line_x2 = 0.0
-            line_y2 = 1.0
-          elsif enforce_y #player_velocity[0].abs < player_velocity[2].abs
-            log!(:b222)
-
-            line_x1 = -1.0
-            line_y1 = 0.0
-
-            line_x2 = 1.0
-            line_y2 = 0.0
-          #else
-          #  if ((player_velocity[0] > 0) && (player_velocity[2] > 0)) || ((player_velocity[0] < 0) && (player_velocity[2] < 0))
-          #    log!(:AAA)
-          #    line_x1 = -1.0
-          #    line_y1 = 1.0
-
-          #    line_x2 = 1.0
-          #    line_y2 = -1.0
-          #  else
-          #    log!(:BBB)
-          #    line_x1 = -1.0
-          #    line_y1 = -1.0
-
-          #    line_x2 = 1.0
-          #    line_y2 = 1.0
-          #  end
+          lin_x2 = 1.0
+          lin_y2 = 0.0
+          lines = []
+          
+          #if player_velocity[0].abs >= player_velocity[2].abs
+          if bounced == :y
+          #  log!(:a111)
+            lines << [lne_x1, lne_y1, lne_x2, lne_y2]
+          end
+          #
+          #if player_velocity[0].abs <= player_velocity[2].abs
+          if bounced == :x
+          #  log!(:b222)
+            lines << [lin_x1, lin_y1, lin_x2, lin_y2]
           end
 
-          normalY = line_x2 - line_x1
-          normalX = line_y1 - line_y2
-          normalLength = Math.sqrt(normalX * normalX + normalY * normalY)
+          #else
+          #  if rand > 0.5
+          #    lines << [lne_x1, lne_y1, lne_x2, lne_y2]
+          #  else
+          #    lines << [lin_x1, lin_y1, lin_x2, lin_y2]
+          #  end
+          #end
 
-          normalX = normalX / normalLength
-          normalY = normalY / normalLength
+          lines.each do |line_x1, line_y1, line_x2, line_y2|
+            normalY = line_x2 - line_x1
+            normalX = line_y1 - line_y2
+            normalLength = Math.sqrt(normalX * normalX + normalY * normalY)
 
-          #rayTipX
-          iX = 0.0
-          iY = 0.0
+            normalX = normalX / normalLength
+            normalY = normalY / normalLength
 
-          rayTipX = player_velocity[0]
-          rayTipY = player_velocity[2]
+            #rayTipX
+            iX = 0.0
+            iY = 0.0
 
-          rayX = rayTipX - iX
-          rayY = rayTipY - iY
+            rayTipX = player_velocity[0]
+            rayTipY = player_velocity[2]
 
-          dotProduct = (rayX * normalX) + (rayY * normalY)
-          dotNormalX = dotProduct * normalX
-          dotNormalY = dotProduct * normalY
+            rayX = rayTipX - iX
+            rayY = rayTipY - iY
 
-          reflectedRayTipX = rayTipX - (dotNormalX * 2)
-          reflectedRayTipY = rayTipY - (dotNormalY * 2)
+            dotProduct = (rayX * normalX) + (rayY * normalY)
+            dotNormalX = dotProduct * normalX
+            dotNormalY = dotProduct * normalY
 
-          #log!(:flop_AAA, player_at_shape, player_velocity[0], player_position[2], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
-          player_velocity[0] = reflectedRayTipX
-          player_velocity[2] = reflectedRayTipY
-          #log!(:flop_BBB, player_at_shape, player_velocity[0], player_position[2], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
+            reflectedRayTipX = rayTipX - (dotNormalX * 2)
+            reflectedRayTipY = rayTipY - (dotNormalY * 2)
 
-          #[:flop_AAA, 2, 0, -0.05999770552850488, -0.05999770552850488, 0, false, true, "=", false, false]
-          #[:flop_BBB, 2, 0.0, -0.05999770552850488, -0.05999770552850488, 0, false, true, "=", false, false]
+            #log!(:flop_AAA, player_at_shape, player_velocity[0], player_position[2], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
+            player_velocity[0] = reflectedRayTipX
+            player_velocity[2] = reflectedRayTipY
+            #log!(:flop_BBB, player_at_shape, player_velocity[0], player_position[2], player_position[2], px, going_up_and_can_go_up, allow_up, "=", going_down_and_can_go_down, allow_down)
 
+            #[:flop_AAA, 2, 0, -0.05999770552850488, -0.05999770552850488, 0, false, true, "=", false, false]
+            #[:flop_BBB, 2, 0.0, -0.05999770552850488, -0.05999770552850488, 0, false, true, "=", false, false]
+          end
         end
-
-        #pass_x = pass_y = false
-
-          #if (at_left_right_limit < 0 && allow_right) && within_up_down
-          #  pass_x = true
-          #elsif (at_left_right_limit > 0 && allow_left) && within_up_down
-          #  pass_x = true
-          #else
-          #  if enforce_bounds
-          #    #player_velocity[0] *= -1.0
-          #    #player_velocity[2] *= -1.0
-          #    enforce_x = true
-          #  end
-          #end
-
-          #if (at_up_down_limit > 0 && allow_up) && within_left_right
-          #  pass_y = true
-          #elsif (at_up_down_limit < 0 && allow_down) && within_left_right
-          #  pass_y = true
-          #elsif (within_up_down && pass_x)
-          #else
-          #  if enforce_bounds
-          #    #player_velocity[0] *= -1.0
-          #    #player_velocity[2] *= -1.0
-          #    enforce_y = true
-          #  end
-          #end
-
-
-        #if (!(within_left_right) && !(at_up_down_limit > 0 && allow_up)) || (!(within_left_right) && !(at_up_down_limit < 0 && allow_down))
-        ##&& !(within_up_down && pass_x)
-        ##&& player_velocity[2].abs > 0.0 #|| (!within_up_down && pass_x)
-        #  #if enforce_y
-        #    log!(:flop_y)
-        #    player_velocity[2] *= -1.0
-        #  #end
-        #end
 
         if !player_at_shape
           player_velocity[0] = 0
@@ -462,8 +416,6 @@ Wkndr.play { |gl|
               unless cell == 0
                 primary = (cell & Theseus::Maze::PRIMARY)
                 if shape = shapes[primary]
-
-                  
                   shapes[primary].deltap(x, 0, y)
                   shapes[primary].draw(false)
                 end
@@ -477,10 +429,29 @@ Wkndr.play { |gl|
       }
 
       gl.twod {
-        gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg} #{player_at_shape} #{at_up_down_limit} #{at_left_right_limit} #{player_position}") {
-          gl.emit({"x" => "y"})
-          enforce_bounds = !enforce_bounds
+
+        aax = (player_min[0] - player_max[0]) * 150.0
+        aay = (player_min[1] - player_max[1]) * 150.0
+
+        gl.button(150.0 - (at_left_right_limit * 100.0) - (aax / 2.0), 150.0 - (at_up_down_limit * 100.0) - (aay / 2.0), aax, aay, "") {
         }
+
+        gl.button(150.0 - (top_left_min[0] * 100), 150.0 - (top_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        }
+
+        gl.button(150.0 - (bottom_left_min[0] * 100), 150.0 - (bottom_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        }
+
+        gl.button(150.0 - (top_right_min[0] * 100), 150.0 - (top_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        }
+
+        gl.button(150.0 - (bottom_right_min[0] * 100), 150.0 - (bottom_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        }
+
+        #gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg} #{player_at_shape} #{at_up_down_limit} #{at_left_right_limit} #{player_position}") {
+        #  gl.emit({"x" => "y"})
+        #  enforce_bounds = !enforce_bounds
+        #}
       }
     }
   }
