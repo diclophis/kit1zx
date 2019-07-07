@@ -18,7 +18,7 @@ OPENSCAD=openscad
 MESHLAB=meshlabserver
 FILTERS=color-4.mlx
 
-THIS_WORKING_DIR=`pwd`
+THIS_WORKING_DIR="" #`pwd`
 
 rm resources/shape* || true
 
