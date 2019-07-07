@@ -65,11 +65,12 @@ class Foo
     else
       a = (d2x - d1x).abs
       b = (d2y - d1y).abs
-      log!(:ab, a, b)
       if a > b
-        return :y
+        #b = 
+        return [:y, b]
       else
-        return :x
+        a = (d2y - d1y) - ((max_a[1] - min_a[1]) + (max_b[1] - min_b[1]))
+        return [:x, a]
       end
     end
   end
@@ -160,6 +161,20 @@ Wkndr.play { |gl|
   no_up_max = [-0.1, 0.1]
   no_down_min = [0.1, -0.1]
   no_down_max = [-0.1, -1.1]
+
+  # left to right
+  lne_x1 = 0.0
+  lne_y1 = -1.0
+
+  lne_x2 = 0.0
+  lne_y2 = 1.0
+
+  # up to down
+  lin_x1 = -1.0
+  lin_y1 = 0.0
+
+  lin_x2 = 1.0
+  lin_y2 = 0.0
 
   fovy = 60.0
   maze_draw_distance = 3
@@ -258,6 +273,10 @@ Wkndr.play { |gl|
         #  end
         ##end
 
+        friction = 0.9
+        player_velocity[0] = player_velocity[0] + (-friction * (player_velocity[0]) * delta_time)
+        player_velocity[2] = player_velocity[2] + (-friction * (player_velocity[2]) * delta_time)
+
         nx = player_position[0] + (player_velocity[0] * delta_time)
         ny = player_position[2] + (player_velocity[2] * delta_time)
 
@@ -317,83 +336,90 @@ Wkndr.play { |gl|
         player_min = [at_left_right_limit + 0.05, at_up_down_limit + 0.05]
         player_max = [at_left_right_limit - 0.05, at_up_down_limit - 0.05]
 
-        bounced = Foo.test_aabb(top_left_min, top_left_max, player_min, player_max)
-        bounced ||= Foo.test_aabb(bottom_left_min, bottom_left_max, player_min, player_max)
-        bounced ||= Foo.test_aabb(bottom_right_min, bottom_right_max, player_min, player_max)
-        bounced ||= Foo.test_aabb(top_right_min, top_right_max, player_min, player_max)
+        bounced = false
+        corrections = [0, 0]
 
-        allow_left || (bounced ||= Foo.test_aabb(no_left_min, no_left_max, player_min, player_max))
-        allow_right || (bounced ||= Foo.test_aabb(no_right_min, no_right_max, player_min, player_max))
-        allow_up || (bounced ||= Foo.test_aabb(no_up_min, no_up_max, player_min, player_max))
-        allow_down || (bounced ||= Foo.test_aabb(no_down_min, no_down_max, player_min, player_max))
+#[:wtf2, [0.5965272159833789, 1.066839430254782], [0.5965272159833789, 1.066839430254782]]
+#[:corrections, [0.5965272159833789, 1.066839430254782]]
+
+        if ab = Foo.test_aabb(top_left_min, top_left_max, player_min, player_max)
+          #corrections[0] += ab[0]
+          #corrections[1] += ab[1]
+          log!(:wtf2, ab, corrections)
+          bounced = ab[0]
+          corrections[1] = ab[1]
+        end
+
+        if ab = Foo.test_aabb(bottom_left_min, bottom_left_max, player_min, player_max)
+          bounced = ab[0]
+        end
+
+        if ab = Foo.test_aabb(bottom_right_min, bottom_right_max, player_min, player_max)
+          bounced = ab[0]
+        end
+
+        if ab = Foo.test_aabb(top_right_min, top_right_max, player_min, player_max)
+          bounced = ab[0]
+        end
+
+        if !allow_left && ab = Foo.test_aabb(no_left_min, no_left_max, player_min, player_max)
+          bounced = ab[0]
+        end
+
+        if !allow_right && ab = Foo.test_aabb(no_right_min, no_right_max, player_min, player_max)
+          bounced = ab[0]
+        end
+
+        if !allow_up && ab = Foo.test_aabb(no_up_min, no_up_max, player_min, player_max)
+          bounced = ab[0]
+        end
+
+        if !allow_down && ab = Foo.test_aabb(no_down_min, no_down_max, player_min, player_max)
+          bounced = ab[0]
+        end
 
         if !player_at_shape
           player_velocity[0] = 0
           player_velocity[2] = 0
         else
-          unless bounced
-            player_position[0] = nx
-            player_position[2] = ny
-          end
-        end
+          if bounced
+            line = nil
+            rfx = 1.0
+            rfy = 1.0
 
-        if bounced
-          no_bounce_reset = 0
+            if bounced == :y
+              line = [lne_x1, lne_y1, lne_x2, lne_y2]
+            end
 
-          # left to right
-          lne_x1 = 0.0
-          lne_y1 = -1.0
+            if bounced == :x
+              #log!(:corrections, corrections)
+              player_position[2] += corrections[1]
+              line = [lin_x1, lin_y1, lin_x2, lin_y2]
+            end
 
-          lne_x2 = 0.0
-          lne_y2 = 1.0
+            line_x1, line_y1, line_x2, line_y2 = line
 
-          # up to down
-          lin_x1 = -1.0
-          lin_y1 = 0.0
-
-          lin_x2 = 1.0
-          lin_y2 = 0.0
-          lines = []
-
-          rfx = 1.0
-          rfy = 1.0
-          
-          if bounced == :y
-            lines << [lne_x1, lne_y1, lne_x2, lne_y2]
-            #rfx = 1.0
-          end
-
-          if bounced == :x
-            lines << [lin_x1, lin_y1, lin_x2, lin_y2]
-            #rfy = 1.0
-          end
-
-          lines.each do |line_x1, line_y1, line_x2, line_y2|
             normalY = line_x2 - line_x1
             normalX = line_y1 - line_y2
             normalLength = Math.sqrt(normalX * normalX + normalY * normalY)
-
             normalX = normalX / normalLength
             normalY = normalY / normalLength
-
-            iX = 0.0
-            iY = 0.0
-
             rayTipX = player_velocity[0]
             rayTipY = player_velocity[2]
-
-            rayX = rayTipX - iX
-            rayY = rayTipY - iY
-
+            rayX = rayTipX
+            rayY = rayTipY 
             dotProduct = (rayX * normalX) + (rayY * normalY)
             dotNormalX = dotProduct * normalX
             dotNormalY = dotProduct * normalY
-
             reflectedRayTipX = rayTipX - (dotNormalX * 2)
             reflectedRayTipY = rayTipY - (dotNormalY * 2)
-
             player_velocity[0] = (reflectedRayTipX * rfx)
             player_velocity[2] = (reflectedRayTipY * rfy)
+            #player_position[0] -= corrections[0]
+            #player_position[2] -= corrections[1]
+          else
+            player_position[0] = nx
+            player_position[2] = ny
           end
         end
 
