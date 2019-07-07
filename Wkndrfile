@@ -66,10 +66,20 @@ class Foo
       a = (d2x - d1x).abs
       b = (d2y - d1y).abs
       if a > b
-        #b = 
+        if d2x < d1x
+          b = ((d2x - d1x) - ((max_a[0] - min_a[0]) + ((max_b[0] - min_b[0]) * 0.5)))
+        else
+          b = -((d1x - d2x) - ((max_a[0] - min_a[0]) + ((max_b[0] - min_b[0]) * 0.5)))
+        end
+
         return [:y, b]
       else
-        a = (d2y - d1y) - ((max_a[1] - min_a[1]) + (max_b[1] - min_b[1]))
+        if d2y < d1y
+          a = ((d2y - d1y) - ((max_a[1] - min_a[1]) + ((max_b[1] - min_b[1]) * 0.5)))
+        else
+          a = -((d1y - d2y) - ((max_a[1] - min_a[1]) + ((max_b[1] - min_b[1]) * 0.5)))
+        end
+
         return [:x, a]
       end
     end
@@ -142,7 +152,7 @@ Wkndr.play { |gl|
 
   player_position = [0.0,0.125,0.0]
   player_velocity = [0.0, 0.0, 0.0]
-  camera_position = [0.0,1.5,0.0]
+  camera_position = [0.0,2.5,0.0]
 
   top_left_min = [1.1, 1.1]
   top_left_max = [0.1, 0.1]
@@ -203,7 +213,7 @@ Wkndr.play { |gl|
         got_lr = got_ud = false
 
         arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
-        speed = (37.0) * (delta_time * 0.1)
+        speed = (67.0) * (delta_time * 0.1)
 
         arrow_keys.each do |arrow_key|
           case arrow_key
@@ -221,7 +231,7 @@ Wkndr.play { |gl|
               got_lr = true
           end
 
-          max_v = 1.5
+          max_v = 5.5
           if player_velocity[2] > max_v
             player_velocity[2] = max_v
           end
@@ -239,41 +249,7 @@ Wkndr.play { |gl|
           end
         end
 
-        some_slow_down_percent = 0.1 #2.5
-
-        ##if !got_ud
-        #  if player_velocity[2] > 0.15
-        #    player_velocity[2] -= speed * some_slow_down_percent
-        #    if player_velocity[2] < 0
-        #      player_velocity[2] = 0
-        #    end
-        #  elsif player_velocity[2] < -0.15
-        #    player_velocity[2] += speed * some_slow_down_percent
-        #    if player_velocity[2] > 0
-        #      player_velocity[2] = 0
-        #    end
-        #  else
-        #    player_velocity[2] = 0
-        #  end
-        ##end
-
-        ##if !got_lr
-        #  if player_velocity[0] > 0.15
-        #    player_velocity[0] -= speed * some_slow_down_percent
-        #    if player_velocity[0] < 0
-        #      player_velocity[0] = 0
-        #    end
-        #  elsif player_velocity[0] < -0.15
-        #    player_velocity[0] += speed * some_slow_down_percent
-        #    if player_velocity[0] > 0
-        #      player_velocity[0] = 0
-        #    end
-        #  else
-        #    player_velocity[0] = 0
-        #  end
-        ##end
-
-        friction = 0.9
+        friction = 4.99
         player_velocity[0] = player_velocity[0] + (-friction * (player_velocity[0]) * delta_time)
         player_velocity[2] = player_velocity[2] + (-friction * (player_velocity[2]) * delta_time)
 
@@ -339,43 +315,44 @@ Wkndr.play { |gl|
         bounced = false
         corrections = [0, 0]
 
-#[:wtf2, [0.5965272159833789, 1.066839430254782], [0.5965272159833789, 1.066839430254782]]
-#[:corrections, [0.5965272159833789, 1.066839430254782]]
-
         if ab = Foo.test_aabb(top_left_min, top_left_max, player_min, player_max)
-          #corrections[0] += ab[0]
-          #corrections[1] += ab[1]
-          log!(:wtf2, ab, corrections)
           bounced = ab[0]
-          corrections[1] = ab[1]
+          corrections[0] = ab[1]
         end
 
         if ab = Foo.test_aabb(bottom_left_min, bottom_left_max, player_min, player_max)
           bounced = ab[0]
+          corrections[0] = ab[1]
         end
 
         if ab = Foo.test_aabb(bottom_right_min, bottom_right_max, player_min, player_max)
           bounced = ab[0]
+          corrections[0] = ab[1]
         end
 
         if ab = Foo.test_aabb(top_right_min, top_right_max, player_min, player_max)
           bounced = ab[0]
+          corrections[0] = ab[1]
         end
 
         if !allow_left && ab = Foo.test_aabb(no_left_min, no_left_max, player_min, player_max)
           bounced = ab[0]
+          corrections[0] = ab[1]
         end
 
         if !allow_right && ab = Foo.test_aabb(no_right_min, no_right_max, player_min, player_max)
           bounced = ab[0]
+          corrections[0] = ab[1]
         end
 
         if !allow_up && ab = Foo.test_aabb(no_up_min, no_up_max, player_min, player_max)
           bounced = ab[0]
+          corrections[0] = ab[1]
         end
 
         if !allow_down && ab = Foo.test_aabb(no_down_min, no_down_max, player_min, player_max)
           bounced = ab[0]
+          corrections[0] = ab[1]
         end
 
         if !player_at_shape
@@ -388,12 +365,12 @@ Wkndr.play { |gl|
             rfy = 1.0
 
             if bounced == :y
+              player_position[0] += (corrections[0] * 0.5)
               line = [lne_x1, lne_y1, lne_x2, lne_y2]
             end
 
             if bounced == :x
-              #log!(:corrections, corrections)
-              player_position[2] += corrections[1]
+              player_position[2] += (corrections[0] * 0.5)
               line = [lin_x1, lin_y1, lin_x2, lin_y2]
             end
 
@@ -415,21 +392,15 @@ Wkndr.play { |gl|
             reflectedRayTipY = rayTipY - (dotNormalY * 2)
             player_velocity[0] = (reflectedRayTipX * rfx)
             player_velocity[2] = (reflectedRayTipY * rfy)
-            #player_position[0] -= corrections[0]
-            #player_position[2] -= corrections[1]
           else
             player_position[0] = nx
             player_position[2] = ny
           end
         end
 
-        #camera_position[0] = player_position[0] + ((0.033))
-        #camera_position[2] = player_position[2] - (1.0)
-
-        camera_position[0] = px + 0.033
+        camera_position[0] = px + 0.0
         camera_position[2] = py - 1.0
 
-        #camera_target = [player_position[0], player_position[1], player_position[2]]
         camera_target = [px, player_position[1], py]
 
         gl.lookat(1, *camera_position, *camera_target, fovy)
@@ -458,44 +429,42 @@ Wkndr.play { |gl|
         #  gl.emit({"x" => "y"})
         #  enforce_bounds = !enforce_bounds
 
-        #unless no_bounce_reset
-          aax = (player_min[0] - player_max[0]) * 150.0
-          aay = (player_min[1] - player_max[1]) * 150.0
+        #aax = (player_min[0] - player_max[0]) * 150.0
+        #aay = (player_min[1] - player_max[1]) * 150.0
 
-          gl.button(150.0 - (at_left_right_limit * 100.0) - (aax / 2.0), 150.0 - (at_up_down_limit * 100.0) - (aay / 2.0), aax, aay, "") {
-          }
+        #gl.button(150.0 - (at_left_right_limit * 100.0) - (aax / 2.0), 150.0 - (at_up_down_limit * 100.0) - (aay / 2.0), aax, aay, "") {
+        #}
 
-          gl.button(150.0 - (top_left_min[0] * 100), 150.0 - (top_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-          }
+        #gl.button(150.0 - (top_left_min[0] * 100), 150.0 - (top_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        #}
 
-          gl.button(150.0 - (bottom_left_min[0] * 100), 150.0 - (bottom_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-          }
+        #gl.button(150.0 - (bottom_left_min[0] * 100), 150.0 - (bottom_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        #}
 
-          gl.button(150.0 - (top_right_min[0] * 100), 150.0 - (top_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-          }
+        #gl.button(150.0 - (top_right_min[0] * 100), 150.0 - (top_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        #}
 
-          gl.button(150.0 - (bottom_right_min[0] * 100), 150.0 - (bottom_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-          }
+        #gl.button(150.0 - (bottom_right_min[0] * 100), 150.0 - (bottom_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+        #}
 
-          unless allow_left
-            gl.button(150.0 - (no_left_min[0] * 100), 150.0 - (no_left_min[1] * 100.0), 1.0 * 100.0, 0.2 * 100.0, "") {
-            }
-          end
+        #unless allow_left
+        #  gl.button(150.0 - (no_left_min[0] * 100), 150.0 - (no_left_min[1] * 100.0), 1.0 * 100.0, 0.2 * 100.0, "") {
+        #  }
+        #end
 
-          unless allow_right
-            gl.button(150.0 - (no_right_min[0] * 100), 150.0 - (no_right_min[1] * 100.0), 1.0 * 100.0, 0.2 * 100.0, "") {
-            }
-          end
+        #unless allow_right
+        #  gl.button(150.0 - (no_right_min[0] * 100), 150.0 - (no_right_min[1] * 100.0), 1.0 * 100.0, 0.2 * 100.0, "") {
+        #  }
+        #end
 
-          unless allow_up
-            gl.button(150.0 - (no_up_min[0] * 100), 150.0 - (no_up_min[1] * 100.0), 0.2 * 100.0, 1.0 * 100.0, "") {
-            }
-          end
+        #unless allow_up
+        #  gl.button(150.0 - (no_up_min[0] * 100), 150.0 - (no_up_min[1] * 100.0), 0.2 * 100.0, 1.0 * 100.0, "") {
+        #  }
+        #end
 
-          unless allow_down
-            gl.button(150.0 - (no_down_min[0] * 100), 150.0 - (no_down_min[1] * 100.0), 0.2 * 100.0, 1.0 * 100.0, "") {
-            }
-          end
+        #unless allow_down
+        #  gl.button(150.0 - (no_down_min[0] * 100), 150.0 - (no_down_min[1] * 100.0), 0.2 * 100.0, 1.0 * 100.0, "") {
+        #  }
         #end
       }
     }
