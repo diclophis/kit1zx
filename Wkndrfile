@@ -4,7 +4,7 @@ if false
 
 Wkndr.play { |gl|
   player_position = [0.0,0.0,0.0]
-  camera_position = [7.0,7.0,9.0]
+  camera_position = [3.0,7.0,3.0]
   fovy = 30.0
 
   gl.lookat(1, *camera_position, *player_position, fovy)
@@ -67,17 +67,17 @@ class Foo
       b = (d2y - d1y).abs
       if a > b
         if d2x < d1x
-          b = ((d2x - d1x) - ((max_a[0] - min_a[0]) + ((max_b[0] - min_b[0]) * 0.9)))
+          b = 0.0 #((d2x - d1x) - ((max_a[0] - min_a[0]) + ((max_b[0] - min_b[0]) * 0.0)))
         else
-          b = -((d1x - d2x) - ((max_a[0] - min_a[0]) + ((max_b[0] - min_b[0]) * 0.9)))
+          b = 0.0 #-((d1x - d2x) - ((max_a[0] - min_a[0]) + ((max_b[0] - min_b[0]) * 0.0)))
         end
 
         return [:y, b]
       else
         if d2y < d1y
-          a = ((d2y - d1y) - ((max_a[1] - min_a[1]) + ((max_b[1] - min_b[1]) * 0.9)))
+          a = 0.0 #((d2y - d1y) - ((max_a[1] - min_a[1]) + ((max_b[1] - min_b[1]) * 0.0)))
         else
-          a = -((d1y - d2y) - ((max_a[1] - min_a[1]) + ((max_b[1] - min_b[1]) * 0.9)))
+          a = 0.0 #-((d1y - d2y) - ((max_a[1] - min_a[1]) + ((max_b[1] - min_b[1]) * 0.0)))
         end
 
         return [:x, a]
@@ -140,7 +140,7 @@ Wkndr.play { |gl|
   }
 
   srand(3)
-  maze_s = 100
+  maze_s = 3 
   braid = 0
   weave = 0
   sparse = 0
@@ -152,8 +152,8 @@ Wkndr.play { |gl|
 
   player_position = [0.0,0.125,0.0]
   player_velocity = [0.0, 0.0, 0.0]
-  camera_position = [5.0,2.5,5.0]
-  camera_target = [0.0,0.0,0.0]
+  camera_position = [0.0, 2.5, 0.0]
+  camera_target = [0.0, 0.0, 0.0]
 
   top_left_min = [1.1, 1.1]
   top_left_max = [0.1, 0.1]
@@ -190,7 +190,7 @@ Wkndr.play { |gl|
   fovy = 60.0
   maze_draw_distance = 3
 
-  gl.lookat(1, *camera_position, *player_position, fovy)
+  gl.lookat(1, *camera_position, *camera_target, fovy)
 
   total_msg = 0
   player_at_shape = nil
@@ -399,12 +399,12 @@ Wkndr.play { |gl|
           end
         end
 
-        camera_position[0] += (delta_time * 0.99 * (nx - camera_position[0]))
-        camera_position[2] += (delta_time * 0.99 * (ny - (camera_position[2] + 1.0)))
+        camera_position[0] += (delta_time * 0.9 * (nx - camera_position[0]))
+        camera_position[2] += (delta_time * 0.9 * (ny - (camera_position[2] + 1.0)))
 
-        camera_target[0] += (delta_time * 0.999 * (nx - camera_target[0]))
+        camera_target[0] += (delta_time * 2.0 * (nx - camera_target[0]))
         camera_target[1] = player_position[1]
-        camera_target[2] += (delta_time * 0.999 * (ny - camera_target[2]))
+        camera_target[2] += (delta_time * 2.0 * (ny - camera_target[2]))
 
         gl.lookat(1, *camera_position, *camera_target, fovy)
 
