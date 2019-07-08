@@ -1,58 +1,7 @@
 #
 
-if false
-
-Wkndr.play { |gl|
-  player_position = [0.0,0.0,0.0]
-  camera_position = [3.0,7.0,3.0]
-  fovy = 30.0
-
-  gl.lookat(1, *camera_position, *player_position, fovy)
-
-  flowers = []
-
-  flowers << Model.new("resources/tri001.obj", "", 1.0)
-  flowers << Model.new("resources/cube.obj", "", 0.5)
-  flowers << Model.new("resources/road-corner.obj", "resources/road-corner.mtl", 0.76)
-  flowers << Model.new("resources/rando.obj", "", 0.76)
-  flowers << Model.new("resources/coin.obj", "", 2.0)
-
-  #flower = Model.new("resources/Prop_Fence_Gate_1.obj", "", 33.0)
-
-  total_msg = 0
-  flower_index = 0
-
-  gl.event { |typed_msg|
-    total_msg += 1
-  }
-
-  gl.update { |global_time, delta_time|
-    gl.drawmode {
-      gl.threed {
-        #flower.deltas(0.0001, 0.0001, 0.0001)
-        #flower.deltap(player_position[0], player_position[1], player_position[2])
-        flower = flowers[(flower_index) % flowers.length]
-
-        #flower.deltar(Math.cos(-global_time * 0.5), Math.sin(global_time), Math.cos(global_time * 1.0), global_time * 33.0)
-        flower.deltar(0, 1, 0, global_time * -100.0)
-        flower.draw(false)
-      }
-
-      gl.twod {
-        gl.draw_fps(0, 0)
-        gl.button(50.0, 50.0, 250.0, 20.0, "maze #{total_msg}") {
-          gl.emit({"x" => "y"})
-          flower_index += 1
-        }
-      }
-    }
-  }
-}
-
-else
-
-class Foo
-  def self.test_aabb(min_a, max_a, min_b, max_b)
+class MazeGame
+  def test_aabb(min_a, max_a, min_b, max_b)
     d1x = -min_b[0] - -max_a[0]
     d1y = -min_b[1] - -max_a[1]
     d2x = -min_a[0] - -max_b[0]
@@ -84,13 +33,304 @@ class Foo
       end
     end
   end
+
+  def initialize(cube, shapes, shape_translate_table)
+    @cube = cube
+    @shapes = shapes
+    @shape_translate_table = shape_translate_table
+
+    @enforce_bounds = true
+
+    @maze_s = 8
+
+    braid = 50
+    weave = 50
+    sparse = 50
+
+    ## generate a 10x10 orthogonal maze and print it to the console
+    @maze = Theseus::OrthogonalMaze.generate(:width => @maze_s, :height => @maze_s, :braid => braid, :weave => weave, :wrap => "xy", :sparse => sparse)
+
+    @player_position = [0.0,0.125,0.0]
+    @player_velocity = [0.0, 0.0, 0.0]
+    @camera_position = [0.0, 2.33, 0.0]
+    @camera_target = [0.0, 0.0, 0.0]
+
+    @top_left_min = [1.1, 1.1]
+    @top_left_max = [0.1, 0.1]
+    @top_right_min = [-0.1, 1.1]
+    @top_right_max = [-1.1, 0.1]
+    @bottom_left_min = [1.1, -0.1]
+    @bottom_left_max = [0.1, -1.1]
+    @bottom_right_min = [-0.1, -0.1]
+    @bottom_right_max = [-1.1, -1.1]
+
+    @no_left_min = [1.1, 0.1]
+    @no_left_max = [0.1, -0.1]
+    @no_right_min = [-0.1, 0.1]
+    @no_right_max = [-1.1, -0.1]
+    @no_up_min = [0.1, 1.1]
+    @no_up_max = [-0.1, 0.1]
+    @no_down_min = [0.1, -0.1]
+    @no_down_max = [-0.1, -1.1]
+
+    # left to right
+    @lne_x1 = 0.0
+    @lne_y1 = -1.0
+
+    @lne_x2 = 0.0
+    @lne_y2 = 1.0
+
+    # up to down
+    @lin_x1 = -1.0
+    @lin_y1 = 0.0
+
+    @lin_x2 = 1.0
+    @lin_y2 = 0.0
+
+    @fovy = 50.0
+    @maze_draw_distance = 2
+  end
+
+  def update_and_draw_threed(gl, global_time, delta_time)
+    got_lr = got_ud = false
+    player_at_shape = nil
+    at_left_right_limit = nil
+    at_up_down_limit = nil
+    player_min = player_max = [0, 0]
+    allow_up = false
+    allow_down = false
+    allow_left = false
+    allow_right = false
+    bounced = false
+    no_bounce_reset = 0
+    px = py = nx = ny = 0
+
+    allow_up = false
+    allow_down = false
+    allow_left = false
+    allow_right = false
+
+    arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
+    speed = (67.0) * (delta_time * 0.1)
+
+    arrow_keys.each do |arrow_key|
+      case arrow_key
+        when KEY_W
+          @player_velocity[2] += speed
+          got_ud = true
+        when KEY_S
+          @player_velocity[2] -= speed
+          got_ud = true
+        when KEY_A
+          @player_velocity[0] += speed
+          got_lr = true
+        when KEY_D
+          @player_velocity[0] -= speed
+          got_lr = true
+      end
+
+      max_v = 5.5
+      if @player_velocity[2] > max_v
+        @player_velocity[2] = max_v
+      end
+
+      if @player_velocity[0] > max_v
+        @player_velocity[0] = max_v
+      end
+
+      if @player_velocity[0] < -max_v
+        @player_velocity[0] = -max_v
+      end
+
+      if @player_velocity[2] < -max_v
+        @player_velocity[2] = -max_v
+      end
+    end
+
+    friction = 4.99
+    @player_velocity[0] = @player_velocity[0] + (-friction * (@player_velocity[0]) * delta_time)
+    @player_velocity[2] = @player_velocity[2] + (-friction * (@player_velocity[2]) * delta_time)
+
+    nx = @player_position[0] + (@player_velocity[0] * delta_time)
+    ny = @player_position[2] + (@player_velocity[2] * delta_time)
+
+    px = ((nx - 0).round)
+    py = ((ny - 0).round)
+
+    if px >= 0 && px < @maze_s && py >= 0 && py < @maze_s
+      player_at_shape_cell = @maze[px.to_i, py.to_i]
+      player_at_shape = @shape_translate_table[(player_at_shape_cell & Theseus::Maze::PRIMARY)]
+    end
+
+    case player_at_shape
+      when 0
+        allow_up = allow_down = allow_left = allow_right = true
+      when 1
+        allow_down = allow_left = allow_right = true
+      when 2
+        allow_up = allow_left = allow_right = true
+      when 3
+        allow_up = allow_down = allow_left = true
+      when 4
+        allow_up = allow_down = allow_right = true
+      when 5
+        allow_right = true
+      when 6
+        allow_left = true
+      when 7
+        allow_up = true
+      when 8
+        allow_down = true
+      when 9
+        allow_down = allow_up = true
+        #includes left right crossing bits
+      when 10
+        allow_left = allow_right = true
+      when 11
+        allow_up = allow_left = true
+      when 12
+        allow_down = allow_left = true
+      when 13
+        allow_down = allow_right = true
+      when 14
+        allow_right = true
+        allow_up = true
+    end
+
+    at_left_right_limit = ((nx - px))
+    at_up_down_limit = ((ny - py))
+
+    player_min = [at_left_right_limit + 0.05, at_up_down_limit + 0.05]
+    player_max = [at_left_right_limit - 0.05, at_up_down_limit - 0.05]
+
+    bounced = false
+    correction = 0
+
+    if ab = test_aabb(@top_left_min, @top_left_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if ab = test_aabb(@bottom_left_min, @bottom_left_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if ab = test_aabb(@bottom_right_min, @bottom_right_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if ab = test_aabb(@top_right_min, @top_right_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if !allow_left && ab = test_aabb(@no_left_min, @no_left_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if !allow_right && ab = test_aabb(@no_right_min, @no_right_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if !allow_up && ab = test_aabb(@no_up_min, @no_up_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if !allow_down && ab = test_aabb(@no_down_min, @no_down_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if !player_at_shape
+      @player_velocity[0] = 0
+      @player_velocity[2] = 0
+
+      if px != 0 && py != 0
+        return :restart
+      end
+    else
+      if bounced
+        line = nil
+        rfx = 1.0
+        rfy = 1.0
+
+        if bounced == :y
+          @player_position[0] += (correction * 1.0)
+          line = [@lne_x1, @lne_y1, @lne_x2, @lne_y2]
+        end
+
+        if bounced == :x
+          @player_position[2] += (correction * 1.0)
+          line = [@lin_x1, @lin_y1, @lin_x2, @lin_y2]
+        end
+
+        line_x1, line_y1, line_x2, line_y2 = line
+
+        normalY = line_x2 - line_x1
+        normalX = line_y1 - line_y2
+        normalLength = Math.sqrt(normalX * normalX + normalY * normalY)
+        normalX = normalX / normalLength
+        normalY = normalY / normalLength
+        rayTipX = @player_velocity[0]
+        rayTipY = @player_velocity[2]
+        rayX = rayTipX
+        rayY = rayTipY 
+        dotProduct = (rayX * normalX) + (rayY * normalY)
+        dotNormalX = dotProduct * normalX
+        dotNormalY = dotProduct * normalY
+        reflectedRayTipX = rayTipX - (dotNormalX * 2)
+        reflectedRayTipY = rayTipY - (dotNormalY * 2)
+        @player_velocity[0] = (reflectedRayTipX * rfx)
+        @player_velocity[2] = (reflectedRayTipY * rfy)
+      else
+        @player_position[0] = nx
+        @player_position[2] = ny
+      end
+    end
+
+    @camera_position[0] += (delta_time * 0.9 * (nx - @camera_position[0]))
+    @camera_position[2] += (delta_time * 0.9 * (ny - (@camera_position[2] + 1.0)))
+
+    @camera_target[0] += (delta_time * 2.0 * (nx - @camera_target[0]))
+    @camera_target[1] = @player_position[1]
+    @camera_target[2] += (delta_time * 2.0 * (ny - @camera_target[2]))
+
+    gl.lookat(1, *@camera_position, *@camera_target, @fovy)
+
+    ((px-@maze_draw_distance)..(px+@maze_draw_distance)).each do |x|
+      ((py-@maze_draw_distance)..(py+@maze_draw_distance)).each do |y|
+        if x>=0 && x<@maze_s && y>=0 && y<@maze_s
+          cell = @maze[x, y]
+          unless cell == 0
+            primary = (cell & Theseus::Maze::PRIMARY)
+            if shape = @shapes[primary]
+              @shapes[primary].deltap(x, 0, y)
+              @shapes[primary].draw(false)
+            end
+          end
+        end
+      end
+    end
+
+    @cube.deltap(*@player_position)
+    @cube.draw(false)
+
+    :keep_running
+  end
 end
 
+Wkndr.camp {}
+
 Wkndr.play { |gl|
-  size = 0.1
+  srand(3)
+
   shapes = {}
   shape_translate_table = {}
-  enforce_bounds = true
 
   16.times { |i|
     ii = begin
@@ -131,304 +371,35 @@ Wkndr.play { |gl|
     end
     
     if ii
-      #ii = 0
       shape_translate_table[i] = ii
       shape_file = "resources/shape-#{ii}.obj"
-      #log!(:shape, shape_file)
       shapes[i] = Model.new(shape_file, "", 1.0)
     end
   }
 
-  srand(3)
-  maze_s = 3 
-  braid = 0
-  weave = 0
-  sparse = 0
-
-  ## generate a 10x10 orthogonal maze and print it to the console
-  maze = Theseus::OrthogonalMaze.generate(:width => maze_s, :height => maze_s, :braid => braid, :weave => weave, :wrap => "xy", :sparse => 100)
-
+  size = 0.1
   cube = Cube.new(size, size, size, 1.0)
 
-  player_position = [0.0,0.125,0.0]
-  player_velocity = [0.0, 0.0, 0.0]
-  camera_position = [0.0, 2.5, 0.0]
-  camera_target = [0.0, 0.0, 0.0]
-
-  top_left_min = [1.1, 1.1]
-  top_left_max = [0.1, 0.1]
-  top_right_min = [-0.1, 1.1]
-  top_right_max = [-1.1, 0.1]
-  bottom_left_min = [1.1, -0.1]
-  bottom_left_max = [0.1, -1.1]
-  bottom_right_min = [-0.1, -0.1]
-  bottom_right_max = [-1.1, -1.1]
-
-  no_left_min = [1.1, 0.1]
-  no_left_max = [0.1, -0.1]
-  no_right_min = [-0.1, 0.1]
-  no_right_max = [-1.1, -0.1]
-  no_up_min = [0.1, 1.1]
-  no_up_max = [-0.1, 0.1]
-  no_down_min = [0.1, -0.1]
-  no_down_max = [-0.1, -1.1]
-
-  # left to right
-  lne_x1 = 0.0
-  lne_y1 = -1.0
-
-  lne_x2 = 0.0
-  lne_y2 = 1.0
-
-  # up to down
-  lin_x1 = -1.0
-  lin_y1 = 0.0
-
-  lin_x2 = 1.0
-  lin_y2 = 0.0
-
-  fovy = 60.0
-  maze_draw_distance = 3
-
-  gl.lookat(1, *camera_position, *camera_target, fovy)
-
-  total_msg = 0
-  player_at_shape = nil
-  at_left_right_limit = nil
-  at_up_down_limit = nil
-  player_min = player_max = [0, 0]
-  allow_up = false
-  allow_down = false
-  allow_left = false
-  allow_right = false
-  bounced = false
-  no_bounce_reset = 0
-
   gl.event { |typed_msg|
-    total_msg += 1
+    #total_msg += 1
   }
+  
+  maze_game = MazeGame.new(cube, shapes, shape_translate_table)
 
   gl.update { |global_time, delta_time|
     gl.drawmode {
       gl.threed {
-        got_lr = got_ud = false
-
-        arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
-        speed = (67.0) * (delta_time * 0.1)
-
-        arrow_keys.each do |arrow_key|
-          case arrow_key
-            when KEY_W
-              player_velocity[2] += speed
-              got_ud = true
-            when KEY_S
-              player_velocity[2] -= speed
-              got_ud = true
-            when KEY_A
-              player_velocity[0] += speed
-              got_lr = true
-            when KEY_D
-              player_velocity[0] -= speed
-              got_lr = true
-          end
-
-          max_v = 5.5
-          if player_velocity[2] > max_v
-            player_velocity[2] = max_v
-          end
-
-          if player_velocity[0] > max_v
-            player_velocity[0] = max_v
-          end
-
-          if player_velocity[0] < -max_v
-            player_velocity[0] = -max_v
-          end
-
-          if player_velocity[2] < -max_v
-            player_velocity[2] = -max_v
-          end
+        case maze_game.update_and_draw_threed(gl, global_time, delta_time)
+          when :restart
+            maze_game = MazeGame.new(cube, shapes, shape_translate_table)
         end
-
-        friction = 4.99
-        player_velocity[0] = player_velocity[0] + (-friction * (player_velocity[0]) * delta_time)
-        player_velocity[2] = player_velocity[2] + (-friction * (player_velocity[2]) * delta_time)
-
-        nx = player_position[0] + (player_velocity[0] * delta_time)
-        ny = player_position[2] + (player_velocity[2] * delta_time)
-
-        px = ((nx - 0).round)
-        py = ((ny - 0).round)
-
-        allow_up = false
-        allow_down = false
-        allow_left = false
-        allow_right = false
-
-        player_at_shape = nil
-
-        if px>=0 && px<maze_s && py>=0 && py<maze_s
-          player_at_shape_cell = maze[px.to_i, py.to_i]
-          player_at_shape = shape_translate_table[(player_at_shape_cell & Theseus::Maze::PRIMARY)]
-        end
-
-        case player_at_shape
-          when 0
-            allow_up = allow_down = allow_left = allow_right = true
-          when 1
-            allow_down = allow_left = allow_right = true
-          when 2
-            allow_up = allow_left = allow_right = true
-          when 3
-            allow_up = allow_down = allow_left = true
-          when 4
-            allow_up = allow_down = allow_right = true
-          when 5
-            allow_right = true
-          when 6
-            allow_left = true
-          when 7
-            allow_up = true
-          when 8
-            allow_down = true
-          when 9
-            allow_down = allow_up = true
-            #includes left right crossing bits
-          when 10
-            allow_left = allow_right = true
-          when 11
-            allow_up = allow_left = true
-          when 12
-            allow_down = allow_left = true
-          when 13
-            allow_down = allow_right = true
-          when 14
-            allow_right = true
-            allow_up = true
-        end
-
-        at_left_right_limit = ((nx - px))
-        at_up_down_limit = ((ny - py))
-
-        player_min = [at_left_right_limit + 0.05, at_up_down_limit + 0.05]
-        player_max = [at_left_right_limit - 0.05, at_up_down_limit - 0.05]
-
-        bounced = false
-        correction = 0
-
-        if ab = Foo.test_aabb(top_left_min, top_left_max, player_min, player_max)
-          bounced = ab[0]
-          correction = ab[1]
-        end
-
-        if ab = Foo.test_aabb(bottom_left_min, bottom_left_max, player_min, player_max)
-          bounced = ab[0]
-          correction = ab[1]
-        end
-
-        if ab = Foo.test_aabb(bottom_right_min, bottom_right_max, player_min, player_max)
-          bounced = ab[0]
-          correction = ab[1]
-        end
-
-        if ab = Foo.test_aabb(top_right_min, top_right_max, player_min, player_max)
-          bounced = ab[0]
-          correction = ab[1]
-        end
-
-        if !allow_left && ab = Foo.test_aabb(no_left_min, no_left_max, player_min, player_max)
-          bounced = ab[0]
-          correction = ab[1]
-        end
-
-        if !allow_right && ab = Foo.test_aabb(no_right_min, no_right_max, player_min, player_max)
-          bounced = ab[0]
-          correction = ab[1]
-        end
-
-        if !allow_up && ab = Foo.test_aabb(no_up_min, no_up_max, player_min, player_max)
-          bounced = ab[0]
-          correction = ab[1]
-        end
-
-        if !allow_down && ab = Foo.test_aabb(no_down_min, no_down_max, player_min, player_max)
-          bounced = ab[0]
-          correction = ab[1]
-        end
-
-        if !player_at_shape
-          player_velocity[0] = 0
-          player_velocity[2] = 0
-        else
-          if bounced
-            line = nil
-            rfx = 1.0
-            rfy = 1.0
-
-            if bounced == :y
-              player_position[0] += (correction * 1.0)
-              line = [lne_x1, lne_y1, lne_x2, lne_y2]
-            end
-
-            if bounced == :x
-              player_position[2] += (correction * 1.0)
-              line = [lin_x1, lin_y1, lin_x2, lin_y2]
-            end
-
-            line_x1, line_y1, line_x2, line_y2 = line
-
-            normalY = line_x2 - line_x1
-            normalX = line_y1 - line_y2
-            normalLength = Math.sqrt(normalX * normalX + normalY * normalY)
-            normalX = normalX / normalLength
-            normalY = normalY / normalLength
-            rayTipX = player_velocity[0]
-            rayTipY = player_velocity[2]
-            rayX = rayTipX
-            rayY = rayTipY 
-            dotProduct = (rayX * normalX) + (rayY * normalY)
-            dotNormalX = dotProduct * normalX
-            dotNormalY = dotProduct * normalY
-            reflectedRayTipX = rayTipX - (dotNormalX * 2)
-            reflectedRayTipY = rayTipY - (dotNormalY * 2)
-            player_velocity[0] = (reflectedRayTipX * rfx)
-            player_velocity[2] = (reflectedRayTipY * rfy)
-          else
-            player_position[0] = nx
-            player_position[2] = ny
-          end
-        end
-
-        camera_position[0] += (delta_time * 0.9 * (nx - camera_position[0]))
-        camera_position[2] += (delta_time * 0.9 * (ny - (camera_position[2] + 1.0)))
-
-        camera_target[0] += (delta_time * 2.0 * (nx - camera_target[0]))
-        camera_target[1] = player_position[1]
-        camera_target[2] += (delta_time * 2.0 * (ny - camera_target[2]))
-
-        gl.lookat(1, *camera_position, *camera_target, fovy)
-
-        ((px-maze_draw_distance)..(px+maze_draw_distance)).each do |x|
-          ((py-maze_draw_distance)..(py+maze_draw_distance)).each do |y|
-            if x>=0 && x<maze_s && y>=0 && y<maze_s
-              cell = maze[x, y]
-              unless cell == 0
-                primary = (cell & Theseus::Maze::PRIMARY)
-                if shape = shapes[primary]
-                  shapes[primary].deltap(x, 0, y)
-                  shapes[primary].draw(false)
-                end
-              end
-            end
-          end
-        end
-
-        cube.deltap(player_position[0], player_position[1], player_position[2])
-        cube.draw(false)
       }
 
       gl.twod {
-        gl.draw_fps(0, 0)
+        #maze_game.update_and_draw_twod(glm global_time, delta_time)
+
+        #gl.button(50.0, 50.0, 250.0, 20.0, "maze #{px} #{py} #{player_at_shape}") {
+        #}
 
         #gl.button(50.0, 50.0, 250.0, 20.0, "maze") {
         #  gl.emit({"x" => "y"})
@@ -475,5 +446,3 @@ Wkndr.play { |gl|
     }
   }
 }
-
-end
