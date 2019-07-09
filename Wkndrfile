@@ -34,25 +34,52 @@ class MazeGame
     end
   end
 
-  def initialize(cube, shapes, shape_translate_table)
+  def initialize(cube, shapes, shape_translate_table, maze_size)
+    @at_exit_time = 0.0
+
     @cube = cube
     @shapes = shapes
     @shape_translate_table = shape_translate_table
 
     @enforce_bounds = true
 
-    @maze_s = 8
+    @maze_s = (maze_size + 1) * (maze_size + 1)
 
-    braid = 50
-    weave = 50
-    sparse = 50
+    braid = 57
+    weave = 0 #TODO
+    sparse = 3
+    randomness = 71
+
+    #TODO:
+    #@exit = [(rand * @maze_s).to_i, (rand * @maze_s).to_i]
+    #log!(:exit, @exit)
 
     ## generate a 10x10 orthogonal maze and print it to the console
-    @maze = Theseus::OrthogonalMaze.generate(:width => @maze_s, :height => @maze_s, :braid => braid, :weave => weave, :wrap => "xy", :sparse => sparse)
+    @maze = Theseus::OrthogonalMaze.generate({
+      :wrap => "xy",
+      :width => @maze_s,
+      :height => @maze_s,
+      :braid => braid,
+      :weave => weave,
+      :sparse => sparse,
+      :randomness => randomness,
+      :exit => @exit
+    })
+
+    #enter_at = [0, 0]
+    #exit_at = [0,1]
+
+    #if enter_at[0] > 0 && enter_at[0] < @maze_s*2
+    #  exit_at = [enter_at[0]+1, enter_at[1]]
+    #else
+    #  exit_at = [enter_at[0], enter_at[1]+1]
+    #end
+    #@maze = @maze.to_unicursal(entrance: enter_at, exit: exit_at)
+    #@maze_s *= 2
 
     @player_position = [0.0,0.125,0.0]
     @player_velocity = [0.0, 0.0, 0.0]
-    @camera_position = [0.0, 2.33, 0.0]
+    @camera_position = [0.0, 1.5, 0.0]
     @camera_target = [0.0, 0.0, 0.0]
 
     @top_left_min = [1.1, 1.1]
@@ -87,8 +114,10 @@ class MazeGame
     @lin_x2 = 1.0
     @lin_y2 = 0.0
 
-    @fovy = 50.0
+    @fovy = 42.0
     @maze_draw_distance = 2
+
+    @cool_down = [0, 0]
   end
 
   def update_and_draw_threed(gl, global_time, delta_time)
@@ -111,25 +140,33 @@ class MazeGame
     allow_right = false
 
     arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
-    speed = (67.0) * (delta_time * 0.1)
+    speed = (53.0) * (delta_time * 0.1)
 
     arrow_keys.each do |arrow_key|
       case arrow_key
         when KEY_W
-          @player_velocity[2] += speed
-          got_ud = true
+          if @cool_down[1] > 0.03
+            @player_velocity[2] += speed
+            got_ud = true
+          end
         when KEY_S
-          @player_velocity[2] -= speed
-          got_ud = true
+          if @cool_down[1] > 0.03
+            @player_velocity[2] -= speed
+            got_ud = true
+          end
         when KEY_A
-          @player_velocity[0] += speed
-          got_lr = true
+          if @cool_down[0] > 0.03
+            @player_velocity[0] += speed
+            got_lr = true
+          end
         when KEY_D
-          @player_velocity[0] -= speed
-          got_lr = true
+          if @cool_down[0] > 0.03
+            @player_velocity[0] -= speed
+            got_lr = true
+          end
       end
 
-      max_v = 5.5
+      max_v = 7.33
       if @player_velocity[2] > max_v
         @player_velocity[2] = max_v
       end
@@ -147,7 +184,7 @@ class MazeGame
       end
     end
 
-    friction = 4.99
+    friction = 4.5
     @player_velocity[0] = @player_velocity[0] + (-friction * (@player_velocity[0]) * delta_time)
     @player_velocity[2] = @player_velocity[2] + (-friction * (@player_velocity[2]) * delta_time)
 
@@ -246,13 +283,19 @@ class MazeGame
       correction = ab[1]
     end
 
-    if !player_at_shape
-      @player_velocity[0] = 0
-      @player_velocity[2] = 0
+    if @maze.exit == [px, py]
+      @at_exit_time += delta_time
 
-      if px != 0 && py != 0
+      if @at_exit_time > 0.125
         return :restart
       end
+    else
+      @at_exit_time = 0.0
+    end
+
+    if !player_at_shape 
+      @player_velocity[0] = 0
+      @player_velocity[2] = 0
     else
       if bounced
         line = nil
@@ -260,11 +303,13 @@ class MazeGame
         rfy = 1.0
 
         if bounced == :y
+          @cool_down[0] = 0.0
           @player_position[0] += (correction * 1.0)
           line = [@lne_x1, @lne_y1, @lne_x2, @lne_y2]
         end
 
         if bounced == :x
+          @cool_down[1] = 0.0
           @player_position[2] += (correction * 1.0)
           line = [@lin_x1, @lin_y1, @lin_x2, @lin_y2]
         end
@@ -288,17 +333,20 @@ class MazeGame
         @player_velocity[0] = (reflectedRayTipX * rfx)
         @player_velocity[2] = (reflectedRayTipY * rfy)
       else
+        @cool_down[0] += delta_time
+        @cool_down[1] += delta_time
+
         @player_position[0] = nx
         @player_position[2] = ny
       end
     end
 
-    @camera_position[0] += (delta_time * 0.9 * (nx - @camera_position[0]))
-    @camera_position[2] += (delta_time * 0.9 * (ny - (@camera_position[2] + 1.0)))
+    @camera_position[0] += (delta_time * 1.33 * (nx - @camera_position[0]))
+    @camera_position[2] += (delta_time * 1.33 * (ny - (@camera_position[2] + 1.0)))
 
-    @camera_target[0] += (delta_time * 2.0 * (nx - @camera_target[0]))
+    @camera_target[0] += (delta_time * 3.33 * (nx - @camera_target[0]))
     @camera_target[1] = @player_position[1]
-    @camera_target[2] += (delta_time * 2.0 * (ny - @camera_target[2]))
+    @camera_target[2] += (delta_time * 3.33 * (ny - @camera_target[2]))
 
     gl.lookat(1, *@camera_position, *@camera_target, @fovy)
 
@@ -309,8 +357,8 @@ class MazeGame
           unless cell == 0
             primary = (cell & Theseus::Maze::PRIMARY)
             if shape = @shapes[primary]
-              @shapes[primary].deltap(x, 0, y)
-              @shapes[primary].draw(false)
+              shape.deltap(x, 0, y)
+              shape.draw(false)
             end
           end
         end
@@ -327,7 +375,7 @@ end
 Wkndr.camp {}
 
 Wkndr.play { |gl|
-  srand(3)
+  srand(7)
 
   shapes = {}
   shape_translate_table = {}
@@ -383,15 +431,16 @@ Wkndr.play { |gl|
   gl.event { |typed_msg|
     #total_msg += 1
   }
-  
-  maze_game = MazeGame.new(cube, shapes, shape_translate_table)
+
+  maze_level = 0
+  maze_game = MazeGame.new(cube, shapes, shape_translate_table, maze_level += 1)
 
   gl.update { |global_time, delta_time|
     gl.drawmode {
       gl.threed {
         case maze_game.update_and_draw_threed(gl, global_time, delta_time)
           when :restart
-            maze_game = MazeGame.new(cube, shapes, shape_translate_table)
+            maze_game = MazeGame.new(cube, shapes, shape_translate_table, maze_level += 1)
         end
       }
 
