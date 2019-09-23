@@ -166,27 +166,28 @@ class MazeGame
           #end
       end
 
-      #max_v = 7.33
-      #if @player_velocity[2] > max_v
-      #  @player_velocity[2] = max_v
-      #end
-
-      #if @player_velocity[0] > max_v
-      #  @player_velocity[0] = max_v
-      #end
-
-      #if @player_velocity[0] < -max_v
-      #  @player_velocity[0] = -max_v
-      #end
-
-      #if @player_velocity[2] < -max_v
-      #  @player_velocity[2] = -max_v
-      #end
     end
 
-    friction = 4.5
+    friction = 0.5
     @player_velocity[0] = @player_velocity[0] + (-friction * (@player_velocity[0]) * delta_time)
     @player_velocity[2] = @player_velocity[2] + (-friction * (@player_velocity[2]) * delta_time)
+
+      max_v = 1.33
+      if @player_velocity[2] > max_v
+        @player_velocity[2] = max_v
+      end
+
+      if @player_velocity[0] > max_v
+        @player_velocity[0] = max_v
+      end
+
+      if @player_velocity[0] < -max_v
+        @player_velocity[0] = -max_v
+      end
+
+      if @player_velocity[2] < -max_v
+        @player_velocity[2] = -max_v
+      end
 
     nx = @player_position[0] + (@player_velocity[0] * delta_time)
     ny = @player_position[2] + (@player_velocity[2] * delta_time)
