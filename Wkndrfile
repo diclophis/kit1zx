@@ -145,43 +145,43 @@ class MazeGame
     arrow_keys.each do |arrow_key|
       case arrow_key
         when KEY_W
-          if @cool_down[1] > 0.03
+          #if @cool_down[1] > 0.03
             @player_velocity[2] += speed
             got_ud = true
-          end
+          #end
         when KEY_S
-          if @cool_down[1] > 0.03
+          #if @cool_down[1] > 0.03
             @player_velocity[2] -= speed
             got_ud = true
-          end
+          #end
         when KEY_A
-          if @cool_down[0] > 0.03
+          #if @cool_down[0] > 0.03
             @player_velocity[0] += speed
             got_lr = true
-          end
+          #end
         when KEY_D
-          if @cool_down[0] > 0.03
+          #if @cool_down[0] > 0.03
             @player_velocity[0] -= speed
             got_lr = true
-          end
+          #end
       end
 
-      max_v = 7.33
-      if @player_velocity[2] > max_v
-        @player_velocity[2] = max_v
-      end
+      #max_v = 7.33
+      #if @player_velocity[2] > max_v
+      #  @player_velocity[2] = max_v
+      #end
 
-      if @player_velocity[0] > max_v
-        @player_velocity[0] = max_v
-      end
+      #if @player_velocity[0] > max_v
+      #  @player_velocity[0] = max_v
+      #end
 
-      if @player_velocity[0] < -max_v
-        @player_velocity[0] = -max_v
-      end
+      #if @player_velocity[0] < -max_v
+      #  @player_velocity[0] = -max_v
+      #end
 
-      if @player_velocity[2] < -max_v
-        @player_velocity[2] = -max_v
-      end
+      #if @player_velocity[2] < -max_v
+      #  @player_velocity[2] = -max_v
+      #end
     end
 
     friction = 4.5
@@ -303,13 +303,13 @@ class MazeGame
         rfy = 1.0
 
         if bounced == :y
-          @cool_down[0] = 0.0
+          #@cool_down[0] = 0.0
           @player_position[0] += (correction * 1.0)
           line = [@lne_x1, @lne_y1, @lne_x2, @lne_y2]
         end
 
         if bounced == :x
-          @cool_down[1] = 0.0
+          #@cool_down[1] = 0.0
           @player_position[2] += (correction * 1.0)
           line = [@lin_x1, @lin_y1, @lin_x2, @lin_y2]
         end
@@ -333,8 +333,8 @@ class MazeGame
         @player_velocity[0] = (reflectedRayTipX * rfx)
         @player_velocity[2] = (reflectedRayTipY * rfy)
       else
-        @cool_down[0] += delta_time
-        @cool_down[1] += delta_time
+        #@cool_down[0] += delta_time
+        #@cool_down[1] += delta_time
 
         @player_position[0] = nx
         @player_position[2] = ny
