@@ -79,7 +79,7 @@ class MazeGame
 
     @player_position = [0.0,0.125,0.0]
     @player_velocity = [0.0, 0.0, 0.0]
-    @camera_position = [0.0, 1.5, 0.0]
+    @camera_position = [0.0, 1.0, 0.0]
     @camera_target = [0.0, 0.0, 0.0]
 
     @top_left_min = [1.1, 1.1]
@@ -168,7 +168,7 @@ class MazeGame
 
     end
 
-    friction = 0.5
+    friction = 5.0
     @player_velocity[0] = @player_velocity[0] + (-friction * (@player_velocity[0]) * delta_time)
     @player_velocity[2] = @player_velocity[2] + (-friction * (@player_velocity[2]) * delta_time)
 
@@ -366,6 +366,7 @@ class MazeGame
       end
     end
 
+    @cube.deltar(0.0, 1.0, 0.0, (Math.atan2(@player_velocity[0], @player_velocity[2]) * (180.0/3.14)) + 0.0)
     @cube.deltap(*@player_position)
     @cube.draw(false)
 
@@ -427,7 +428,10 @@ Wkndr.play { |gl|
   }
 
   size = 0.1
-  cube = Cube.new(size, size, size, 1.0)
+  #cube = Cube.new(size, size, size, 1.0)
+
+  chicken_file = "resources/ayam4.obj"
+  cube = Model.new(chicken_file, "", 0.1)
 
   gl.event { |typed_msg|
     #total_msg += 1
@@ -496,3 +500,23 @@ Wkndr.play { |gl|
     }
   }
 }
+
+#Wkndr.camp {}
+#
+#Wkndr.play { |gl|
+#  chicken_file = "resources/ayam.obj"
+#  chicken = Model.new(chicken_file, "", 1.0)
+#
+#  size = 0.5
+#  cube = Cube.new(size, size, size, 1.0)
+#
+#  gl.update { |global_time, delta_time|
+#    gl.drawmode {
+#      gl.threed {
+#        gl.lookat(1, 1, 1, 1, 0, 0, 0, 60)
+#        cube.draw(false)
+#        chicken.draw(false)
+#      }
+#    }
+#  }
+#}
