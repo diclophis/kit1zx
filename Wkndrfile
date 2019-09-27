@@ -77,9 +77,11 @@ class MazeGame
     #@maze = @maze.to_unicursal(entrance: enter_at, exit: exit_at)
     #@maze_s *= 2
 
-    @player_position = [0.0,0.125,0.0]
+    @floor_position = 0.125
+
+    @player_position = [0.0,@floor_position,0.0]
     @player_velocity = [0.0, 0.0, 0.0]
-    @camera_position = [0.0, 1.0, 0.0]
+    @camera_position = [0.5, 1.0, -1.5]
     @camera_target = [0.0, 0.0, 0.0]
 
     @top_left_min = [1.1, 1.1]
@@ -117,7 +119,9 @@ class MazeGame
     @fovy = 42.0
     @maze_draw_distance = 2
 
-    @cool_down = [0, 0]
+    @cool_down = [99, 99]
+
+    @time_since_last_hop = 99
   end
 
   def update_and_draw_threed(gl, global_time, delta_time)
@@ -140,39 +144,56 @@ class MazeGame
     allow_right = false
 
     arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
-    speed = (53.0) * (delta_time * 0.1)
+    speed = 2.0 * delta_time
+    friction_x = 13.0 #10.1 * @player_velocity[0]
+    friction_y = 13.0 #10.1 * @player_velocity[2]
+    max_v = 1.5
+    rfx = 1.0
+    rfy = 1.0
+    cool_down_t = 0.125
+    gravity = 12.0
+    hop_timeout = 0.3
+    hop_ratio = (@player_velocity[0].abs) + (@player_velocity[2].abs)
+    hop_speed = (0.3) + (Math.sqrt(hop_ratio) * 1.0)
+    did_hop = false
 
-    arrow_keys.each do |arrow_key|
-      case arrow_key
-        when KEY_W
-          #if @cool_down[1] > 0.03
-            @player_velocity[2] += speed
-            got_ud = true
-          #end
-        when KEY_S
-          #if @cool_down[1] > 0.03
-            @player_velocity[2] -= speed
-            got_ud = true
-          #end
-        when KEY_A
-          #if @cool_down[0] > 0.03
-            @player_velocity[0] += speed
-            got_lr = true
-          #end
-        when KEY_D
-          #if @cool_down[0] > 0.03
-            @player_velocity[0] -= speed
-            got_lr = true
-          #end
+    if @time_since_last_hop > hop_timeout
+      @time_since_last_hop = 0
+      @player_velocity[1] = hop_speed
+      did_hop = true
+      speed = speed * 15.0
+    end 
+
+      arrow_keys.each do |arrow_key|
+        case arrow_key
+          when KEY_W
+            if @cool_down[1] > cool_down_t
+              @player_velocity[2] += speed
+              got_ud = true
+            end
+          when KEY_S
+            if @cool_down[1] > cool_down_t
+              @player_velocity[2] -= speed
+              got_ud = true
+            end
+          when KEY_A
+            if @cool_down[0] > cool_down_t
+              @player_velocity[0] += speed
+              got_lr = true
+            end
+          when KEY_D
+            if @cool_down[0] > cool_down_t
+              @player_velocity[0] -= speed
+              got_lr = true
+            end
+        end
       end
 
-    end
+    #if arrow_keys.count == 0
+    #  @player_velocity[0] = 0
+    #  @player_velocity[2] = 0
+    #end
 
-    friction = 5.0
-    @player_velocity[0] = @player_velocity[0] + (-friction * (@player_velocity[0]) * delta_time)
-    @player_velocity[2] = @player_velocity[2] + (-friction * (@player_velocity[2]) * delta_time)
-
-      max_v = 1.33
       if @player_velocity[2] > max_v
         @player_velocity[2] = max_v
       end
@@ -188,6 +209,26 @@ class MazeGame
       if @player_velocity[2] < -max_v
         @player_velocity[2] = -max_v
       end
+
+
+    #if @player_position[1] > (@floor_position)
+    #  friction_x = 0
+    #  friction_y = 0
+
+    #  @player_velocity[0] = @player_velocity[0] + (-friction_x * (@player_velocity[0]) * delta_time)
+    #  @player_velocity[2] = @player_velocity[2] + (-friction_y * (@player_velocity[2]) * delta_time)
+
+    #  nx = @player_position[0] + (@player_velocity[0] * delta_time)
+    #  ny = @player_position[2] + (@player_velocity[2] * delta_time)
+    #else
+    #  #@player_velocity[0] = (-friction_x * (@player_velocity[0]) * delta_time)
+    #  #@player_velocity[2] = (-friction_y * (@player_velocity[2]) * delta_time)
+
+    #  nx = @player_position[0] + (@player_velocity[0] * delta_time)
+    #  ny = @player_position[2] + (@player_velocity[2] * delta_time)
+    #  #nx = @player_position[0]
+    #  #ny = @player_position[2]
+    #end
 
     nx = @player_position[0] + (@player_velocity[0] * delta_time)
     ny = @player_position[2] + (@player_velocity[2] * delta_time)
@@ -300,18 +341,16 @@ class MazeGame
     else
       if bounced
         line = nil
-        rfx = 1.0
-        rfy = 1.0
 
         if bounced == :y
-          #@cool_down[0] = 0.0
-          @player_position[0] += (correction * 1.0)
+          @cool_down[0] = 0.0
+          @player_position[0] += (correction * 2.0)
           line = [@lne_x1, @lne_y1, @lne_x2, @lne_y2]
         end
 
         if bounced == :x
-          #@cool_down[1] = 0.0
-          @player_position[2] += (correction * 1.0)
+          @cool_down[1] = 0.0
+          @player_position[2] += (correction * 2.0)
           line = [@lin_x1, @lin_y1, @lin_x2, @lin_y2]
         end
 
@@ -334,19 +373,34 @@ class MazeGame
         @player_velocity[0] = (reflectedRayTipX * rfx)
         @player_velocity[2] = (reflectedRayTipY * rfy)
       else
-        #@cool_down[0] += delta_time
-        #@cool_down[1] += delta_time
+        @cool_down[0] += delta_time
+        @cool_down[1] += delta_time
 
         @player_position[0] = nx
         @player_position[2] = ny
       end
     end
 
+    @time_since_last_hop += delta_time
+
+    @player_velocity[1] -= gravity * delta_time
+
+    @player_position[1] += @player_velocity[1] * delta_time
+
+    if @player_position[1] <= @floor_position
+      @player_velocity[1] = 0
+      @player_position[1] = @floor_position
+      @player_velocity[0] = @player_velocity[0] + (-friction_x * (@player_velocity[0]) * delta_time)
+      @player_velocity[2] = @player_velocity[2] + (-friction_y * (@player_velocity[2]) * delta_time)
+    end
+
     @camera_position[0] += (delta_time * 1.33 * (nx - @camera_position[0]))
     @camera_position[2] += (delta_time * 1.33 * (ny - (@camera_position[2] + 1.0)))
 
     @camera_target[0] += (delta_time * 3.33 * (nx - @camera_target[0]))
-    @camera_target[1] = @player_position[1]
+    #@camera_target[0] = @player_position[0]
+    #@camera_target[1] = @player_position[1]
+    #@camera_target[2] = @player_position[2]
     @camera_target[2] += (delta_time * 3.33 * (ny - @camera_target[2]))
 
     gl.lookat(1, *@camera_position, *@camera_target, @fovy)
