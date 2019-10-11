@@ -122,6 +122,7 @@ class MazeGame
     @cool_down = [99, 99]
 
     @time_since_last_hop = 99
+    @time_since_last_input = [99, 99]
   end
 
   def update_and_draw_threed(gl, global_time, delta_time)
@@ -168,26 +169,33 @@ class MazeGame
         case arrow_key
           when KEY_W
             if @cool_down[1] > cool_down_t
+              @time_since_last_input[1] = 0
               @player_velocity[2] += speed
               got_ud = true
             end
           when KEY_S
             if @cool_down[1] > cool_down_t
+              @time_since_last_input[1] = 0
               @player_velocity[2] -= speed
               got_ud = true
             end
           when KEY_A
             if @cool_down[0] > cool_down_t
+              @time_since_last_input[0] = 0
               @player_velocity[0] += speed
               got_lr = true
             end
           when KEY_D
             if @cool_down[0] > cool_down_t
+              @time_since_last_input[0] = 0
               @player_velocity[0] -= speed
               got_lr = true
             end
         end
       end
+
+      @time_since_last_input[0] += delta_time
+      @time_since_last_input[1] += delta_time
 
     #if arrow_keys.count == 0
     #  @player_velocity[0] = 0
@@ -390,8 +398,20 @@ class MazeGame
     if @player_position[1] <= @floor_position
       @player_velocity[1] = 0
       @player_position[1] = @floor_position
-      @player_velocity[0] = @player_velocity[0] + (-friction_x * (@player_velocity[0]) * delta_time)
-      @player_velocity[2] = @player_velocity[2] + (-friction_y * (@player_velocity[2]) * delta_time)
+
+      b = @player_velocity[0]
+      d = 1.0
+      c = friction_x
+      t = @time_since_last_input[0]
+
+#// quadratic easing in - accelerating from zero velocity
+#// t: current time, b: beginning value, c: change in value, d: duration
+#// t and d can be in frames or seconds/milliseconds
+
+      @player_velocity[0] = (-c * (t /= d) * (t - 2) + b)
+
+      #@player_velocity[0] = @player_velocity[0] + (-friction_x * (@player_velocity[0]) * delta_time)
+      #@player_velocity[2] = @player_velocity[2] + (-friction_y * (@player_velocity[2]) * delta_time)
     end
 
     @camera_position[0] += (delta_time * 1.33 * (nx - @camera_position[0]))
@@ -404,6 +424,8 @@ class MazeGame
     @camera_target[2] += (delta_time * 3.33 * (ny - @camera_target[2]))
 
     gl.lookat(1, *@camera_position, *@camera_target, @fovy)
+
+    log!(:veloc, @player_velocity)
 
     ((px-@maze_draw_distance)..(px+@maze_draw_distance)).each do |x|
       ((py-@maze_draw_distance)..(py+@maze_draw_distance)).each do |y|
