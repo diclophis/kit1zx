@@ -213,10 +213,10 @@ class MazeGame
     allow_right = false
 
     arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
-    speed = 4.0 * delta_time
-    friction_x = 5.0 #10.1 * @player_velocity[0]
-    friction_y = 5.0 #10.1 * @player_velocity[2]
-    max_v = 1.5
+    speed = 5.0 * delta_time
+    friction_x = speed * 1.1 #.5 * delta_time
+    friction_y = speed * 1.0 #4.5 * delta_time
+    max_v = 0.5
     rfx = 1.0
     rfy = 1.0
     cool_down_t = 0.125
@@ -290,6 +290,11 @@ class MazeGame
     #if @player_position[1] > (@floor_position)
     #  friction_x = 0
     #  friction_y = 0
+
+    if got_lr || got_ud
+      friction_x *= 0.9
+      friction_y *= 0.9
+    end
 
     @player_velocity[0] = @player_velocity[0] + (-friction_x * (@player_velocity[0]) * delta_time)
     @player_velocity[2] = @player_velocity[2] + (-friction_y * (@player_velocity[2]) * delta_time)
@@ -531,6 +536,15 @@ Wkndr.nonce {
 
     @start_game_proc.call
   }
+}
+
+Wkndr.server_side { |server|
+  server.wsb("/") do |cn, phr|
+  end
+
+  server.raw("/status") do |cn, phr|
+    "OK\n"
+  end
 }
 
 Wkndr.client_side { |gl|

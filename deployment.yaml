@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chicken-maze
+  labels:
+    app: chicken-maze
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chicken-maze
+  template:
+    metadata:
+      labels:
+        app: chicken-maze
+    spec:
+      volumes: []
+      containers:
+      - name: main
+        image: chicken-maze.run:latest
+        imagePullPolicy: IfNotPresent
+        command: ["/var/lib/wkndr/release/wkndr.mruby", "--server=/var/lib/wkndr/public", "--no-client"]
+        ports:
+        - containerPort: 8000
+        resources:
+          limits:
+            memory: 100M
+            cpu: 200m
+          requests:
+            memory: 100M
+            cpu: 100m
+        volumeMounts: []
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chicken-maze-service
+spec:
+  type: NodePort
+  selector:
+    app: chicken-maze
+  ports:
+  - protocol: TCP
+    name: app
+    port: 8000
+    nodePort: 32641
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: chicken-maze-vhost
+  annotations:
+    ingress.class: wkndr
+spec:
+  rules:
+  - host: maze.bardin.haus
+    http:
+      paths:
+      - backend:
+          serviceName: chicken-maze-service
+          servicePort: 8000
