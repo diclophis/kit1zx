@@ -19,6 +19,7 @@ MESHLAB=meshlabserver
 FILTERS=color-4.mlx
 
 THIS_WORKING_DIR="" #`pwd`
+#THIS_WORKING_DIR=`pwd`
 
 rm resources/shape* || true
 
@@ -55,7 +56,6 @@ do
   rm resources/shape-${I}-mid.obj*
 
   (test -e resources/shape-null_tex.png && cp resources/shape-null_tex.png resources/shape-${I}_tex.png) || true
-
 
   sed -i -e "s~mtllib\ \./~mtllib\ $THIS_WORKING_DIR/resources/~" resources/shape-${I}.obj
   sed -i -e "s~map_Kd\ ~map_Kd\ $THIS_WORKING_DIR/resources/~" resources/shape-${I}.obj.mtl

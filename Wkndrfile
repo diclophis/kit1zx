@@ -48,12 +48,66 @@ class MazeGame
     end
   end
 
-  def initialize(cube, shapes, shape_translate_table, maze_size)
+  def initialize(maze_size)
+    @shapes = {}
+    @shape_translate_table = {}
+
+    16.times { |i|
+      ii = begin
+        case i
+          when 1
+            8
+          when 2
+            7
+          when 3
+            9
+          when 4
+            6
+          when 5
+            12
+          when 6
+            11
+          when 7
+            3
+          when 8
+            5
+          when 9
+            13
+          when 10
+            14
+          when 11
+            4
+          when 12
+            10
+          when 13
+            1
+          when 14
+            2
+          when 15
+            0
+        else
+          nil
+        end
+      end
+
+      if ii
+        @shape_translate_table[i] = ii
+        shape_file = "resources/shape-#{ii}.obj"
+        @shapes[i] = Model.new(shape_file, "", 1.0)
+      end
+    }
+
+    #size = 0.1
+    #cube = Cube.new(size, size, size, 1.0)
+
+    chicken_file = "resources/ayam4.obj"
+    @cube = Model.new(chicken_file, "", 0.1)
     @at_exit_time = 0.0
 
-    @cube = cube
-    @shapes = shapes
-    @shape_translate_table = shape_translate_table
+
+    #@cube = cube
+    #@shapes = shapes
+    #@shape_translate_table = shape_translate_table
 
     @enforce_bounds = true
 
@@ -141,274 +195,277 @@ class MazeGame
 
   def update_and_draw_threed(gl, global_time, delta_time)
     px = py = nx = ny = 0
-#    got_lr = got_ud = false
-#    player_at_shape = nil
-#    at_left_right_limit = nil
-#    at_up_down_limit = nil
-#    player_min = player_max = [0, 0]
-#    allow_up = false
-#    allow_down = false
-#    allow_left = false
-#    allow_right = false
-#    bounced = false
-#    no_bounce_reset = 0
-#
-#    allow_up = false
-#    allow_down = false
-#    allow_left = false
-#    allow_right = false
-#
-#    arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
-#    speed = 2.0 * delta_time
-#    friction_x = 13.0 #10.1 * @player_velocity[0]
-#    friction_y = 13.0 #10.1 * @player_velocity[2]
-#    max_v = 1.5
-#    rfx = 1.0
-#    rfy = 1.0
-#    cool_down_t = 0.125
-#    gravity = 12.0
-#    hop_timeout = 0.3
-#    hop_ratio = (@player_velocity[0].abs) + (@player_velocity[2].abs)
-#    hop_speed = (0.3) + (Math.sqrt(hop_ratio) * 1.0)
-#    did_hop = false
-#
-#    if @time_since_last_hop > hop_timeout
-#      @time_since_last_hop = 0
-#      @player_velocity[1] = hop_speed
-#      did_hop = true
-#      speed = speed * 15.0
-#    end 
-#
-#      arrow_keys.each do |arrow_key|
-#        case arrow_key
-#          when KEY_W
-#            if @cool_down[1] > cool_down_t
-#              @time_since_last_input[1] = 0
-#              @player_velocity[2] += speed
-#              got_ud = true
-#            end
-#          when KEY_S
-#            if @cool_down[1] > cool_down_t
-#              @time_since_last_input[1] = 0
-#              @player_velocity[2] -= speed
-#              got_ud = true
-#            end
-#          when KEY_A
-#            if @cool_down[0] > cool_down_t
-#              @time_since_last_input[0] = 0
-#              @player_velocity[0] += speed
-#              got_lr = true
-#            end
-#          when KEY_D
-#            if @cool_down[0] > cool_down_t
-#              @time_since_last_input[0] = 0
-#              @player_velocity[0] -= speed
-#              got_lr = true
-#            end
-#        end
-#      end
-#
-#      @time_since_last_input[0] += delta_time
-#      @time_since_last_input[1] += delta_time
-#
-#    #if arrow_keys.count == 0
-#    #  @player_velocity[0] = 0
-#    #  @player_velocity[2] = 0
-#    #end
-#
-#      if @player_velocity[2] > max_v
-#        @player_velocity[2] = max_v
-#      end
-#
-#      if @player_velocity[0] > max_v
-#        @player_velocity[0] = max_v
-#      end
-#
-#      if @player_velocity[0] < -max_v
-#        @player_velocity[0] = -max_v
-#      end
-#
-#      if @player_velocity[2] < -max_v
-#        @player_velocity[2] = -max_v
-#      end
-#
-#
-#    #if @player_position[1] > (@floor_position)
-#    #  friction_x = 0
-#    #  friction_y = 0
-#
-#    #  @player_velocity[0] = @player_velocity[0] + (-friction_x * (@player_velocity[0]) * delta_time)
-#    #  @player_velocity[2] = @player_velocity[2] + (-friction_y * (@player_velocity[2]) * delta_time)
-#
-#    #  nx = @player_position[0] + (@player_velocity[0] * delta_time)
-#    #  ny = @player_position[2] + (@player_velocity[2] * delta_time)
-#    #else
-#    #  #@player_velocity[0] = (-friction_x * (@player_velocity[0]) * delta_time)
-#    #  #@player_velocity[2] = (-friction_y * (@player_velocity[2]) * delta_time)
-#
-#    #  nx = @player_position[0] + (@player_velocity[0] * delta_time)
-#    #  ny = @player_position[2] + (@player_velocity[2] * delta_time)
-#    #  #nx = @player_position[0]
-#    #  #ny = @player_position[2]
-#    #end
-#
-#    nx = @player_position[0] + (@player_velocity[0] * delta_time)
-#    ny = @player_position[2] + (@player_velocity[2] * delta_time)
-#
-#    px = ((nx - 0).round)
-#    py = ((ny - 0).round)
-#
-#    if px >= 0 && px < @maze_s && py >= 0 && py < @maze_s
-#      player_at_shape_cell = @maze[px.to_i, py.to_i]
-#      player_at_shape = @shape_translate_table[(player_at_shape_cell & Theseus::Maze::PRIMARY)]
-#    end
-#
-#    case player_at_shape
-#      when 0
-#        allow_up = allow_down = allow_left = allow_right = true
-#      when 1
-#        allow_down = allow_left = allow_right = true
-#      when 2
-#        allow_up = allow_left = allow_right = true
-#      when 3
-#        allow_up = allow_down = allow_left = true
-#      when 4
-#        allow_up = allow_down = allow_right = true
-#      when 5
-#        allow_right = true
-#      when 6
-#        allow_left = true
-#      when 7
-#        allow_up = true
-#      when 8
-#        allow_down = true
-#      when 9
-#        allow_down = allow_up = true
-#        #includes left right crossing bits
-#      when 10
-#        allow_left = allow_right = true
-#      when 11
-#        allow_up = allow_left = true
-#      when 12
-#        allow_down = allow_left = true
-#      when 13
-#        allow_down = allow_right = true
-#      when 14
-#        allow_right = true
-#        allow_up = true
-#    end
-#
-#    at_left_right_limit = ((nx - px))
-#    at_up_down_limit = ((ny - py))
-#
-#    player_min = [at_left_right_limit + 0.05, at_up_down_limit + 0.05]
-#    player_max = [at_left_right_limit - 0.05, at_up_down_limit - 0.05]
-#
-#    bounced = false
-#    correction = 0
-#
-#    if ab = test_aabb(@top_left_min, @top_left_max, player_min, player_max)
-#      bounced = ab[0]
-#      correction = ab[1]
-#    end
-#
-#    if ab = test_aabb(@bottom_left_min, @bottom_left_max, player_min, player_max)
-#      bounced = ab[0]
-#      correction = ab[1]
-#    end
-#
-#    if ab = test_aabb(@bottom_right_min, @bottom_right_max, player_min, player_max)
-#      bounced = ab[0]
-#      correction = ab[1]
-#    end
-#
-#    if ab = test_aabb(@top_right_min, @top_right_max, player_min, player_max)
-#      bounced = ab[0]
-#      correction = ab[1]
-#    end
-#
-#    if !allow_left && ab = test_aabb(@no_left_min, @no_left_max, player_min, player_max)
-#      bounced = ab[0]
-#      correction = ab[1]
-#    end
-#
-#    if !allow_right && ab = test_aabb(@no_right_min, @no_right_max, player_min, player_max)
-#      bounced = ab[0]
-#      correction = ab[1]
-#    end
-#
-#    if !allow_up && ab = test_aabb(@no_up_min, @no_up_max, player_min, player_max)
-#      bounced = ab[0]
-#      correction = ab[1]
-#    end
-#
-#    if !allow_down && ab = test_aabb(@no_down_min, @no_down_max, player_min, player_max)
-#      bounced = ab[0]
-#      correction = ab[1]
-#    end
-#
-#    if @maze.exit == [px, py]
-#      @at_exit_time += delta_time
-#
-#      if @at_exit_time > 0.125
-#        return :restart
-#      end
-#    else
-#      @at_exit_time = 0.0
-#    end
-#
-#    if !player_at_shape 
-#      @player_velocity[0] = 0
-#      @player_velocity[2] = 0
-#    else
-#      if bounced
-#        line = nil
-#
-#        if bounced == :y
-#          @cool_down[0] = 0.0
-#          @player_position[0] += (correction * 2.0)
-#          line = [@lne_x1, @lne_y1, @lne_x2, @lne_y2]
-#        end
-#
-#        if bounced == :x
-#          @cool_down[1] = 0.0
-#          @player_position[2] += (correction * 2.0)
-#          line = [@lin_x1, @lin_y1, @lin_x2, @lin_y2]
-#        end
-#
-#        line_x1, line_y1, line_x2, line_y2 = line
-#
-#        normalY = line_x2 - line_x1
-#        normalX = line_y1 - line_y2
-#        normalLength = Math.sqrt(normalX * normalX + normalY * normalY)
-#        normalX = normalX / normalLength
-#        normalY = normalY / normalLength
-#        rayTipX = @player_velocity[0]
-#        rayTipY = @player_velocity[2]
-#        rayX = rayTipX
-#        rayY = rayTipY 
-#        dotProduct = (rayX * normalX) + (rayY * normalY)
-#        dotNormalX = dotProduct * normalX
-#        dotNormalY = dotProduct * normalY
-#        reflectedRayTipX = rayTipX - (dotNormalX * 2)
-#        reflectedRayTipY = rayTipY - (dotNormalY * 2)
-#        @player_velocity[0] = (reflectedRayTipX * rfx)
-#        @player_velocity[2] = (reflectedRayTipY * rfy)
-#      else
-#        @cool_down[0] += delta_time
-#        @cool_down[1] += delta_time
-#
-#        @player_position[0] = nx
-#        @player_position[2] = ny
-#      end
-#    end
+    got_lr = got_ud = false
+    player_at_shape = nil
+    at_left_right_limit = nil
+    at_up_down_limit = nil
+    player_min = player_max = [0, 0]
+    allow_up = false
+    allow_down = false
+    allow_left = false
+    allow_right = false
+    bounced = false
+    no_bounce_reset = 0
 
-#    @time_since_last_hop += delta_time
-#
-#    @player_velocity[1] -= gravity * delta_time
-#
-#    @player_position[1] += @player_velocity[1] * delta_time
-#
+    allow_up = false
+    allow_down = false
+    allow_left = false
+    allow_right = false
+
+    arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
+    speed = 4.0 * delta_time
+    friction_x = 5.0 #10.1 * @player_velocity[0]
+    friction_y = 5.0 #10.1 * @player_velocity[2]
+    max_v = 1.5
+    rfx = 1.0
+    rfy = 1.0
+    cool_down_t = 0.125
+    gravity = 12.0
+    hop_timeout = 0.3
+    hop_ratio = (@player_velocity[0].abs) + (@player_velocity[2].abs)
+    hop_speed = (0.3) + (Math.sqrt(hop_ratio) * 1.0)
+    did_hop = false
+
+    if @time_since_last_hop > hop_timeout
+      @time_since_last_hop = 0
+      @player_velocity[1] = hop_speed
+      did_hop = true
+      speed = speed * 15.0
+    end 
+
+      arrow_keys.each do |arrow_key|
+        case arrow_key
+          when KEY_W
+            if @cool_down[1] > cool_down_t
+              @time_since_last_input[1] = 0
+              @player_velocity[2] += speed
+              got_ud = true
+            end
+          when KEY_S
+            if @cool_down[1] > cool_down_t
+              @time_since_last_input[1] = 0
+              @player_velocity[2] -= speed
+              got_ud = true
+            end
+          when KEY_A
+            if @cool_down[0] > cool_down_t
+              @time_since_last_input[0] = 0
+              @player_velocity[0] += speed
+              got_lr = true
+            end
+          when KEY_D
+            if @cool_down[0] > cool_down_t
+              @time_since_last_input[0] = 0
+              @player_velocity[0] -= speed
+              got_lr = true
+            end
+        end
+      end
+
+      @time_since_last_input[0] += delta_time
+      @time_since_last_input[1] += delta_time
+
+    #if arrow_keys.count == 0
+    #  @player_velocity[0] = 0
+    #  @player_velocity[2] = 0
+    #end
+
+      if @player_velocity[2] > max_v
+        @player_velocity[2] = max_v
+      end
+
+      if @player_velocity[0] > max_v
+        @player_velocity[0] = max_v
+      end
+
+      if @player_velocity[0] < -max_v
+        @player_velocity[0] = -max_v
+      end
+
+      if @player_velocity[2] < -max_v
+        @player_velocity[2] = -max_v
+      end
+
+
+    #if @player_position[1] > (@floor_position)
+    #  friction_x = 0
+    #  friction_y = 0
+
+    @player_velocity[0] = @player_velocity[0] + (-friction_x * (@player_velocity[0]) * delta_time)
+    @player_velocity[2] = @player_velocity[2] + (-friction_y * (@player_velocity[2]) * delta_time)
+
+    #  nx = @player_position[0] + (@player_velocity[0] * delta_time)
+    #  ny = @player_position[2] + (@player_velocity[2] * delta_time)
+    #else
+
+    #@player_velocity[0] = (-friction_x * (@player_velocity[0]) * delta_time)
+    #@player_velocity[2] = (-friction_y * (@player_velocity[2]) * delta_time)
+
+    #  nx = @player_position[0] + (@player_velocity[0] * delta_time)
+    #  ny = @player_position[2] + (@player_velocity[2] * delta_time)
+    #  #nx = @player_position[0]
+    #  #ny = @player_position[2]
+    #end
+
+    nx = @player_position[0] + (@player_velocity[0] * delta_time)
+    ny = @player_position[2] + (@player_velocity[2] * delta_time)
+
+    px = ((nx - 0).round)
+    py = ((ny - 0).round)
+
+    if px >= 0 && px < @maze_s && py >= 0 && py < @maze_s
+      player_at_shape_cell = @maze[px.to_i, py.to_i]
+      player_at_shape = @shape_translate_table[(player_at_shape_cell & Theseus::Maze::PRIMARY)]
+    end
+
+    case player_at_shape
+      when 0
+        allow_up = allow_down = allow_left = allow_right = true
+      when 1
+        allow_down = allow_left = allow_right = true
+      when 2
+        allow_up = allow_left = allow_right = true
+      when 3
+        allow_up = allow_down = allow_left = true
+      when 4
+        allow_up = allow_down = allow_right = true
+      when 5
+        allow_right = true
+      when 6
+        allow_left = true
+      when 7
+        allow_up = true
+      when 8
+        allow_down = true
+      when 9
+        allow_down = allow_up = true
+        #includes left right crossing bits
+      when 10
+        allow_left = allow_right = true
+      when 11
+        allow_up = allow_left = true
+      when 12
+        allow_down = allow_left = true
+      when 13
+        allow_down = allow_right = true
+      when 14
+        allow_right = true
+        allow_up = true
+    end
+
+    at_left_right_limit = ((nx - px))
+    at_up_down_limit = ((ny - py))
+
+    player_min = [at_left_right_limit + 0.05, at_up_down_limit + 0.05]
+    player_max = [at_left_right_limit - 0.05, at_up_down_limit - 0.05]
+
+    bounced = false
+    correction = 0
+
+    if ab = test_aabb(@top_left_min, @top_left_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if ab = test_aabb(@bottom_left_min, @bottom_left_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if ab = test_aabb(@bottom_right_min, @bottom_right_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if ab = test_aabb(@top_right_min, @top_right_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if !allow_left && ab = test_aabb(@no_left_min, @no_left_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if !allow_right && ab = test_aabb(@no_right_min, @no_right_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if !allow_up && ab = test_aabb(@no_up_min, @no_up_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if !allow_down && ab = test_aabb(@no_down_min, @no_down_max, player_min, player_max)
+      bounced = ab[0]
+      correction = ab[1]
+    end
+
+    if @maze.exit == [px, py]
+      @at_exit_time += delta_time
+
+      if @at_exit_time > 0.125
+        return :restart
+      end
+    else
+      @at_exit_time = 0.0
+    end
+
+    if !player_at_shape 
+      @player_velocity[0] = 0
+      @player_velocity[2] = 0
+    else
+      if bounced
+        line = nil
+
+        if bounced == :y
+          @cool_down[0] = 0.0
+          #TODOOO
+          @player_position[0] += (correction * 2.0)
+          line = [@lne_x1, @lne_y1, @lne_x2, @lne_y2]
+        end
+
+        if bounced == :x
+          @cool_down[1] = 0.0
+          #TODOO
+          @player_position[2] += (correction * 2.0)
+          line = [@lin_x1, @lin_y1, @lin_x2, @lin_y2]
+        end
+
+        line_x1, line_y1, line_x2, line_y2 = line
+
+        normalY = line_x2 - line_x1
+        normalX = line_y1 - line_y2
+        normalLength = Math.sqrt(normalX * normalX + normalY * normalY)
+        normalX = normalX / normalLength
+        normalY = normalY / normalLength
+        rayTipX = @player_velocity[0]
+        rayTipY = @player_velocity[2]
+        rayX = rayTipX
+        rayY = rayTipY 
+        dotProduct = (rayX * normalX) + (rayY * normalY)
+        dotNormalX = dotProduct * normalX
+        dotNormalY = dotProduct * normalY
+        reflectedRayTipX = rayTipX - (dotNormalX * 2)
+        reflectedRayTipY = rayTipY - (dotNormalY * 2)
+        @player_velocity[0] = (reflectedRayTipX * rfx)
+        @player_velocity[2] = (reflectedRayTipY * rfy)
+      else
+        @cool_down[0] += delta_time
+        @cool_down[1] += delta_time
+
+        @player_position[0] = nx
+        @player_position[2] = ny
+      end
+    end
+
+    @time_since_last_hop += delta_time
+
+    #@player_velocity[1] -= gravity * delta_time
+
+    #@player_position[1] += @player_velocity[1] * delta_time
+
 #    if @player_position[1] <= @floor_position
 #      @player_velocity[1] = 0
 #      @player_position[1] = @floor_position
@@ -462,131 +519,81 @@ class MazeGame
   end
 end
 
-Wkndr.camp {}
+Wkndr.nonce {
+  Wkndr.client_side { |gl|
+    gl.open_default_view!
 
-Wkndr.play { |gl|
-  srand(7)
+    @start_game_proc = Proc.new {
+      @maze_level ||= 0
+      @maze_level += 1
+      @maze_game = MazeGame.new(@maze_level)
+    }
 
-  shapes = {}
-  shape_translate_table = {}
-
-  16.times { |i|
-    ii = begin
-      case i
-        when 1
-          8
-        when 2
-          7
-        when 3
-          9
-        when 4
-          6
-        when 5
-          12
-        when 6
-          11
-        when 7
-          3
-        when 8
-          5
-        when 9
-          13
-        when 10
-          14
-        when 11
-          4
-        when 12
-          10
-        when 13
-          1
-        when 14
-          2
-        when 15
-          0
-      else
-        nil
-      end
-    end
-    
-    if ii
-      shape_translate_table[i] = ii
-      shape_file = "resources/shape-#{ii}.obj"
-      shapes[i] = Model.new(shape_file, "", 1.0)
-    end
+    @start_game_proc.call
   }
+}
 
-  size = 0.1
-  #cube = Cube.new(size, size, size, 1.0)
-
-  chicken_file = "resources/ayam4.obj"
-  cube = Model.new(chicken_file, "", 0.1)
-
-  gl.event { |typed_msg|
-    #total_msg += 1
-  }
-
-  maze_level = 0
-  maze_game = MazeGame.new(cube, shapes, shape_translate_table, maze_level += 1)
+Wkndr.client_side { |gl|
 
   gl.update { |global_time, delta_time|
     gl.drawmode {
       gl.threed {
-        case maze_game.update_and_draw_threed(gl, global_time, delta_time)
+        case @maze_game.update_and_draw_threed(gl, global_time, delta_time)
           when :restart
-            maze_game = MazeGame.new(cube, shapes, shape_translate_table, maze_level += 1)
+            @start_game_proc.call
         end
       }
 
-      gl.twod {
-        gl.draw_fps(0, 0)
+      #gl.twod {
+      #  gl.draw_fps(0, 0)
 
-        #maze_game.update_and_draw_twod(glm global_time, delta_time)
+      #  #@maze_game.update_and_draw_twod(gl, global_time, delta_time)
 
-        #gl.button(50.0, 50.0, 250.0, 20.0, "maze #{px} #{py} #{player_at_shape}") {
-        #}
+      #  #gl.button(50.0, 50.0, 250.0, 20.0, "maze #{px} #{py} #{player_at_shape}") {
+      #  #}
 
-        #gl.button(50.0, 50.0, 250.0, 20.0, "maze") {
-        #  gl.emit({"x" => "y"})
-        #  enforce_bounds = !enforce_bounds
+      #  #gl.button(50.0, 50.0, 250.0, 20.0, "maze") {
+      #  #  gl.emit({"x" => "y"})
+      #  #  enforce_bounds = !enforce_bounds
 
-        #aax = (player_min[0] - player_max[0]) * 150.0
-        #aay = (player_min[1] - player_max[1]) * 150.0
+      #  #aax = (player_min[0] - player_max[0]) * 150.0
+      #  #aay = (player_min[1] - player_max[1]) * 150.0
 
-        #gl.button(150.0 - (at_left_right_limit * 100.0) - (aax / 2.0), 150.0 - (at_up_down_limit * 100.0) - (aay / 2.0), aax, aay, "") {
-        #}
+      #  #gl.button(150.0 - (at_left_right_limit * 100.0) - (aax / 2.0), 150.0 - (at_up_down_limit * 100.0) - (aay / 2.0), aax, aay, "") {
+      #  #}
 
-        #gl.button(150.0 - (top_left_min[0] * 100), 150.0 - (top_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-        #}
+      #  #gl.button(150.0 - (top_left_min[0] * 100), 150.0 - (top_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+      #  #}
 
-        #gl.button(150.0 - (bottom_left_min[0] * 100), 150.0 - (bottom_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-        #}
+      #  #gl.button(150.0 - (bottom_left_min[0] * 100), 150.0 - (bottom_left_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+      #  #}
 
-        #gl.button(150.0 - (top_right_min[0] * 100), 150.0 - (top_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-        #}
+      #  #gl.button(150.0 - (top_right_min[0] * 100), 150.0 - (top_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+      #  #}
 
-        #gl.button(150.0 - (bottom_right_min[0] * 100), 150.0 - (bottom_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
-        #}
+      #  #gl.button(150.0 - (bottom_right_min[0] * 100), 150.0 - (bottom_right_min[1] * 100.0), 1.0 * 100.0, 1.0 * 100.0, "") {
+      #  #}
 
-        #unless allow_left
-        #  gl.button(150.0 - (no_left_min[0] * 100), 150.0 - (no_left_min[1] * 100.0), 1.0 * 100.0, 0.2 * 100.0, "") {
-        #  }
-        #end
+      #  #unless allow_left
+      #  #  gl.button(150.0 - (no_left_min[0] * 100), 150.0 - (no_left_min[1] * 100.0), 1.0 * 100.0, 0.2 * 100.0, "") {
+      #  #  }
+      #  #end
 
-        #unless allow_right
-        #  gl.button(150.0 - (no_right_min[0] * 100), 150.0 - (no_right_min[1] * 100.0), 1.0 * 100.0, 0.2 * 100.0, "") {
-        #  }
-        #end
+      #  #unless allow_right
+      #  #  gl.button(150.0 - (no_right_min[0] * 100), 150.0 - (no_right_min[1] * 100.0), 1.0 * 100.0, 0.2 * 100.0, "") {
+      #  #  }
+      #  #end
 
-        #unless allow_up
-        #  gl.button(150.0 - (no_up_min[0] * 100), 150.0 - (no_up_min[1] * 100.0), 0.2 * 100.0, 1.0 * 100.0, "") {
-        #  }
-        #end
+      #  #unless allow_up
+      #  #  gl.button(150.0 - (no_up_min[0] * 100), 150.0 - (no_up_min[1] * 100.0), 0.2 * 100.0, 1.0 * 100.0, "") {
+      #  #  }
+      #  #end
 
-        #unless allow_down
-        #  gl.button(150.0 - (no_down_min[0] * 100), 150.0 - (no_down_min[1] * 100.0), 0.2 * 100.0, 1.0 * 100.0, "") {
-        #  }
-        #end
-      }
+      #  #unless allow_down
+      #  #  gl.button(150.0 - (no_down_min[0] * 100), 150.0 - (no_down_min[1] * 100.0), 0.2 * 100.0, 1.0 * 100.0, "") {
+      #  #  }
+      #  #end
+      #}
     }
   }
 }
