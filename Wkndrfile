@@ -214,8 +214,8 @@ class MazeGame
 
     arrow_keys = gl.keyspressed(KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN)
     speed = 5.0 * delta_time
-    friction_x = speed * 1.1 #.5 * delta_time
-    friction_y = speed * 1.0 #4.5 * delta_time
+    friction_x = speed * 1000000.1 * delta_time
+    friction_y = speed * 1000000.1 * delta_time
     max_v = 0.5
     rfx = 1.0
     rfy = 1.0
